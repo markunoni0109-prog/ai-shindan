@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>診断結果 | AI人生パターン完全分析レポート</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+  :root {
+    --black: #0a0a0a;
+    --white: #fafafa;
+    --accent: #c8a96e;
+    --accent-light: #e8d5a3;
+    --gray: #888;
+    --card-bg: #141414;
+    --border: #2a2a2a;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--black);
+    color: var(--white);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  nav {
+    padding: 20px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 13px;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+  }
+
+  .hero {
+    padding: 80px 24px 60px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 50% at 50% 50%, rgba(200,169,110,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.5em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .hero-title {
+    font-family: 'Noto Serif JP', serif;
+    font-size: clamp(28px, 6vw, 52px);
+    font-weight: 900;
+    line-height: 1.3;
+    margin-bottom: 16px;
+  }
+  .hero-title span { color: var(--accent); }
+  .hero-sub {
+    font-size: 15px;
+    color: #aaa;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* TYPE BADGE */
+  .type-section {
+    padding: 64px 24px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .type-badge {
+    display: inline-block;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    padding: 6px 20px;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+  }
+  .type-name {
+    font-family: 'Noto Serif JP', serif;
+    font-size: clamp(36px, 8vw, 72px);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 24px;
+  }
+  .type-desc {
+    font-size: 16px;
+    color: #bbb;
+    max-width: 520px;
+    margin: 0 auto;
+    line-height: 1.9;
+  }
+
+  /* REPORT SECTIONS */
+  .report-section {
+    padding: 64px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .report-label {
+    font-size: 10px;
+    letter-spacing: 0.5em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .report-title {
+    font-family: 'Noto Serif JP', serif;
+    font-size: clamp(20px, 4vw, 32px);
+    font-weight: 900;
+    line-height: 1.4;
+    margin-bottom: 28px;
+  }
+  .report-text {
+    font-size: 15px;
+    color: #ccc;
+    line-height: 1.95;
+    margin-bottom: 20px;
+  }
+  .report-text strong {
+    color: var(--white);
+    font-weight: 700;
+  }
+
+  /* HIGHLIGHT BOX */
+  .highlight-box {
+    background: var(--card-bg);
+    border-left: 3px solid var(--accent);
+    padding: 24px 28px;
+    margin: 32px 0;
+    font-size: 15px;
+    color: #ddd;
+    line-height: 1.85;
+  }
+
+  /* ACTION PLAN */
+  .action-list {
+    list-style: none;
+    margin: 32px 0;
+  }
+  .action-item {
+    display: flex;
+    gap: 20px;
+    padding: 24px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: flex-start;
+  }
+  .action-item:last-child { border-bottom: none; }
+  .action-num {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 32px;
+    font-weight: 900;
+    color: var(--accent);
+    line-height: 1;
+    min-width: 40px;
+  }
+  .action-title {
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 8px;
+    color: var(--white);
+  }
+  .action-desc {
+    font-size: 14px;
+    color: #aaa;
+    line-height: 1.8;
+  }
+
+  /* ROADMAP */
+  .roadmap {
+    margin: 32px 0;
+  }
+  .roadmap-item {
+    display: flex;
+    gap: 20px;
+    padding: 20px 0;
+    position: relative;
+  }
+  .roadmap-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 48px;
+    bottom: 0;
+    width: 1px;
+    background: var(--border);
+  }
+  .roadmap-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--card-bg);
+    border: 2px solid var(--accent);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    position: relative;
+    z-index: 1;
+  }
+  .roadmap-period {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .roadmap-title {
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 6px;
+  }
+  .roadmap-desc {
+    font-size: 13px;
+    color: #aaa;
+    line-height: 1.75;
+  }
+
+  /* CTA */
+  .cta-section {
+    padding: 80px 24px;
+    text-align: center;
+    background: #0d0d0d;
+  }
+  .cta-title {
+    font-family: 'Noto Serif JP', serif;
+    font-size: clamp(22px, 4vw, 36px);
+    font-weight: 900;
+    margin-bottom: 20px;
+    line-height: 1.4;
+  }
+  .cta-desc {
+    font-size: 15px;
+    color: #aaa;
+    margin-bottom: 40px;
+    line-height: 1.85;
+  }
+  .btn-cta {
+    display: inline-block;
+    background: var(--accent);
+    color: var(--black);
+    font-size: 15px;
+    font-weight: 700;
+    padding: 18px 48px;
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    transition: all 0.2s;
+  }
+  .btn-cta:hover { background: var(--accent-light); }
+
+  footer {
+    padding: 40px 24px;
+    text-align: center;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--gray);
+    letter-spacing: 0.1em;
+  }
+
+  @media (max-width: 600px) {
+    nav { padding: 16px 20px; }
+    .report-section { padding: 48px 20px; }
+    .action-item { flex-direction: column; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Pattern — Complete Report</div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">AI Pattern Analysis — Full Report</div>
+  <h1 class="hero-title">あなたの<span>完全分析</span>レポート</h1>
+  <p class="hero-sub">このレポートには、あなたが結果を出せない根本原因と、今日から変えられる行動プランが記載されています。</p>
+</div>
+
+<!-- TYPE -->
+<div class="type-section">
+  <div class="container">
+    <div class="type-badge">Your Type</div>
+    <div class="type-name" id="result-type">完璧主義型</div>
+    <p class="type-desc" id="result-summary">準備を徹底してから動こうとするため、スタートが遅くなりがちなパターンです。「まだ足りない」という感覚が、実は行動を止めるブレーキになっています。</p>
+  </div>
+</div>
+
+<!-- FAILURE PATTERN -->
+<div class="report-section">
+  <div class="container">
+    <div class="report-label">Section 01 — Failure Pattern</div>
+    <h2 class="report-title" id="fp-title">あなたが陥る失敗パターン</h2>
+    <p class="report-text" id="fp-text1"></p>
+    <div class="highlight-box" id="fp-highlight"></div>
+    <p class="report-text" id="fp-text2"></p>
+  </div>
+</div>
+
+<!-- PSYCHOLOGY -->
+<div class="report-section" style="background:#0d0d0d;">
+  <div class="container">
+    <div class="report-label">Section 02 — Psychology</div>
+    <h2 class="report-title">このパターンが生まれた心理的背景</h2>
+    <p class="report-text" id="ps-text1"></p>
+    <p class="report-text" id="ps-text2"></p>
+  </div>
+</div>
+
+<!-- ACTION PLAN -->
+<div class="report-section">
+  <div class="container">
+    <div class="report-label">Section 03 — Action Plan</div>
+    <h2 class="report-title">今日から実行できる<br>3つの行動改善プラン</h2>
+    <ul class="action-list" id="action-list"></ul>
+  </div>
+</div>
+
+<!-- ROADMAP -->
+<div class="report-section" style="background:#0d0d0d;">
+  <div class="container">
+    <div class="report-label">Section 04 — Roadmap</div>
+    <h2 class="report-title">変わるための<br>具体的ロードマップ</h2>
+    <div class="roadmap" id="roadmap"></div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-section">
+  <div class="container">
+    <h2 class="cta-title">次のステップは<br>個別AI相談です</h2>
+    <p class="cta-desc">あなたのパターンをさらに深く分析し、<br>専用の行動プランを一緒に作ります。</p>
+    <a href="#" class="btn-cta">個別AI相談を予約する →</a>
+  </div>
+</div>
+
+<footer>
+  © 2024 AI人生パターン診断 — Pattern Analysis Service
+</footer>
+
+<script>
+  // URLパラメータからタイプを取得（なければデフォルト）
+  const params = new URLSearchParams(window.location.search);
+  const typeKey = params.get('type') || 'perfectionist';
+
+  const types = {
+    perfectionist: {
+      name: '完璧主義型',
+      summary: '準備を徹底してから動こうとするため、スタートが遅くなりがちなパターンです。「まだ足りない」という感覚が、実は行動を止めるブレーキになっています。',
+      fp_title: 'あなたが繰り返す「準備地獄」の罠',
+      fp_text1: '完璧主義型の最大の失敗は、<strong>「完璧な計画を立てること」が目的にすり替わってしまうこと</strong>です。計画を練っている間は「前進している感覚」があるため、実行しなくても満足してしまいます。',
+      fp_highlight: 'あなたは「準備が整ったら動く」と思っています。しかし実際には、準備が整う日は永遠に来ません。完璧な準備とは幻想であり、あなたの脳が「失敗への恐怖」を回避するために作り出したものです。',
+      fp_text2: 'この罠にはまると、数ヶ月後も「まだ準備中」のまま時間だけが過ぎていきます。周囲が先に進む中、自分だけが取り残された感覚に陥り、さらに完璧を求めるという悪循環に入ります。',
+      ps_text1: '完璧主義は多くの場合、<strong>過去の失敗体験や批判された経験</strong>から生まれます。「失敗したくない」「批判されたくない」という防衛本能が、行動する前に過剰な準備を求めます。',
+      ps_text2: 'これは性格の問題ではなく、<strong>脳の防衛システムが誤作動している状態</strong>です。本来は危険から身を守るために機能するこのシステムが、「行動すること自体」を危険と判断してしまっています。',
+      actions: [
+        { title: '「60点で動く」ルールを設定する', desc: '完璧でなくても60点の完成度で動き始めることを自分に許可してください。残りの40点は動きながら改善できます。まず1つ、今日中に「60点」で完了させてみてください。' },
+        { title: '行動の締め切りを先に決める', desc: '「準備ができたら動く」ではなく「〇月〇日に動く」と先に決めます。締め切りを設定すると、脳は自動的に「その日までに間に合う準備」だけを選ぶようになります。' },
+        { title: '小さな失敗を意図的に経験する', desc: '毎日1つ「完璧でない状態で何かをする」練習をしてください。例えば、推敲なしでメッセージを送る、下書きなしで発言する。小さな失敗が「失敗は大丈夫」という実感を積み重ねます。' }
+      ],
+      roadmap: [
+        { period: '今日〜1週間', title: '60点行動を1つ実行する', desc: '完璧でなくていい。まず動くことで「行動しても大丈夫」という体験を積む。' },
+        { period: '1週間〜1ヶ月', title: '締め切り設定の習慣化', desc: '全ての行動に「いつまでにやる」を設定。準備期間を強制的に限定する。' },
+        { period: '1〜3ヶ月', title: 'フィードバックループを作る', desc: '動いた結果を記録し、「失敗しても修正できる」という証拠を積み重ねる。' },
+        { period: '3ヶ月以降', title: '行動が先、改善が後の習慣が定着', desc: '完璧主義のブレーキが外れ、スタートの速さが武器になっていく。' }
+      ]
+    },
+    burnout: {
+      name: '完燃型',
+      summary: 'スタートは誰よりも速く、エネルギーも高い。しかし燃え尽きるのも早く、継続が課題のパターンです。',
+      fp_title: 'あなたが繰り返す「全力スタート→燃え尽き」の罠',
+      fp_text1: '完燃型の最大の失敗は、<strong>最初に全エネルギーを使い切ってしまうこと</strong>です。高いモチベーションで一気に動くため、数週間後には完全に燃え尽きてしまいます。',
+      fp_highlight: 'あなたは「やる気があるうちにやらなければ」と感じています。しかしこの思考パターン自体が、長期的な継続を妨げています。成果は「やる気の総量」ではなく「継続した日数」で決まります。',
+      fp_text2: '燃え尽きた後は自己嫌悪に陥り、また次の「やる気スイッチ」が入るまで動けなくなります。この波のサイクルが繰り返され、結果として何も完成しない状態が続きます。',
+      ps_text1: '完燃型のパターンは、<strong>即時報酬を求める脳の特性</strong>と深く関係しています。新しいことを始める興奮が大きいほど、その反動も大きくなります。',
+      ps_text2: '「やる気があるときに最大限やる」という戦略は短距離走では有効ですが、<strong>人生の目標はマラソン</strong>です。ペース配分を学ぶことが根本的な解決策になります。',
+      actions: [
+        { title: '「7割の力」でスタートする', desc: '始める時に意図的に力を抑えてください。全力の7割で動くことで、継続できる体力を残します。物足りないくらいがちょうどいい。' },
+        { title: '毎日の「最小行動」を決める', desc: '調子が悪い日でも必ずできる最小限の行動を決めてください。例：毎日5分だけ。この最小行動を守ることで、リズムが生まれます。' },
+        { title: '休息を「サボり」ではなく「戦略」と捉える', desc: '休む日を意図的にスケジュールに入れてください。休息は燃え尽きを防ぐための積極的な戦略です。' }
+      ],
+      roadmap: [
+        { period: '今日〜1週間', title: '最小行動を決めて毎日実行', desc: '5分でもいい。毎日続けることの体験を積む。' },
+        { period: '1週間〜1ヶ月', title: '力の配分を意識する', desc: '全力を出したい衝動を7割に抑える練習をする。' },
+        { period: '1〜3ヶ月', title: '継続記録をつける', desc: '続けた日数が見えることで、継続自体が報酬になる。' },
+        { period: '3ヶ月以降', title: '安定したペースで成果が出始める', desc: '波のないコンスタントな前進が結果につながっていく。' }
+      ]
+    },
+    default: {
+      name: '目標霧型',
+      summary: '何をしたいのかわからないまま動いているパターンです。方向が定まっていないため、どれだけ動いても前進している感覚が得られません。',
+      fp_title: 'あなたが繰り返す「目的地なし」の罠',
+      fp_text1: '目標霧型の最大の失敗は、<strong>「何かしなければ」という焦りだけで動いてしまうこと</strong>です。目的地が決まっていない移動は、どれだけ走っても到着できません。',
+      fp_highlight: '「自分が何をしたいのかわからない」という状態は、怠慢ではありません。現代社会の情報過多の中で、自分の本音が見えにくくなっている状態です。整理する時間と方法が必要なだけです。',
+      fp_text2: 'SNSで他人の成功を見て焦り、流行りのことに手を出しては続かない。このパターンを繰り返すうちに「自分には何もできない」という誤った自己認識が強まっていきます。',
+      ps_text1: '目標が霧がかかっているのは、<strong>他人の価値観と自分の価値観が混在している</strong>からです。「こうあるべき」という外からの声が大きすぎて、自分の内なる声が聞こえなくなっています。',
+      ps_text2: 'これは感受性が高く、周囲への適応力がある人に多いパターンです。<strong>その敏感さは武器</strong>ですが、まず自分の軸を見つけることが最優先課題です。',
+      actions: [
+        { title: '「楽しかった記憶」を10個書き出す', desc: '過去に純粋に楽しかったこと、時間を忘れて没頭したことを書き出してください。そこに本来の自分の興味が隠れています。' },
+        { title: '「やらないこと」を決める', desc: 'やりたいことを探すより、やりたくないことを明確にする方が早い。「これだけはやりたくない」リストを作ると、自分の価値観が浮かび上がります。' },
+        { title: '週1回「一人時間」を確保する', desc: 'SNSを見ない時間を週1時間作ってください。外からの情報を遮断することで、内なる声が聞こえるようになります。' }
+      ],
+      roadmap: [
+        { period: '今日〜1週間', title: '楽しかった記憶の棚卸し', desc: '過去の自分が何に喜びを感じていたか記録する。' },
+        { period: '1週間〜1ヶ月', title: 'やらないことリストを作る', desc: '自分の価値観の輪郭を「否定」から明確にする。' },
+        { period: '1〜3ヶ月', title: '小さく試す', desc: '気になることを1週間だけ試す。続けたいかどうか判断する。' },
+        { period: '3ヶ月以降', title: '方向が定まり、行動に迷いがなくなる', desc: '「なんとなく動く」から「意図して動く」へシフトする。' }
+      ]
+    }
+  };
+
+  // タイプデータを取得（存在しなければdefault）
+  const data = types[typeKey] || types['default'];
+
+  // ページに反映
+  document.getElementById('result-type').textContent = data.name;
+  document.getElementById('result-summary').textContent = data.summary;
+  document.getElementById('fp-title').textContent = data.fp_title;
+  document.getElementById('fp-text1').innerHTML = data.fp_text1;
+  document.getElementById('fp-highlight').textContent = data.fp_highlight;
+  document.getElementById('fp-text2').textContent = data.fp_text2;
+  document.getElementById('ps-text1').innerHTML = data.ps_text1;
+  document.getElementById('ps-text2').innerHTML = data.ps_text2;
+
+  // アクションプラン
+  const actionList = document.getElementById('action-list');
+  data.actions.forEach((a, i) => {
+    actionList.innerHTML += `
+      <li class="action-item">
+        <div class="action-num">0${i+1}</div>
+        <div>
+          <div class="action-title">${a.title}</div>
+          <div class="action-desc">${a.desc}</div>
+        </div>
+      </li>`;
+  });
+
+  // ロードマップ
+  const roadmap = document.getElementById('roadmap');
+  data.roadmap.forEach((r, i) => {
+    roadmap.innerHTML += `
+      <div class="roadmap-item">
+        <div class="roadmap-dot">${i+1}</div>
+        <div>
+          <div class="roadmap-period">${r.period}</div>
+          <div class="roadmap-title">${r.title}</div>
+          <div class="roadmap-desc">${r.desc}</div>
+        </div>
+      </div>`;
+  });
+</script>
+</body>
+</html>
