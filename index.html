@@ -541,6 +541,7 @@
   <div class="section-inner">
     <div class="section-label">How it works</div>
     <h2 class="section-title">3問で、あなたの<br>行動パターンがわかる</h2>
+    <p style="font-size:13px;color:var(--accent);margin-bottom:32px;letter-spacing:0.05em;">※ このテストは、最も影響の大きい"行動の引き金"3つに絞って分析しています</p>
     <div class="steps">
       <div class="step">
         <div class="step-num">01</div>
@@ -659,11 +660,12 @@
       <a href="#paywall" class="btn-primary" style="display:inline-block">失敗パターンを確認する（今だけ500円）→</a>
       <p style="margin-top:16px;font-size:12px;color:var(--gray)">見ないままにすると、また同じことを繰り返します</p>
     </div>
+    <p id="quiz-locked-msg" style="text-align:center;color:var(--gray);font-size:13px;margin-top:32px;letter-spacing:0.05em;">※3問すべて回答すると結果が表示されます</p>
   </div>
 </section>
 
 <!-- SAMPLE -->
-<section class="sample-section">
+<section class="sample-section" id="locked-area" style="display:none;">
   <div class="section-inner">
     <div class="section-label">Sample Result</div>
     <h2 class="section-title">診断結果のサンプル</h2>
@@ -681,7 +683,7 @@
 </section>
 
 <!-- PAYWALL -->
-<section id="paywall">
+<section id="paywall" style="display:none;">
   <div class="paywall-inner">
     <div class="paywall-warning">⚠ ここから先は、あなたの「失敗パターン」です</div>
     <h2 class="section-title" style="text-align:center">知らないままでいると、<br>5年後も繰り返します。</h2>
@@ -697,7 +699,7 @@
         <li>今日から実行できる3つの行動改善プラン</li>
         <li>同タイプが変わるための具体的なロードマップ</li>
       </ul>
-      <a href="https://buy.stripe.com/8x2cN52Ox25Vh0agH65Rm01" class="btn-buy">
+      <a href="https://buy.stripe.com/8x2cN52Ox25Vh0agH65Rm01" target="_blank" class="btn-buy">
         今すぐ分析を受け取る（今だけ500円）→
       </a>
       <p class="buy-note">クレジットカード・各種決済対応 ／ 即時配信</p>
@@ -768,6 +770,12 @@
 
     document.querySelectorAll('.question-card').forEach(c => c.classList.remove('active'));
     document.getElementById('quiz-result').classList.add('active');
+
+    // 有料エリアを表示
+    document.getElementById('locked-area').style.display = '';
+    document.getElementById('paywall').style.display = '';
+    // メッセージを非表示
+    document.getElementById('quiz-locked-msg').style.display = 'none';
   }
 </script>
 </body>
