@@ -657,8 +657,29 @@
     <div id="quiz-result">
       <div class="result-type-label">Your Pattern Type</div>
       <div class="result-type-name" id="result-type-name">完璧主義型</div>
-      <p class="result-desc" id="result-desc">準備を徹底してから動こうとするため、スタートが遅くなりやすいパターンです。</p>
-      <p class="result-warning">ここから先は、あなたの「失敗パターンの核心」です。<br>知らないままでいる限り、同じ結果を繰り返します。</p>
+
+      <!-- あるある -->
+      <div id="result-aru" style="background:var(--card-bg);border-left:3px solid var(--accent);padding:20px 24px;margin:24px 0;text-align:left;">
+        <p style="font-size:11px;letter-spacing:0.3em;color:var(--accent);margin-bottom:12px;">こんな経験、ありませんか？</p>
+        <ul id="result-aru-list" style="list-style:none;font-size:14px;color:#ccc;line-height:2;"></ul>
+      </div>
+
+      <!-- 原因 -->
+      <p class="result-desc" id="result-desc"></p>
+
+      <!-- 区切り -->
+      <p style="font-size:14px;color:var(--white);font-weight:700;margin:28px 0 8px;">今変えなければ、この状態はそのまま続きます。</p>
+
+      <!-- ロック -->
+      <div style="background:var(--card-bg);border:1px solid var(--border);padding:20px 24px;margin:16px 0 28px;text-align:left;">
+        <p style="font-size:13px;color:var(--gray);line-height:2;">
+          🔒 本当の原因（深掘り）<br>
+          🔒 具体的な改善方法<br>
+          🔒 今日から使える行動ルール
+        </p>
+      </div>
+
+      <p class="result-warning">ここから先が、あなたの「失敗パターンの核心」です。</p>
       <a href="#paywall" class="btn-primary" style="display:inline-block">失敗パターンを確認する（今だけ500円）→</a>
       <p style="margin-top:16px;font-size:12px;color:var(--gray)">見ないままにすると、また同じことを繰り返します</p>
     </div>
@@ -721,14 +742,46 @@
 
   // タイプ判定ロジック
   const typeMap = {
-    'yes-yes-yes': { name: '爆発潜在型', desc: '行動力も回復力もある。あとは正しい方向に力を向けるだけで結果が変わります。' },
-    'yes-yes-no':  { name: '完燃型',     desc: 'スタートは最速。でも継続に課題があります。燃え尽きる前に仕組みを作ることが鍵です。' },
-    'yes-no-yes':  { name: '衝動分散型', desc: '動き出す力はある。でも感情の揺れに引きずられやすいパターンです。' },
-    'yes-no-no':   { name: '衝動分散型', desc: '熱しやすく冷めやすい。エネルギーを一点集中させる仕組みが必要です。' },
-    'no-yes-yes':  { name: '惰性継続型', desc: '切り替えは得意。でも最初の一歩が重い。小さな行動設計が突破口になります。' },
-    'no-yes-no':   { name: '承認依存型', desc: '気持ちの切り替えはできる。でも「始める」ことへのブレーキが強いパターンです。' },
-    'no-no-yes':   { name: '完璧主義型', desc: '始めることはできる。でも失敗への恐れが足を引っ張るパターンです。' },
-    'no-no-no':    { name: '目標霧型',   desc: '何から手をつければいいかわからない。まず「方向」を定めることが先決です。' },
+    'yes-yes-yes': {
+      name: '爆発潜在型',
+      aru: ['やると決めたら誰よりも早く動ける', '一度うまくいくと連続して成果が出る', 'でも「方向」が合っていないと全部空振りになる'],
+      desc: '行動力も回復力もある。ただ、力の向け先が定まっていないため、頑張るほど疲弊するパターンです。'
+    },
+    'yes-yes-no': {
+      name: '完燃型',
+      aru: ['始めた直後は誰よりも熱量がある', '数週間後には急に冷めて手が止まる', '「また途中でやめた」という罪悪感が積み重なっている'],
+      desc: 'スタートは最速。でもエネルギーを一気に使い切るため、継続できません。やる気ではなく「仕組み」が必要なパターンです。'
+    },
+    'yes-no-yes': {
+      name: '衝動分散型',
+      aru: ['気になったことにすぐ飛びつく', '感情が落ちると一気にやる気が消える', '並行して動いているものが多く、全部中途半端になっている'],
+      desc: '動き出す力はある。でも感情の波に行動が左右されるため、成果が安定しないパターンです。'
+    },
+    'yes-no-no': {
+      name: '衝動分散型',
+      aru: ['「これだ！」と思ったら即行動する', '熱が冷めると別のことが気になり始める', '気づけば何も完成していない'],
+      desc: '熱しやすく冷めやすい。エネルギーは十分あるのに、集中できないため結果に繋がらないパターンです。'
+    },
+    'no-yes-yes': {
+      name: '惰性継続型',
+      aru: ['やめる決断はできる、でも新しく始める一歩が重い', '今の状況に不満はあるが、変えるリスクが怖い', '「いつか変わる」と思いながら何年も経っている'],
+      desc: '切り替えは得意。でも最初の一歩が異常に重い。現状維持の安心感が、前進を止めているパターンです。'
+    },
+    'no-yes-no': {
+      name: '承認依存型',
+      aru: ['誰かに「いいね」と言われないと動けない', '反応がないと「やっぱり無駄だったか」と思う', '自分だけの判断で動いた経験がほとんどない'],
+      desc: '他者の評価が行動のスイッチになっているため、誰も見ていない場面では動けなくなるパターンです。'
+    },
+    'no-no-yes': {
+      name: '完璧主義型',
+      aru: ['「もう少し準備してから」と考えて動けない', '計画を立てることに満足して実行しない', '失敗するくらいならやらない、という感覚がある'],
+      desc: '始めることはできる。でも「失敗への恐れ」が準備という形を借りて行動を止めているパターンです。'
+    },
+    'no-no-no': {
+      name: '目標霧型',
+      aru: ['何をしたいのか、正直よくわからない', '他人の成功を見て焦るが、自分が何をすべきか見えない', '流行りのものを試しては「違う」と感じる繰り返し'],
+      desc: '方向が定まっていないため、どれだけ動いても前進している感覚が得られないパターンです。まず「方向」を決めることが先決です。'
+    },
   };
 
   function answer(q, val) {
@@ -771,6 +824,10 @@
 
     document.getElementById('result-type-name').textContent = type.name;
     document.getElementById('result-desc').textContent = type.desc;
+
+    // あるあるリスト表示
+    const aruList = document.getElementById('result-aru-list');
+    aruList.innerHTML = type.aru.map(a => `<li>・${a}</li>`).join('');
 
     document.querySelectorAll('.question-card').forEach(c => c.classList.remove('active'));
     document.getElementById('quiz-result').classList.add('active');
