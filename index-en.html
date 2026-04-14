@@ -144,6 +144,106 @@
   .btn-buy:hover { background: var(--accent-hover); transform: translateY(-2px); }
   .buy-note { font-size: 11px; color: var(--gray); margin-top: 16px; letter-spacing: 0.05em; }
 
+  /* ─── RESULT REVEAL SCREEN ─── */
+  #result-reveal {
+    display: none;
+    padding: 80px 24px;
+    background: var(--white);
+    min-height: 100vh;
+  }
+  #result-reveal.active { display: block; }
+  .reveal-inner { max-width: 520px; margin: 0 auto; text-align: center; }
+  .reveal-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.4em;
+    padding: 6px 20px;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    border-radius: 2px;
+  }
+  .reveal-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(26px, 6vw, 42px);
+    font-weight: 900;
+    color: var(--navy);
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  .reveal-type-name {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(32px, 8vw, 56px);
+    font-weight: 900;
+    color: var(--accent);
+    line-height: 1.1;
+    margin-bottom: 32px;
+  }
+  .reveal-oneliner {
+    font-size: 16px;
+    color: var(--text);
+    line-height: 1.8;
+    margin-bottom: 40px;
+    padding: 20px 24px;
+    background: var(--bg-alt);
+    border-left: 4px solid var(--accent);
+    text-align: left;
+    font-style: italic;
+  }
+  .reveal-lock-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 24px 28px;
+    margin-bottom: 32px;
+    text-align: left;
+  }
+  .reveal-lock-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--gray);
+  }
+  .reveal-lock-item:last-child { border-bottom: none; }
+  .reveal-urgency {
+    font-size: 14px;
+    font-weight: 700;
+    color: #c0392b;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    padding: 14px 20px;
+    margin-bottom: 12px;
+    border-radius: 3px;
+  }
+  .reveal-sub-urgency {
+    font-size: 13px;
+    color: var(--text-sub);
+    margin-bottom: 28px;
+  }
+  .btn-reveal-cta {
+    display: block;
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    padding: 20px;
+    font-size: 17px;
+    font-weight: 700;
+    text-decoration: none;
+    text-align: center;
+    letter-spacing: 0.03em;
+    border-radius: 3px;
+    box-shadow: 0 4px 20px rgba(37,99,235,0.35);
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+  }
+  .btn-reveal-cta:hover { background: var(--accent-hover); transform: translateY(-2px); }
+  .reveal-footnote { font-size: 11px; color: var(--gray); margin-top: 14px; }
+
   footer { padding: 48px 24px; border-top: 1px solid var(--border); text-align: center; font-size: 12px; color: var(--gray); letter-spacing: 0.1em; background: var(--bg); }
   .footer-contact { margin-bottom: 8px; font-size: 13px; }
   .footer-contact a { color: var(--accent); text-decoration: none; font-weight: 600; }
@@ -317,6 +417,26 @@
   </div>
 </section>
 
+<!-- RESULT REVEAL SCREEN -->
+<div id="result-reveal">
+  <div class="reveal-inner">
+    <div class="reveal-badge">Analysis Complete</div>
+    <div class="reveal-headline">Your pattern has been identified.</div>
+    <div class="reveal-headline">You are —</div>
+    <div class="reveal-type-name" id="reveal-type-name"></div>
+    <div class="reveal-oneliner" id="reveal-oneliner"></div>
+    <div class="reveal-lock-box">
+      <div class="reveal-lock-item">🔒 The real root cause of your pattern</div>
+      <div class="reveal-lock-item">🔒 Why you keep repeating it</div>
+      <div class="reveal-lock-item">🔒 3 action rules to break it — starting today</div>
+    </div>
+    <div class="reveal-urgency">What comes next is the core of your failure pattern.</div>
+    <div class="reveal-sub-urgency">Leave it unknown, and you'll repeat it for years.</div>
+    <a href="#paywall" class="btn-reveal-cta" onclick="showPaywall()">See My Full Pattern ($4) →</a>
+    <p class="reveal-footnote">One-time · Money-back guarantee · Instant delivery</p>
+  </div>
+</div>
+
 <section class="sample-section" id="locked-area" style="display:none;">
   <div class="section-inner">
     <div class="section-label">Sample Result</div>
@@ -356,12 +476,12 @@
 </section>
 
 <footer>
-  <p class="footer-contact">📬 Questions? <a href="mailto:local.maps.jp@gmail.com">local.maps.jp@gmail.com</a></p>
+  <p class="footer-contact">📬 Questions? <a href="/cdn-cgi/l/email-protection#3d4e484d4d524f49135c544e555453595c537d5a505c5451135e5250"><span class="__cf_email__" data-cfemail="34474144445b46401a555d475c5d5a50555a745359555d581a575b59">[email&#160;protected]</span></a></p>
   <p class="footer-respond">We respond within 24 hours.</p>
   <p>© 2025 AI Pattern Lab — Behavior Pattern Analysis</p>
 </footer>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   const answers = {};
   const typeMap = {
     'yes-yes-yes': {
@@ -449,6 +569,18 @@
     document.getElementById('progress-pct').textContent = pct + '%';
   }
 
+  // ── ONE-LINER PER TYPE ──
+  const oneLiners = {
+    'The Latent Power':    'You have real potential. But without direction, effort becomes noise.',
+    'The Burnout':         'You start fast. You burn out faster. The finish line stays out of reach.',
+    'The Scatterer':       'You\'re always moving — but nothing ever gets finished.',
+    'The Drifter':         'You want to change. But the first step stays frozen.',
+    'The Approval Seeker': 'You\'re waiting for someone\'s permission to start. It\'s never coming.',
+    'The Perfectionist':   'You\'re "preparing." You\'ve been preparing for years.',
+    'The Lost One':        'You\'re moving. Just not toward anything.',
+    'The Comparer':        'Every time someone else succeeds, you stop.',
+  };
+
   function showResult() {
     document.getElementById('progress-fill').style.width = '100%';
     document.getElementById('progress-text').textContent = 'Done';
@@ -457,19 +589,32 @@
     const key = answers[1] + '-' + answers[2] + '-' + answers[3];
     const type = typeMap[key] || typeMap['no-no-no'];
 
+    // ── Show reveal screen ──
+    document.getElementById('quiz').style.display = 'none';
+    const reveal = document.getElementById('result-reveal');
+    reveal.classList.add('active');
+    document.getElementById('reveal-type-name').textContent = type.name;
+    document.getElementById('reveal-oneliner').textContent = oneLiners[type.name] || type.intro;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // ── Store for paywall ──
+    window._currentType = type;
+  }
+
+  function showPaywall() {
+    const type = window._currentType;
+    if (!type) return;
     document.getElementById('result-type-name').textContent = type.name;
     document.getElementById('result-intro').textContent = type.intro;
     document.getElementById('result-aru-list').innerHTML = type.aru.map(a => '<li>' + a + '</li>').join('');
     document.getElementById('result-mujun').innerHTML = type.mujun;
     document.getElementById('result-cause-text').textContent = type.cause;
     document.getElementById('result-psych').textContent = type.psych;
-
-    document.querySelectorAll('.question-card').forEach(c => c.classList.remove('active'));
     document.getElementById('quiz-result').classList.add('active');
-    document.getElementById('locked-area').style.display = '';
-    document.getElementById('paywall').style.display = '';
-    document.getElementById('quiz-locked-msg').style.display = 'none';
+    document.getElementById('locked-area').style.display = 'block';
+    document.getElementById('paywall').style.display = 'block';
   }
-</script>
-</body>
-</html>
+
+  // dummy for legacy reference
+  function _legacyShowResult() {
+    document.getElementById('qui
