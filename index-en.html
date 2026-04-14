@@ -368,24 +368,24 @@
     <div class="question-card active" id="q1">
       <p class="question-text">When you decided to do something,<br>did you actually start that same day?</p>
       <div class="choice-buttons">
-        <button class="choice-btn yes-btn" onclick="answer(1, 'yes')"><span class="choice-tag">YES</span>I went for it<br>right away</button>
-        <button class="choice-btn no-btn" onclick="answer(1, 'no')"><span class="choice-tag">NO</span>Still thinking<br>about it</button>
+        <button class="choice-btn yes-btn" onclick="answer(1, 'yes', this)"><span class="choice-tag">YES</span>I went for it<br>right away</button>
+        <button class="choice-btn no-btn" onclick="answer(1, 'no', this)"><span class="choice-tag">NO</span>Still thinking<br>about it</button>
       </div>
     </div>
 
     <div class="question-card" id="q2">
       <p class="question-text">When things went wrong,<br>did you bounce back quickly?</p>
       <div class="choice-buttons">
-        <button class="choice-btn yes-btn" onclick="answer(2, 'yes')"><span class="choice-tag">YES</span>Shook it off<br>and moved on</button>
-        <button class="choice-btn no-btn" onclick="answer(2, 'no')"><span class="choice-tag">NO</span>It stayed with me<br>for a long time</button>
+        <button class="choice-btn yes-btn" onclick="answer(2, 'yes', this)"><span class="choice-tag">YES</span>Shook it off<br>and moved on</button>
+        <button class="choice-btn no-btn" onclick="answer(2, 'no', this)"><span class="choice-tag">NO</span>It stayed with me<br>for a long time</button>
       </div>
     </div>
 
     <div class="question-card" id="q3">
       <p class="question-text">Something you wanted to start 6 months ago —<br>where does it stand now?</p>
       <div class="choice-buttons">
-        <button class="choice-btn yes-btn" onclick="answer(3, 'yes')"><span class="choice-tag">YES</span>Already doing it</button>
-        <button class="choice-btn no-btn" onclick="answer(3, 'no')"><span class="choice-tag">NO</span>Still on the<br>"someday" list</button>
+        <button class="choice-btn yes-btn" onclick="answer(3, 'yes', this)"><span class="choice-tag">YES</span>Already doing it</button>
+        <button class="choice-btn no-btn" onclick="answer(3, 'no', this)"><span class="choice-tag">NO</span>Still on the<br>"someday" list</button>
       </div>
     </div>
 
@@ -550,11 +550,11 @@
     },
   };
 
-  function answer(q, val) {
+  function answer(q, val, el) {
     answers[q] = val;
     const card = document.getElementById('q' + q);
     card.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
-    event.currentTarget.classList.add('selected');
+    if (el) el.classList.add('selected');
     setTimeout(() => {
       if (q < 3) { goToQuestion(q + 1); } else { showResult(); }
     }, 340);
