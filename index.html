@@ -485,21 +485,21 @@
   }
 
   /* ===== RESULT REVEAL ===== */
-  #result-reveal { display: none; padding: 80px 24px; background: var(--black); min-height: 100vh; }
+  #result-reveal { display: none; padding: 80px 24px; background: #ffffff; min-height: 100vh; border-top: 4px solid var(--accent); }
   #result-reveal.active { display: block; }
   .reveal-inner { max-width: 520px; margin: 0 auto; text-align: center; }
-  .reveal-badge { display: inline-block; background: var(--accent); color: var(--black); font-size: 10px; font-weight: 700; letter-spacing: 0.4em; padding: 6px 20px; text-transform: uppercase; margin-bottom: 32px; }
-  .reveal-headline { font-family: 'Noto Serif JP', serif; font-size: clamp(20px, 5vw, 32px); font-weight: 900; color: var(--white); line-height: 1.4; margin-bottom: 12px; }
+  .reveal-badge { display: inline-block; background: var(--accent); color: #000; font-size: 10px; font-weight: 700; letter-spacing: 0.4em; padding: 6px 20px; text-transform: uppercase; margin-bottom: 32px; }
+  .reveal-headline { font-family: 'Noto Serif JP', serif; font-size: clamp(20px, 5vw, 32px); font-weight: 900; color: #111; line-height: 1.4; margin-bottom: 12px; }
   .reveal-type-name { font-family: 'Noto Serif JP', serif; font-size: clamp(28px, 8vw, 52px); font-weight: 900; color: var(--accent); line-height: 1.1; margin-bottom: 32px; }
-  .reveal-oneliner { font-size: 15px; color: var(--white); line-height: 1.9; margin-bottom: 40px; padding: 20px 24px; background: var(--card-bg); border-left: 4px solid var(--accent); text-align: left; }
-  .reveal-lock-box { background: var(--card-bg); border: 1px solid var(--border); padding: 24px 28px; margin-bottom: 32px; text-align: left; }
-  .reveal-lock-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--gray); }
+  .reveal-oneliner { font-size: 15px; color: #333; line-height: 1.9; margin-bottom: 40px; padding: 20px 24px; background: #f5f5f5; border-left: 4px solid var(--accent); text-align: left; }
+  .reveal-lock-box { background: #f9f9f9; border: 1px solid #ddd; padding: 24px 28px; margin-bottom: 32px; text-align: left; }
+  .reveal-lock-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; color: #555; }
   .reveal-lock-item:last-child { border-bottom: none; }
-  .reveal-urgency { font-size: 14px; font-weight: 700; color: #ff6b6b; background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3); padding: 14px 20px; margin-bottom: 12px; }
-  .reveal-sub-urgency { font-size: 13px; color: var(--gray); margin-bottom: 28px; }
-  .btn-reveal-cta { display: block; width: 100%; background: var(--accent); color: var(--black); padding: 20px; font-size: 17px; font-weight: 700; text-decoration: none; text-align: center; letter-spacing: 0.05em; transition: all 0.2s; cursor: pointer; border: none; }
-  .btn-reveal-cta:hover { background: var(--accent-light); }
-  .reveal-footnote { font-size: 11px; color: var(--gray); margin-top: 14px; }
+  .reveal-urgency { font-size: 14px; font-weight: 700; color: #c0392b; background: #fef2f2; border: 1px solid #fecaca; padding: 14px 20px; margin-bottom: 12px; }
+  .reveal-sub-urgency { font-size: 13px; color: #777; margin-bottom: 28px; }
+  .btn-reveal-cta { display: block; width: 100%; background: var(--accent); color: #000; padding: 20px; font-size: 17px; font-weight: 700; text-decoration: none; text-align: center; letter-spacing: 0.05em; transition: all 0.2s; cursor: pointer; border: none; }
+  .btn-reveal-cta:hover { opacity: 0.85; }
+  .reveal-footnote { font-size: 11px; color: #999; margin-top: 14px; }
 
   /* ===== SCIENCE PAGE ===== */
   #science { padding: 96px 24px; background: var(--card-bg); }
@@ -950,8 +950,7 @@
     document.getElementById('quiz-result').classList.add('active');
     document.getElementById('locked-area').style.display = '';
     document.getElementById('paywall').style.display = '';
-    document.getElementById('result-reveal').classList.remove('active');
-    document.getElementById('quiz').style.display = '';
+    document.getElementById('result-reveal').style.display = 'none';
   }
 </script>
 </body>
