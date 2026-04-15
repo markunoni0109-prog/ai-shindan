@@ -691,33 +691,40 @@
 
     <!-- Result -->
     <div id="quiz-result">
-      <div class="result-type-label">Your Pattern Type</div>
-      <div class="result-type-name" id="result-type-name">完璧主義型</div>
+      <div style="text-align:center;padding:40px 0 20px;">
+        <p style="font-size:13px;letter-spacing:0.3em;color:var(--accent);margin-bottom:16px;font-weight:700;">DIAGNOSIS COMPLETE</p>
+        <h2 style="font-family:'Noto Serif JP',serif;font-size:clamp(28px,6vw,48px);font-weight:900;color:#111;margin-bottom:8px;">診断結果が出ました！</h2>
+        <p style="font-size:16px;color:#444;margin-bottom:32px;">あなたの行動パターンが特定されました</p>
+      </div>
+
+      <div style="background:#fff8f0;border:2px solid var(--accent);padding:32px;margin-bottom:32px;text-align:center;">
+        <p style="font-size:12px;letter-spacing:0.3em;color:var(--accent);margin-bottom:12px;font-weight:700;">YOUR PATTERN TYPE</p>
+        <div class="result-type-name" id="result-type-name" style="font-size:clamp(32px,8vw,56px);font-weight:900;color:#111;font-family:'Noto Serif JP',serif;"></div>
+      </div>
 
       <!-- あるある -->
-      <div id="result-aru" style="background:var(--card-bg);border-left:3px solid var(--accent);padding:20px 24px;margin:24px 0;text-align:left;">
-        <p style="font-size:11px;letter-spacing:0.3em;color:var(--accent);margin-bottom:12px;">こんな経験、ありませんか？</p>
-        <ul id="result-aru-list" style="list-style:none;font-size:14px;color:#ccc;line-height:2;"></ul>
+      <div id="result-aru" style="background:#f9f9f9;border-left:4px solid var(--accent);padding:20px 24px;margin:24px 0;text-align:left;">
+        <p style="font-size:11px;letter-spacing:0.3em;color:var(--accent);margin-bottom:12px;font-weight:700;">こんな経験、ありませんか？</p>
+        <ul id="result-aru-list" style="list-style:none;font-size:14px;color:#333;line-height:2.2;"></ul>
       </div>
 
       <!-- 原因 -->
-      <p class="result-desc" id="result-desc"></p>
-
-      <!-- 区切り -->
-      <p style="font-size:14px;color:var(--white);font-weight:700;margin:28px 0 8px;">今変えなければ、この状態はそのまま続きます。</p>
+      <p class="result-desc" id="result-desc" style="color:#333;font-size:15px;line-height:1.9;margin-bottom:32px;"></p>
 
       <!-- ロック -->
-      <div style="background:var(--card-bg);border:1px solid var(--border);padding:20px 24px;margin:16px 0 28px;text-align:left;">
-        <p style="font-size:13px;color:var(--gray);line-height:2;">
-          🔒 本当の原因（深掘り）<br>
-          🔒 具体的な改善方法<br>
-          🔒 今日から使える行動ルール
+      <div style="background:#f9f9f9;border:1px solid #ddd;padding:24px;margin:16px 0 28px;text-align:left;">
+        <p style="font-size:13px;font-weight:700;color:#111;margin-bottom:12px;">完全レポートに含まれる内容：</p>
+        <p style="font-size:14px;color:#444;line-height:2.2;">
+          🔒 あなたの停止パターンの根本原因<br>
+          🔒 なぜ繰り返すのか—心理構造の完全解説<br>
+          🔒 今日から実践できる3つの行動改善プラン<br>
+          🔒 同タイプが変わるためのロードマップ
         </p>
       </div>
 
-      <p class="result-warning">ここから先が、あなたの「失敗パターンの核心」です。</p>
-      <a href="#paywall" class="btn-primary" style="display:inline-block">失敗パターンを確認する（今だけ500円）→</a>
-      <p style="margin-top:16px;font-size:12px;color:var(--gray)">見ないままにすると、また同じことを繰り返します</p>
+      <p style="font-size:15px;color:#c0392b;font-weight:700;margin-bottom:20px;text-align:center;">このパターンを知らないまま5年後も繰り返しますか？</p>
+      <a href="#paywall" class="btn-primary" style="display:block;text-align:center;font-size:18px;padding:22px;">完全レポートを受け取る（500円）→</a>
+      <p style="margin-top:16px;font-size:12px;color:#888;text-align:center;">買い切り・返金保証あり・即時配信</p>
     </div>
     <p id="quiz-locked-msg" style="text-align:center;color:var(--gray);font-size:13px;margin-top:32px;letter-spacing:0.05em;">※3問すべて回答すると結果が表示されます</p>
   </div>
@@ -778,9 +785,9 @@
         <li>今日から実行できる3つの行動改善プラン</li>
         <li>同タイプが変わるための具体的なロードマップ</li>
       </ul>
-      <p style="font-size:13px;color:#bbb;margin-bottom:24px;line-height:1.8;">読むだけで終わる内容ではありません。実際に変えるための内容です。<br><br>例：「考えてから動く」を禁止 ／「24時間以内に1回行動する」</p>
+      <p style="font-size:13px;color:#444;margin-bottom:24px;line-height:1.8;">読むだけで終わる内容ではありません。実際に変えるための内容です。<br><br>例：「考えてから動く」を禁止 ／「24時間以内に1回行動する」</p>
       <a href="https://buy.stripe.com/8x2cN52Ox25Vh0agH65Rm01" target="_blank" class="btn-buy">
-        今すぐ分析を受け取る（500円）→
+        完全レポートを受け取る（500円）→
       </a>
       <p class="buy-note">クレジットカード・各種決済対応 ／ 即時配信</p>
     </div>
