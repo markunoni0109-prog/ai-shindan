@@ -515,10 +515,6 @@
     const type = typeMap[key] || typeMap['no-no-no'];
 
     // Show reveal screen
-    document.getElementById('quiz').style.display = 'none';
-    const reveal = document.getElementById('result-reveal');
-    reveal.classList.add('active');
-
     document.getElementById('reveal-type-name').textContent = type.name;
     document.getElementById('reveal-oneliner').textContent = type.oneliner;
     document.getElementById('preview-title').textContent = type.previewTitle;
@@ -526,7 +522,15 @@
     document.getElementById('preview-extra').textContent = type.previewExtra;
 
     window._currentType = type;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    document.getElementById('quiz').style.display = 'none';
+    const reveal = document.getElementById('result-reveal');
+    reveal.style.display = 'block';
+    reveal.classList.add('active');
+
+    setTimeout(function() {
+      reveal.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   }
 
   document.getElementById('reveal-cta-btn').addEventListener('click', function(e) {
