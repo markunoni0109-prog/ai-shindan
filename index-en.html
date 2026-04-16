@@ -523,14 +523,16 @@
 
     window._currentType = type;
 
+    // Hide quiz
     document.getElementById('quiz').style.display = 'none';
+
+    // Show reveal
     const reveal = document.getElementById('result-reveal');
-    reveal.style.display = 'block';
-    reveal.classList.add('active');
+    reveal.style.cssText = 'display:block; padding:80px 24px 60px; background:#ffffff;';
 
     setTimeout(function() {
-      reveal.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
+      window.scrollTo(0, reveal.offsetTop - 80);
+    }, 150);
   }
 
   document.getElementById('reveal-cta-btn').addEventListener('click', function(e) {
