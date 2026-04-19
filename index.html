@@ -217,7 +217,7 @@ footer{background:var(--bg);border-top:1px solid var(--bdr);text-align:center;pa
   </h1>
   <p class="hsub">脳科学的に、あなたが「止まる場所」はすでに決まっている。<br><strong>3問で、そのパターンを特定する。</strong></p>
   <a href="#quiz" class="hcta">無料でパターンを確認する <span class="arr">→</span></a>
-  <div class="counter">累計 <span class="cnt-num">3,847</span> 人が診断済み</div>
+  <div class="counter">累計 <span class="cnt-num" id="counter">0</span> 人が診断済み</div>
   <p class="hmeta">所要時間 約1分 ／ 完全無料</p>
   <div class="scroll-h"><div class="sline"></div><span>scroll</span></div>
 </div>
@@ -593,6 +593,25 @@ function ans(q,v){
 
 const ro=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('on');ro.unobserve(e.target)}})},{threshold:.1,rootMargin:'0px 0px -40px 0px'});
 document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+
+// Counter animation
+(function(){
+  const target = 3847;
+  const el = document.getElementById('counter');
+  if(!el) return;
+  let start = 3500;
+  const duration = 1800;
+  const startTime = performance.now();
+  function update(now){
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    const current = Math.floor(start + (target - start) * ease);
+    el.textContent = current.toLocaleString();
+    if(progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+})();
 
 // Modal handlers
 document.getElementById('pp-link').onclick = function(){ document.getElementById('pp-modal').style.display='block'; }
