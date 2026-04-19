@@ -5,1614 +5,540 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI人生パターン診断 | 過去のパターンを解析して、次の行動を最適化する</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700;900&family=Noto+Sans+JP:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@900&family=Noto+Sans+JP:wght@400;700;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #f5f2ee;
-    --bg2: #ede9e3;
-    --ink: #1a1714;
-    --ink2: #3d3830;
-    --ink3: #7a7268;
-    --accent: #00c896;
-    --accent2: #ff4d6d;
-    --accent3: #6c3fff;
-    --gold: #c9a84c;
-    --card-bg: #ffffff;
-    --card-border: rgba(26,23,20,0.08);
-    --gradient-mesh: radial-gradient(ellipse at 20% 20%, rgba(108,63,255,0.08) 0%, transparent 60%),
-                     radial-gradient(ellipse at 80% 10%, rgba(0,200,150,0.07) 0%, transparent 50%),
-                     radial-gradient(ellipse at 60% 80%, rgba(255,77,109,0.06) 0%, transparent 50%);
-  }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    font-family: 'Noto Sans JP', sans-serif;
-    background: var(--bg);
-    color: var(--ink);
-    overflow-x: hidden;
-    line-height: 1.7;
-  }
-
-  /* ── NOISE TEXTURE OVERLAY ── */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 9999;
-    opacity: 0.4;
-  }
-
-  /* ── FLOATING PARTICLES ── */
-  .particles {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    overflow: hidden;
-  }
-  .particle {
-    position: absolute;
-    border-radius: 50%;
-    opacity: 0;
-    animation: floatParticle linear infinite;
-  }
-
-  @keyframes floatParticle {
-    0% { transform: translateY(110vh) translateX(0) rotate(0deg); opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 0.6; }
-    100% { transform: translateY(-10vh) translateX(var(--dx, 30px)) rotate(360deg); opacity: 0; }
-  }
-
-  /* ── HERO ── */
-  .hero {
-    position: relative;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 80px 24px 60px;
-    overflow: hidden;
-    background: var(--bg);
-  }
-
-  .hero-mesh {
-    position: absolute;
-    inset: 0;
-    background: var(--gradient-mesh);
-    pointer-events: none;
-  }
-
-  .hero-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    pointer-events: none;
-    animation: orbDrift ease-in-out infinite alternate;
-  }
-  .hero-orb-1 {
-    width: 500px; height: 500px;
-    background: radial-gradient(circle, rgba(108,63,255,0.12), transparent 70%);
-    top: -100px; left: -100px;
-    animation-duration: 12s;
-  }
-  .hero-orb-2 {
-    width: 400px; height: 400px;
-    background: radial-gradient(circle, rgba(0,200,150,0.10), transparent 70%);
-    bottom: 0; right: -80px;
-    animation-duration: 9s; animation-delay: -4s;
-  }
-  .hero-orb-3 {
-    width: 300px; height: 300px;
-    background: radial-gradient(circle, rgba(255,77,109,0.08), transparent 70%);
-    top: 40%; left: 50%;
-    animation-duration: 15s; animation-delay: -7s;
-  }
-
-  @keyframes orbDrift {
-    from { transform: translate(0, 0) scale(1); }
-    to   { transform: translate(40px, 30px) scale(1.15); }
-  }
-
-  .hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(0,200,150,0.1);
-    border: 1px solid rgba(0,200,150,0.3);
-    border-radius: 100px;
-    padding: 6px 16px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: #00a87e;
-    margin-bottom: 32px;
-    position: relative; z-index: 1;
-  }
-  .hero-badge::before {
-    content: '';
-    width: 6px; height: 6px;
-    background: var(--accent);
-    border-radius: 50%;
-    animation: pulse 2s ease-in-out infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.5)} }
-
-  .hero-eyebrow {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    color: var(--ink3);
-    text-transform: uppercase;
-    margin-bottom: 20px;
-    position: relative; z-index: 1;
-  }
-
-  .hero-title {
-    font-family: 'Noto Serif JP', serif;
-    font-size: clamp(36px, 7vw, 72px);
-    font-weight: 900;
-    line-height: 1.2;
-    text-align: center;
-    position: relative; z-index: 1;
-    margin-bottom: 12px;
-  }
-
-  .hero-title .line-accent {
-    display: block;
-    background: linear-gradient(135deg, var(--accent3) 0%, var(--accent) 50%, var(--accent2) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: gradientShift 6s ease-in-out infinite alternate;
-    background-size: 200% 200%;
-  }
-
-  @keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 100% 50%; }
-  }
-
-  .hero-sub {
-    font-size: clamp(14px, 2vw, 17px);
-    color: var(--ink2);
-    max-width: 540px;
-    text-align: center;
-    margin-bottom: 40px;
-    position: relative; z-index: 1;
-    line-height: 1.9;
-  }
-
-  .hero-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--ink);
-    color: #fff;
-    font-size: 16px;
-    font-weight: 700;
-    padding: 18px 36px;
-    border-radius: 4px;
-    text-decoration: none;
-    position: relative; z-index: 1;
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 8px 32px rgba(26,23,20,0.2);
-  }
-  .hero-cta:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 16px 40px rgba(26,23,20,0.28);
-  }
-  .hero-cta .arrow {
-    display: inline-block;
-    transition: transform 0.2s;
-  }
-  .hero-cta:hover .arrow { transform: translateX(4px); }
-
-  .hero-meta {
-    font-size: 12px;
-    color: var(--ink3);
-    margin-top: 14px;
-    position: relative; z-index: 1;
-  }
-
-  .hero-scroll-indicator {
-    position: absolute;
-    bottom: 32px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--ink3);
-    z-index: 1;
-  }
-  .scroll-line {
-    width: 1px;
-    height: 40px;
-    background: linear-gradient(to bottom, var(--ink3), transparent);
-    animation: scrollLine 2s ease-in-out infinite;
-    transform-origin: top;
-  }
-  @keyframes scrollLine {
-    0% { transform: scaleY(0); opacity: 0; }
-    50% { transform: scaleY(1); opacity: 1; }
-    100% { transform: scaleY(0); opacity: 0; transform-origin: bottom; }
-  }
-
-  /* ── SECTION ── */
-  section {
-    position: relative;
-    padding: 96px 24px;
-    max-width: 900px;
-    margin: 0 auto;
-  }
-
-  .section-tag {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--accent);
-    display: block;
-    margin-bottom: 12px;
-  }
-
-  .section-title {
-    font-family: 'Noto Serif JP', serif;
-    font-size: clamp(26px, 4vw, 40px);
-    font-weight: 900;
-    line-height: 1.35;
-    margin-bottom: 20px;
-  }
-
-  /* ── PAIN POINTS ── */
-  .pain-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 16px;
-    margin-top: 40px;
-  }
-
-  .pain-card {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 8px;
-    padding: 20px 24px;
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-    animation: fadeSlideUp 0.6s ease both;
-  }
-
-  .pain-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 16px 40px rgba(0,0,0,0.08);
-    border-color: rgba(108,63,255,0.2);
-  }
-
-  @keyframes fadeSlideUp {
-    from { opacity:0; transform:translateY(24px); }
-    to   { opacity:1; transform:translateY(0); }
-  }
-
-  .pain-icon {
-    font-size: 22px;
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
-
-  .pain-text {
-    font-size: 14px;
-    color: var(--ink2);
-    line-height: 1.7;
-  }
-
-  /* ── HOW IT WORKS ── */
-  .steps {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 24px;
-    margin-top: 48px;
-  }
-
-  .step {
-    position: relative;
-    padding: 32px 24px;
-    background: var(--card-bg);
-    border-radius: 8px;
-    border: 1px solid var(--card-border);
-    overflow: hidden;
-  }
-
-  .step::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--accent3), var(--accent));
-  }
-
-  .step-num {
-    font-family: 'Space Mono', monospace;
-    font-size: 48px;
-    font-weight: 700;
-    color: rgba(26,23,20,0.06);
-    line-height: 1;
-    margin-bottom: 12px;
-  }
-
-  .step-icon { font-size: 28px; margin-bottom: 10px; }
-
-  .step-title {
-    font-weight: 700;
-    font-size: 15px;
-    margin-bottom: 8px;
-    color: var(--ink);
-  }
-
-  .step-desc {
-    font-size: 13px;
-    color: var(--ink3);
-    line-height: 1.8;
-  }
-
-  /* ── TYPES ── */
-  .types-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 12px;
-    margin-top: 40px;
-  }
-
-  .type-chip {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 8px;
-    padding: 18px 16px;
-    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
-    cursor: default;
-  }
-
-  .type-chip:hover {
-    transform: translateY(-4px) scale(1.02);
-    border-color: rgba(108,63,255,0.25);
-    box-shadow: 0 12px 30px rgba(108,63,255,0.1);
-  }
-
-  .type-emoji { font-size: 24px; margin-bottom: 8px; display: block; }
-
-  .type-name {
-    font-weight: 700;
-    font-size: 14px;
-    margin-bottom: 4px;
-    color: var(--ink);
-  }
-
-  .type-desc {
-    font-size: 12px;
-    color: var(--ink3);
-    line-height: 1.6;
-  }
-
-  /* ── QUIZ ── */
-  .quiz-wrap {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 80px 24px;
-  }
-
-  .quiz-header {
-    text-align: center;
-    margin-bottom: 48px;
-  }
-
-  .quiz-progress-bar {
-    height: 4px;
-    background: rgba(26,23,20,0.08);
-    border-radius: 2px;
-    margin-bottom: 40px;
-    overflow: hidden;
-  }
-
-  .quiz-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent3), var(--accent));
-    border-radius: 2px;
-    transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-
-  .quiz-card {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 12px;
-    padding: 40px 36px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-    display: none;
-    animation: fadeSlideUp 0.4s ease both;
-  }
-
-  .quiz-card.active { display: block; }
-
-  .q-step {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.15em;
-    color: var(--accent);
-    margin-bottom: 20px;
-    display: block;
-  }
-
-  .q-text {
-    font-family: 'Noto Serif JP', serif;
-    font-size: clamp(18px, 3vw, 24px);
-    font-weight: 700;
-    line-height: 1.55;
-    margin-bottom: 32px;
-    color: var(--ink);
-  }
-
-  .q-options {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-
-  .q-btn {
-    background: none;
-    border: 2px solid var(--card-border);
-    border-radius: 8px;
-    padding: 20px 16px;
-    cursor: pointer;
-    font-family: 'Noto Sans JP', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--ink);
-    transition: all 0.2s;
-    text-align: center;
-    line-height: 1.5;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .q-btn .q-label {
-    font-size: 16px;
-    font-weight: 900;
-    color: var(--ink);
-  }
-
-  .q-btn .q-sub {
-    font-size: 11px;
-    color: var(--ink3);
-    font-weight: 400;
-  }
-
-  .q-btn:hover, .q-btn.yes-btn:hover {
-    border-color: var(--accent);
-    background: rgba(0,200,150,0.05);
-    transform: translateY(-2px);
-  }
-
-  .q-btn.no-btn:hover {
-    border-color: var(--accent2);
-    background: rgba(255,77,109,0.05);
-  }
-
-  /* ── RESULT SCREEN ── */
-  #result-screen {
-    max-width: 640px;
-    margin: 0 auto;
-    padding: 60px 24px 80px;
-    display: none;
-    animation: fadeSlideUp 0.5s ease both;
-  }
-
-  .result-header {
-    text-align: center;
-    margin-bottom: 40px;
-  }
-
-  .result-badge-wrap {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 24px;
-  }
-
-  .result-badge {
-    display: inline-block;
-    background: linear-gradient(135deg, var(--accent3), var(--accent));
-    color: white;
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    padding: 6px 18px;
-    border-radius: 100px;
-  }
-
-  .result-type-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 13px;
-    color: var(--ink3);
-    letter-spacing: 0.1em;
-    margin-bottom: 8px;
-  }
-
-  .result-type-name {
-    font-family: 'Noto Serif JP', serif;
-    font-size: clamp(28px, 5vw, 48px);
-    font-weight: 900;
-    color: var(--ink);
-    margin-bottom: 8px;
-    line-height: 1.2;
-  }
-
-  .result-type-sub {
-    font-size: 15px;
-    color: var(--ink3);
-    max-width: 440px;
-    margin: 0 auto;
-    line-height: 1.8;
-  }
-
-  /* TEASER CARD */
-  .teaser-card {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 12px;
-    padding: 32px;
-    margin: 32px 0;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .teaser-card::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 140px;
-    background: linear-gradient(to top, rgba(255,255,255,0.97), transparent);
-    pointer-events: none;
-  }
-
-  .teaser-title {
-    font-family: 'Noto Serif JP', serif;
-    font-weight: 700;
-    font-size: 16px;
-    margin-bottom: 16px;
-    color: var(--ink);
-  }
-
-  .teaser-content {
-    font-size: 14px;
-    color: var(--ink2);
-    line-height: 1.9;
-  }
-
-  .teaser-locked {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 20px;
-  }
-
-  .teaser-lock-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 13px;
-    color: var(--ink3);
-  }
-
-  .lock-icon {
-    font-size: 14px;
-    color: var(--gold);
-  }
-
-  /* WARNING BANNER */
-  .warning-banner {
-    background: rgba(255,77,109,0.06);
-    border: 1px solid rgba(255,77,109,0.2);
-    border-radius: 8px;
-    padding: 20px 24px;
-    text-align: center;
-    margin: 24px 0;
-  }
-
-  .warning-banner p {
-    font-family: 'Noto Serif JP', serif;
-    font-size: clamp(14px, 2.5vw, 17px);
-    font-weight: 700;
-    color: #c9334f;
-    line-height: 1.6;
-  }
-
-  /* CTA BLOCK */
-  .cta-block {
-    background: linear-gradient(135deg, var(--ink) 0%, #2d2520 100%);
-    border-radius: 12px;
-    padding: 40px 32px;
-    text-align: center;
-    color: #fff;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .cta-block::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse at 30% 50%, rgba(108,63,255,0.2), transparent 60%),
-                radial-gradient(ellipse at 80% 50%, rgba(0,200,150,0.15), transparent 60%);
-  }
-
-  .cta-block * { position: relative; z-index: 1; }
-
-  .cta-price {
-    font-family: 'Space Mono', monospace;
-    font-size: 13px;
-    color: rgba(255,255,255,0.5);
-    letter-spacing: 0.1em;
-    margin-bottom: 6px;
-  }
-
-  .cta-title {
-    font-family: 'Noto Serif JP', serif;
-    font-size: clamp(18px, 3vw, 24px);
-    font-weight: 900;
-    margin-bottom: 20px;
-    line-height: 1.4;
-  }
-
-  .cta-features {
-    list-style: none;
-    text-align: left;
-    max-width: 360px;
-    margin: 0 auto 28px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .cta-features li {
-    font-size: 13px;
-    color: rgba(255,255,255,0.8);
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    line-height: 1.6;
-  }
-
-  .cta-features li::before {
-    content: '✓';
-    color: var(--accent);
-    font-weight: 700;
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
-
-  .cta-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    background: linear-gradient(135deg, var(--accent) 0%, #00b583 100%);
-    color: #fff;
-    font-size: 16px;
-    font-weight: 900;
-    padding: 18px 40px;
-    border-radius: 6px;
-    text-decoration: none;
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 8px 24px rgba(0,200,150,0.3);
-    font-family: 'Noto Sans JP', sans-serif;
-    letter-spacing: 0.02em;
-    width: 100%;
-    justify-content: center;
-    max-width: 400px;
-    margin: 0 auto;
-  }
-
-  .cta-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 14px 32px rgba(0,200,150,0.4);
-  }
-
-  .cta-btn .btn-arrow {
-    display: inline-block;
-    transition: transform 0.2s;
-  }
-  .cta-btn:hover .btn-arrow { transform: translateX(4px); }
-
-  .cta-note {
-    font-size: 11px;
-    color: rgba(255,255,255,0.4);
-    margin-top: 14px;
-    line-height: 1.7;
-  }
-
-  /* ── SCIENCE SECTION ── */
-  .science-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
-    margin-top: 40px;
-  }
-
-  .science-card {
-    padding: 24px;
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 8px;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-
-  .science-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.07);
-  }
-
-  .science-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--accent3);
-    margin-bottom: 8px;
-    letter-spacing: 0.1em;
-  }
-
-  .science-title {
-    font-weight: 700;
-    font-size: 14px;
-    margin-bottom: 8px;
-    color: var(--ink);
-  }
-
-  .science-desc {
-    font-size: 12px;
-    color: var(--ink3);
-    line-height: 1.8;
-  }
-
-  /* ── VIP SECTION ── */
-  .vip-section {
-    max-width: 700px;
-    margin: 0 auto;
-    padding: 80px 24px;
-  }
-
-  .vip-card {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 4px 32px rgba(0,0,0,0.08);
-  }
-
-  .vip-header {
-    background: linear-gradient(135deg, #1a1714 0%, #2d2520 100%);
-    padding: 40px 40px 32px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .vip-header::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse at 20% 50%, rgba(201,168,76,0.15), transparent 60%),
-                radial-gradient(ellipse at 80% 50%, rgba(108,63,255,0.1), transparent 60%);
-  }
-
-  .vip-header * { position: relative; z-index: 1; }
-
-  .vip-tag {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 12px;
-    display: block;
-  }
-
-  .vip-title {
-    font-family: 'Noto Serif JP', serif;
-    font-size: clamp(22px, 3.5vw, 32px);
-    font-weight: 900;
-    color: #fff;
-    margin-bottom: 8px;
-    line-height: 1.3;
-  }
-
-  .vip-price-row {
-    display: flex;
-    align-items: baseline;
-    gap: 4px;
-    margin-top: 16px;
-  }
-
-  .vip-yen {
-    font-family: 'Space Mono', monospace;
-    font-size: 16px;
-    color: var(--gold);
-  }
-
-  .vip-amount {
-    font-family: 'Space Mono', monospace;
-    font-size: 40px;
-    font-weight: 700;
-    color: #fff;
-  }
-
-  .vip-unit {
-    font-size: 13px;
-    color: rgba(255,255,255,0.5);
-  }
-
-  .vip-body {
-    padding: 36px 40px;
-  }
-
-  .vip-features {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    margin-bottom: 32px;
-  }
-
-  .vip-features li {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    font-size: 14px;
-    color: var(--ink2);
-    line-height: 1.6;
-  }
-
-  .vip-features li::before {
-    content: '✦';
-    color: var(--gold);
-    font-size: 12px;
-    flex-shrink: 0;
-    margin-top: 4px;
-  }
-
-  .vip-cta {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    background: linear-gradient(135deg, var(--gold) 0%, #e8c45e 100%);
-    color: var(--ink);
-    font-size: 16px;
-    font-weight: 900;
-    padding: 18px 40px;
-    border-radius: 6px;
-    text-decoration: none;
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 8px 24px rgba(201,168,76,0.3);
-    font-family: 'Noto Sans JP', sans-serif;
-    width: 100%;
-  }
-
-  .vip-cta:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 14px 32px rgba(201,168,76,0.4);
-  }
-
-  .vip-note {
-    font-size: 12px;
-    color: var(--ink3);
-    text-align: center;
-    margin-top: 16px;
-    line-height: 1.7;
-  }
-
-  /* ── FULL-WIDTH SECTIONS ── */
-  .fw-section {
-    background: var(--bg2);
-    padding: 96px 24px;
-    position: relative;
-  }
-
-  .fw-section .inner {
-    max-width: 900px;
-    margin: 0 auto;
-  }
-
-  /* ── FOOTER ── */
-  footer {
-    background: var(--ink);
-    color: rgba(255,255,255,0.5);
-    text-align: center;
-    padding: 48px 24px;
-    font-size: 12px;
-    line-height: 1.8;
-  }
-
-  footer a {
-    color: rgba(255,255,255,0.4);
-    text-decoration: none;
-  }
-
-  /* ── DIVIDER ── */
-  .divider {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--card-border), transparent);
-    margin: 0 24px;
-  }
-
-  /* ── SAMPLE RESULT ── */
-  .sample-wrap {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 12px;
-    overflow: hidden;
-    margin-top: 40px;
-  }
-
-  .sample-header {
-    padding: 24px 28px 20px;
-    border-bottom: 1px solid var(--card-border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .sample-tag {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    color: var(--ink3);
-    text-transform: uppercase;
-  }
-
-  .sample-type {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    color: var(--accent3);
-    font-weight: 700;
-    background: rgba(108,63,255,0.08);
-    padding: 4px 12px;
-    border-radius: 100px;
-  }
-
-  .sample-body {
-    padding: 28px;
-    position: relative;
-  }
-
-  .sample-title {
-    font-family: 'Noto Serif JP', serif;
-    font-size: 17px;
-    font-weight: 700;
-    margin-bottom: 12px;
-    color: var(--ink);
-  }
-
-  .sample-text {
-    font-size: 13px;
-    color: var(--ink2);
-    line-height: 1.9;
-    margin-bottom: 16px;
-  }
-
-  .sample-blur {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .sample-blur-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .blur-lock {
-    font-size: 14px;
-    color: var(--gold);
-    flex-shrink: 0;
-    margin-top: 3px;
-  }
-
-  .blur-content {
-    flex: 1;
-  }
-
-  .blur-label {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--ink);
-    margin-bottom: 4px;
-  }
-
-  .blur-bar {
-    height: 12px;
-    background: rgba(26,23,20,0.06);
-    border-radius: 2px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .blur-bar::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg,
-      rgba(26,23,20,0.08) 0%,
-      rgba(26,23,20,0.12) 50%,
-      rgba(26,23,20,0.08) 100%);
-    animation: shimmer 2s ease-in-out infinite;
-    background-size: 200% 100%;
-  }
-
-  @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-  }
-
-  /* ── RESPONSIVE ── */
-  @media (max-width: 600px) {
-    .q-options { grid-template-columns: 1fr; }
-    .quiz-card { padding: 28px 20px; }
-    .cta-block { padding: 32px 20px; }
-    .vip-body, .vip-header { padding: 28px 24px; }
-    .pain-grid { grid-template-columns: 1fr; }
-    .steps { grid-template-columns: 1fr; }
-  }
-
-  /* ── ANIMATIONS ── */
-  .reveal {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
-  }
-
-  .reveal.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  /* Glitch text effect for hero */
-  @keyframes glitchText {
-    0%,90%,100% { clip-path: inset(0 0 100% 0); transform: translateX(0); }
-    92% { clip-path: inset(10% 0 60% 0); transform: translateX(-3px); }
-    94% { clip-path: inset(50% 0 30% 0); transform: translateX(2px); }
-    96% { clip-path: inset(70% 0 10% 0); transform: translateX(-2px); }
-  }
-
-  .glitch-wrap { position: relative; }
-  .glitch-clone {
-    position: absolute;
-    inset: 0;
-    font-family: 'Noto Serif JP', serif;
-    font-size: inherit;
-    font-weight: 900;
-    color: var(--accent3);
-    opacity: 0.6;
-    animation: glitchText 7s linear infinite;
-    pointer-events: none;
-  }
+:root {
+  --bg:    #080b12;
+  --bg2:   #0d1120;
+  --neon:  #00ffe0;
+  --neon2: #7b5cff;
+  --neon3: #ff3d6b;
+  --gold:  #f5c542;
+  --txt:   #f0f4ff;
+  --txt2:  #8a97b0;
+  --card:  rgba(255,255,255,0.04);
+  --bdr:   rgba(255,255,255,0.08);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--txt);overflow-x:hidden;line-height:1.7}
+
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,224,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,224,0.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0}
+
+#pts{position:fixed;inset:0;pointer-events:none;z-index:0}
+.dot{position:absolute;border-radius:50%;animation:rise linear infinite;opacity:0}
+@keyframes rise{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:.5}100%{transform:translateY(-10vh) scale(1.5);opacity:0}}
+
+/* HERO */
+.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:100px 24px 80px;z-index:1;text-align:center;overflow:hidden}
+.glow{position:absolute;border-radius:50%;filter:blur(120px);pointer-events:none}
+.g1{width:600px;height:600px;background:rgba(0,255,224,.08);top:-200px;left:-150px;animation:da 14s ease-in-out infinite alternate}
+.g2{width:500px;height:500px;background:rgba(123,92,255,.1);bottom:-100px;right:-100px;animation:db 11s ease-in-out infinite alternate}
+.g3{width:300px;height:300px;background:rgba(255,61,107,.07);top:50%;left:50%;animation:dc 17s ease-in-out infinite alternate}
+@keyframes da{to{transform:translate(60px,80px)}}
+@keyframes db{to{transform:translate(-50px,-60px)}}
+@keyframes dc{to{transform:translate(80px,-40px)}}
+
+.badge{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(0,255,224,.3);border-radius:100px;padding:7px 20px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.18em;color:var(--neon);margin-bottom:36px;background:rgba(0,255,224,.05)}
+.bdot{width:6px;height:6px;background:var(--neon);border-radius:50%;box-shadow:0 0 8px var(--neon);animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+.htitle{font-family:'Noto Serif JP',serif;font-weight:900;font-size:clamp(38px,8vw,82px);line-height:1.15;margin-bottom:8px}
+.hl1{display:block;color:var(--txt)}
+.hl2{display:block;background:linear-gradient(90deg,var(--neon) 0%,var(--neon2) 60%,var(--neon3) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;animation:gm 4s linear infinite alternate;filter:drop-shadow(0 0 30px rgba(0,255,224,.4))}
+@keyframes gm{0%{background-position:0% 50%}100%{background-position:100% 50%}}
+
+.hsub{font-size:clamp(15px,2.2vw,19px);color:var(--txt2);max-width:560px;margin:24px auto 44px;line-height:2;font-weight:400}
+.hsub strong{color:var(--txt);font-weight:700}
+
+.hcta{display:inline-flex;align-items:center;gap:12px;background:var(--neon);color:#080b12;font-size:17px;font-weight:900;padding:20px 44px;border-radius:6px;text-decoration:none;box-shadow:0 0 40px rgba(0,255,224,.35),0 0 80px rgba(0,255,224,.15);transition:transform .2s,box-shadow .2s}
+.hcta:hover{transform:translateY(-3px);box-shadow:0 0 60px rgba(0,255,224,.5),0 0 100px rgba(0,255,224,.2)}
+.arr{display:inline-block;transition:transform .2s}
+.hcta:hover .arr{transform:translateX(5px)}
+.hmeta{font-size:12px;color:var(--txt2);margin-top:16px;letter-spacing:.05em}
+
+.scroll-h{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--txt2);font-size:10px;letter-spacing:.2em;text-transform:uppercase}
+.sline{width:1px;height:40px;background:linear-gradient(to bottom,var(--neon),transparent);animation:sa 2s ease-in-out infinite;transform-origin:top}
+@keyframes sa{0%,100%{opacity:0;transform:scaleY(0)}50%{opacity:1;transform:scaleY(1)}}
+
+/* LAYOUT */
+.wrap{max-width:920px;margin:0 auto;padding:0 24px}
+.sec{padding:100px 0;position:relative;z-index:1}
+.stag{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--neon);display:block;margin-bottom:14px}
+.stitle{font-family:'Noto Serif JP',serif;font-size:clamp(28px,4.5vw,46px);font-weight:900;line-height:1.3;margin-bottom:16px;color:var(--txt)}
+.slead{font-size:15px;color:var(--txt2);line-height:1.9;max-width:540px}
+
+.bg2s{background:var(--bg2);border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr)}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--bdr),transparent)}
+
+/* PAIN */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-top:44px}
+.pcard{background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:22px 24px;display:flex;align-items:flex-start;gap:14px;transition:border-color .2s,transform .2s,box-shadow .2s}
+.pcard:hover{border-color:rgba(0,255,224,.25);transform:translateY(-4px);box-shadow:0 8px 32px rgba(0,255,224,.08)}
+.pico{font-size:22px;flex-shrink:0;margin-top:2px}
+.ptxt{font-size:14px;color:var(--txt2);line-height:1.75}
+.ptxt strong{color:var(--txt);font-weight:700}
+
+/* STEPS */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;margin-top:48px}
+.step{background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:32px 28px;position:relative;overflow:hidden;transition:transform .2s,border-color .2s}
+.step:hover{transform:translateY(-4px);border-color:rgba(0,255,224,.2)}
+.step::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--neon),var(--neon2))}
+.snum{font-family:'Space Mono',monospace;font-size:52px;font-weight:700;color:rgba(255,255,255,.05);line-height:1;margin-bottom:10px}
+.sico{font-size:30px;margin-bottom:12px}
+.stitl{font-size:16px;font-weight:900;color:var(--txt);margin-bottom:8px}
+.sdesc{font-size:13px;color:var(--txt2);line-height:1.8}
+
+/* TYPES */
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-top:44px}
+.tchip{background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:22px 18px;transition:border-color .2s,transform .2s,box-shadow .2s;cursor:default}
+.tchip:hover{border-color:rgba(123,92,255,.4);transform:translateY(-4px) scale(1.02);box-shadow:0 12px 30px rgba(123,92,255,.12)}
+.temo{font-size:26px;display:block;margin-bottom:10px}
+.tname{font-size:15px;font-weight:900;color:var(--txt);margin-bottom:5px}
+.tdesc{font-size:12px;color:var(--txt2);line-height:1.7}
+
+/* QUIZ */
+.qarea{background:var(--bg2);position:relative;z-index:1;border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr)}
+.qinner{max-width:620px;margin:0 auto;padding:80px 24px}
+.qhead{text-align:center;margin-bottom:48px}
+.pbar{height:3px;background:rgba(255,255,255,.07);border-radius:2px;margin-bottom:40px;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,var(--neon),var(--neon2));border-radius:2px;box-shadow:0 0 10px var(--neon);transition:width .5s cubic-bezier(.34,1.56,.64,1)}
+.qcard{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:44px 40px;display:none;animation:fu .4s ease both}
+.qcard.active{display:block}
+@keyframes fu{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.qstep{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.15em;color:var(--neon);display:block;margin-bottom:22px}
+.qtxt{font-family:'Noto Serif JP',serif;font-size:clamp(20px,3.5vw,28px);font-weight:900;line-height:1.55;color:var(--txt);margin-bottom:36px}
+.qopts{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.qbtn{background:transparent;border:2px solid var(--bdr);border-radius:10px;padding:22px 16px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;color:var(--txt);transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:6px}
+.qlbl{font-size:18px;font-weight:900}
+.qsub{font-size:11px;color:var(--txt2);font-weight:400;line-height:1.5;text-align:center}
+.qbtn.y:hover{border-color:var(--neon);background:rgba(0,255,224,.06);box-shadow:0 0 20px rgba(0,255,224,.1)}
+.qbtn.n:hover{border-color:var(--neon3);background:rgba(255,61,107,.06);box-shadow:0 0 20px rgba(255,61,107,.1)}
+
+/* RESULT */
+#rs{max-width:660px;margin:0 auto;padding:60px 24px 80px;display:none;animation:fu .5s ease both;position:relative;z-index:1}
+.rbrow{text-align:center;margin-bottom:28px}
+.rbadge{display:inline-block;background:linear-gradient(135deg,var(--neon2),var(--neon));color:#080b12;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;padding:7px 20px;border-radius:100px}
+.rcode{font-family:'Space Mono',monospace;font-size:12px;color:var(--txt2);text-align:center;margin-bottom:8px;letter-spacing:.1em}
+.rname{font-family:'Noto Serif JP',serif;font-size:clamp(32px,6vw,56px);font-weight:900;text-align:center;background:linear-gradient(135deg,var(--neon),var(--neon2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px;filter:drop-shadow(0 0 20px rgba(0,255,224,.3))}
+.rdesc{font-size:15px;color:var(--txt2);text-align:center;max-width:440px;margin:0 auto 36px;line-height:1.9}
+
+.teaser{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:32px;margin-bottom:20px;position:relative;overflow:hidden}
+.teaser::after{content:'';position:absolute;bottom:0;left:0;right:0;height:120px;background:linear-gradient(to top,var(--bg),transparent);pointer-events:none}
+.ttag{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.15em;color:var(--neon);margin-bottom:14px;display:block}
+.ttxt{font-size:14px;color:var(--txt2);line-height:1.95}
+.llist{display:flex;flex-direction:column;gap:12px;margin-top:22px}
+.litem{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--txt2)}
+.lk{color:var(--gold);font-size:13px}
+
+.warn{background:rgba(255,61,107,.07);border:1px solid rgba(255,61,107,.25);border-radius:10px;padding:22px 28px;text-align:center;margin:20px 0}
+.warn p{font-family:'Noto Serif JP',serif;font-size:clamp(15px,2.5vw,19px);font-weight:900;color:#ff6b8a;line-height:1.6}
+
+.ctablk{background:linear-gradient(135deg,#0f1829 0%,#1a0f29 100%);border:1px solid rgba(0,255,224,.15);border-radius:16px;padding:44px 36px;text-align:center;position:relative;overflow:hidden}
+.ctablk::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(0,255,224,.07),transparent 60%),radial-gradient(ellipse at 80% 50%,rgba(123,92,255,.08),transparent 60%);pointer-events:none}
+.ctablk *{position:relative;z-index:1}
+.cprice{font-family:'Space Mono',monospace;font-size:12px;color:var(--txt2);letter-spacing:.12em;margin-bottom:8px}
+.ch{font-family:'Noto Serif JP',serif;font-size:clamp(18px,3vw,26px);font-weight:900;color:var(--txt);margin-bottom:24px;line-height:1.4}
+.cfeats{list-style:none;text-align:left;max-width:380px;margin:0 auto 32px;display:flex;flex-direction:column;gap:12px}
+.cfeats li{font-size:13px;color:var(--txt2);display:flex;align-items:flex-start;gap:10px;line-height:1.6}
+.cfeats li::before{content:'✓';color:var(--neon);font-weight:900;flex-shrink:0;margin-top:2px}
+.cbtn{display:inline-flex;align-items:center;justify-content:center;gap:10px;background:var(--neon);color:#080b12;font-size:16px;font-weight:900;padding:20px 40px;border-radius:8px;text-decoration:none;width:100%;max-width:420px;box-shadow:0 0 40px rgba(0,255,224,.3),0 0 80px rgba(0,255,224,.1);transition:transform .2s,box-shadow .2s;letter-spacing:.02em;font-family:'Noto Sans JP',sans-serif}
+.cbtn:hover{transform:translateY(-2px);box-shadow:0 0 60px rgba(0,255,224,.45),0 0 100px rgba(0,255,224,.15)}
+.cnote{font-size:11px;color:var(--txt2);margin-top:16px;line-height:1.7;opacity:.6}
+
+/* SCIENCE */
+.scigrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:44px}
+.scicard{background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:26px 22px;transition:border-color .2s,transform .2s}
+.scicard:hover{border-color:rgba(123,92,255,.3);transform:translateY(-4px)}
+.scilbl{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.15em;color:var(--neon2);margin-bottom:8px}
+.scitit{font-size:14px;font-weight:900;color:var(--txt);margin-bottom:8px}
+.scidsc{font-size:12px;color:var(--txt2);line-height:1.8}
+
+/* VIP */
+.vcard{background:linear-gradient(135deg,#110d1e,#0a1420);border:1px solid rgba(245,197,66,.2);border-radius:16px;overflow:hidden;box-shadow:0 0 60px rgba(245,197,66,.06);max-width:680px;margin:0 auto}
+.vhead{padding:44px 44px 36px;background:linear-gradient(135deg,rgba(245,197,66,.05),rgba(123,92,255,.05));border-bottom:1px solid rgba(245,197,66,.1);position:relative;overflow:hidden}
+.vhead::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(245,197,66,.08),transparent 60%)}
+.vhead *{position:relative;z-index:1}
+.vtag{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--gold);display:block;margin-bottom:14px;text-transform:uppercase}
+.vtitle{font-family:'Noto Serif JP',serif;font-size:clamp(20px,3.5vw,30px);font-weight:900;color:var(--txt);line-height:1.35;margin-bottom:20px}
+.vprow{display:flex;align-items:baseline;gap:4px}
+.vyen{font-family:'Space Mono',monospace;font-size:18px;color:var(--gold)}
+.vamt{font-family:'Space Mono',monospace;font-size:48px;font-weight:700;color:var(--txt);line-height:1}
+.vunit{font-size:13px;color:var(--txt2)}
+.vbody{padding:40px 44px}
+.vfeats{list-style:none;display:flex;flex-direction:column;gap:14px;margin-bottom:32px}
+.vfeats li{display:flex;align-items:flex-start;gap:12px;font-size:14px;color:var(--txt2);line-height:1.7}
+.vfeats li::before{content:'✦';color:var(--gold);font-size:12px;flex-shrink:0;margin-top:4px}
+.vbtn{display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,var(--gold),#e8c45e);color:#080b12;font-size:16px;font-weight:900;padding:20px 40px;border-radius:8px;text-decoration:none;box-shadow:0 0 40px rgba(245,197,66,.25);transition:transform .2s,box-shadow .2s;font-family:'Noto Sans JP',sans-serif;width:100%}
+.vbtn:hover{transform:translateY(-2px);box-shadow:0 0 60px rgba(245,197,66,.4)}
+.vnote{font-size:12px;color:var(--txt2);text-align:center;margin-top:16px;line-height:1.7;opacity:.6}
+
+/* SAMPLE */
+.swrap{background:var(--card);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-top:44px}
+.shead2{display:flex;align-items:center;justify-content:space-between;padding:20px 28px;border-bottom:1px solid var(--bdr)}
+.stag2{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.15em;color:var(--txt2)}
+.stype{font-family:'Space Mono',monospace;font-size:11px;color:var(--neon2);background:rgba(123,92,255,.1);padding:4px 14px;border-radius:100px;font-weight:700}
+.sbody{padding:30px 28px}
+.stitle2{font-family:'Noto Serif JP',serif;font-size:17px;font-weight:900;color:var(--txt);margin-bottom:12px}
+.stxt{font-size:13px;color:var(--txt2);line-height:1.95;margin-bottom:18px}
+.brow{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+.blk{color:var(--gold);font-size:13px;flex-shrink:0;margin-top:3px}
+.blbl{font-size:12px;font-weight:700;color:var(--txt2);margin-bottom:6px}
+.bbar{height:10px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;position:relative}
+.bbar::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);animation:sh 2s ease-in-out infinite;background-size:200% 100%}
+@keyframes sh{0%{background-position:-200% 0}100%{background-position:200% 0}}
+
+.rp-wrap{margin-bottom:24px;display:flex;flex-direction:column;gap:16px}.rp-section{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:28px 28px 24px}.rp-label{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.2em;color:var(--neon);margin-bottom:16px;text-transform:uppercase}.rp-aru{display:flex;flex-direction:column;gap:10px}.rp-aru-item{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--txt2);line-height:1.75}.rp-check{color:var(--neon);font-weight:900;flex-shrink:0;margin-top:2px;font-size:13px}.rp-body{font-size:14px;color:var(--txt2);line-height:2}.rp-signal{background:linear-gradient(135deg,rgba(0,255,224,.06),rgba(123,92,255,.06));border:1px solid rgba(0,255,224,.2);border-radius:12px;padding:28px}.rp-signal-tag{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.2em;color:var(--neon);margin-bottom:12px;text-transform:uppercase}.rp-signal-txt{font-size:14px;color:var(--txt);line-height:2;font-weight:500}.rp-headline{font-family:"Noto Serif JP",serif;font-size:clamp(16px,2.8vw,20px);font-weight:900;color:var(--txt);line-height:1.6;margin-bottom:20px;padding:24px 28px;background:linear-gradient(135deg,rgba(0,255,224,.05),rgba(123,92,255,.05));border-left:3px solid var(--neon);border-radius:0 10px 10px 0}.rp-block{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:28px;margin-bottom:0}.rp-block-title{font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.15em;color:var(--neon);margin-bottom:16px;font-weight:700}.rp-block p{font-size:14px;color:var(--txt2);line-height:2}.rp-block strong{color:var(--txt)}.rp-list{display:flex;flex-direction:column;gap:8px}.rp-li{font-size:14px;color:var(--txt2);padding:10px 14px;background:rgba(255,255,255,.03);border-radius:6px;border-left:2px solid var(--bdr);line-height:1.6}.rp-rules{border-color:rgba(0,255,224,.15)}.rp-rule{margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--bdr)}.rp-rule:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}.rp-rule-title{font-size:13px;font-weight:900;color:var(--neon);margin-bottom:8px}.rp-rule p{font-size:13px;color:var(--txt2);line-height:1.85}.rp-quote{background:rgba(255,61,107,.06);border:1px solid rgba(255,61,107,.2);border-radius:12px;padding:24px 28px;font-size:14px;color:var(--txt2);line-height:2}.rp-quote strong{color:var(--neon3)}.an-circle{width:80px;height:80px;border-radius:50%;border:3px solid var(--bdr);border-top-color:var(--neon);animation:spin 1s linear infinite;margin-bottom:28px;box-shadow:0 0 30px rgba(0,255,224,.3)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.an-txt{font-family:'Space Mono',monospace;font-size:13px;letter-spacing:.15em;color:var(--neon);text-transform:uppercase;animation:blink 1.5s ease-in-out infinite}
+footer{background:var(--bg);border-top:1px solid var(--bdr);text-align:center;padding:48px 24px;font-size:12px;color:var(--txt2);line-height:2;position:relative;z-index:1}
+
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .65s ease,transform .65s ease}
+.reveal.on{opacity:1;transform:none}
+
+@media(max-width:600px){.qopts{grid-template-columns:1fr}.qcard{padding:28px 20px}.ctablk{padding:32px 20px}.vhead,.vbody{padding:28px 24px}.pgrid{grid-template-columns:1fr}.steps{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
+<div id="pts"></div>
 
-<!-- Particles -->
-<div class="particles" id="particles"></div>
-
-<!-- ═══════════════════════════════════════════ HERO ══ -->
+<!-- HERO -->
 <div class="hero">
-  <div class="hero-mesh"></div>
-  <div class="hero-orb hero-orb-1"></div>
-  <div class="hero-orb hero-orb-2"></div>
-  <div class="hero-orb hero-orb-3"></div>
-
-  <div class="hero-badge">AI Pattern Analysis</div>
-  <p class="hero-eyebrow">Brain Science × Psychology × AI</p>
-
-  <h1 class="hero-title">
-    <span>過去のパターンを解析して、</span>
-    <span class="line-accent glitch-wrap">
-      次の行動を最適化する。
-      <span class="glitch-clone" aria-hidden="true">次の行動を最適化する。</span>
-    </span>
+  <div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div>
+  <div class="badge"><span class="bdot"></span>AI Pattern Analysis — Live</div>
+  <h1 class="htitle">
+    <span class="hl1">自分がダメなんじゃない。</span>
+    <span class="hl2">同じパターンが、同じ結果を作ってるだけ。</span>
   </h1>
-
-  <p class="hero-sub">
-    あなたの行動には、繰り返すパターンがある。<br>
-    脳科学・心理学・AIが、<strong>3問でそれを特定し、</strong><br>
-    <strong>最短の変化ルート</strong>を示す。
-  </p>
-
-  <a href="#quiz" class="hero-cta">
-    無料でパターンを確認する
-    <span class="arrow">→</span>
-  </a>
-  <p class="hero-meta">所要時間 約1分 ／ 完全無料</p>
-
-  <div class="hero-scroll-indicator">
-    <div class="scroll-line"></div>
-    <span>scroll</span>
-  </div>
+  <p class="hsub">脳科学的に、あなたが「止まる場所」はすでに決まっている。<br><strong>3問で、そのパターンを特定する。</strong></p>
+  <a href="#quiz" class="hcta">無料でパターンを確認する <span class="arr">→</span></a>
+  <p class="hmeta">所要時間 約1分 ／ 完全無料</p>
+  <div class="scroll-h"><div class="sline"></div><span>scroll</span></div>
 </div>
 
-<!-- ═══════════════════════════════════════ PAIN POINTS ══ -->
-<div class="fw-section">
-  <div class="inner">
-    <section>
-      <span class="section-tag">あなたのことですか？</span>
-      <h2 class="section-title reveal">努力してるのに結果が出ない人へ。<br>それ、<em>間違った努力</em>です。</h2>
-      <p class="reveal" style="color:var(--ink2);max-width:540px;line-height:1.9;margin-bottom:0;">頑張っているのに報われない。同じような人が先に進んでいく。その違いは、才能でも運でもありません。</p>
-      <div class="pain-grid">
-        <div class="pain-card reveal" style="animation-delay:0.05s">
-          <span class="pain-icon">💭</span>
-          <p class="pain-text">やる気はあるのに、なぜか続かない</p>
-        </div>
-        <div class="pain-card reveal" style="animation-delay:0.1s">
-          <span class="pain-icon">📋</span>
-          <p class="pain-text">計画を立てても、いつも途中で崩れる</p>
-        </div>
-        <div class="pain-card reveal" style="animation-delay:0.15s">
-          <span class="pain-icon">🔄</span>
-          <p class="pain-text">同じミスを何度も繰り返している</p>
-        </div>
-        <div class="pain-card reveal" style="animation-delay:0.2s">
-          <span class="pain-icon">📱</span>
-          <p class="pain-text">SNSを見るたびに焦りだけが増す</p>
-        </div>
-        <div class="pain-card reveal" style="animation-delay:0.25s">
-          <span class="pain-icon">🧭</span>
-          <p class="pain-text">自分に合ったやり方がわからない</p>
-        </div>
-        <div class="pain-card reveal" style="animation-delay:0.3s">
-          <span class="pain-icon">⚖️</span>
-          <p class="pain-text">頑張った割に、結果が小さい</p>
-        </div>
-      </div>
-    </section>
-  </div>
+<!-- PAIN -->
+<div class="bg2s">
+  <div class="wrap"><div class="sec">
+    <span class="stag reveal">あなたのことですか？</span>
+    <h2 class="stitle reveal">努力してるのに結果が出ない人へ。<br>それ、<em>間違った努力</em>です。</h2>
+    <p class="slead reveal">頑張っているのに報われない。同じような人が先に進んでいく。その違いは、才能でも運でもありません。</p>
+    <div class="pgrid">
+      <div class="pcard reveal"><span class="pico">💭</span><p class="ptxt">やる気はあるのに、<strong>なぜか続かない</strong></p></div>
+      <div class="pcard reveal"><span class="pico">📋</span><p class="ptxt">計画を立てても、<strong>いつも途中で崩れる</strong></p></div>
+      <div class="pcard reveal"><span class="pico">🔄</span><p class="ptxt">同じミスを<strong>何度も繰り返している</strong></p></div>
+      <div class="pcard reveal"><span class="pico">📱</span><p class="ptxt">SNSを見るたびに<strong>焦りだけが増す</strong></p></div>
+      <div class="pcard reveal"><span class="pico">🧭</span><p class="ptxt">自分に合った<strong>やり方がわからない</strong></p></div>
+      <div class="pcard reveal"><span class="pico">⚖️</span><p class="ptxt">頑張った割に、<strong>結果が小さい</strong></p></div>
+    </div>
+  </div></div>
 </div>
 
-<!-- ═══════════════════════════════════════ HOW IT WORKS ══ -->
-<section>
-  <span class="section-tag">How it works</span>
-  <h2 class="section-title reveal">3問で、あなたの<br>行動パターンがわかる</h2>
+<!-- HOW -->
+<div class="wrap"><div class="sec">
+  <span class="stag reveal">How it works</span>
+  <h2 class="stitle reveal">3問で、あなたの<br>行動パターンがわかる</h2>
   <div class="steps">
-    <div class="step reveal" style="animation-delay:0.05s">
-      <div class="step-num">01</div>
-      <div class="step-icon">🎯</div>
-      <h3 class="step-title">3問に答える</h3>
-      <p class="step-desc">YES / NOの2択。直感で選んでください。考えすぎる必要はありません。</p>
-    </div>
-    <div class="step reveal" style="animation-delay:0.1s">
-      <div class="step-num">02</div>
-      <div class="step-icon">🧬</div>
-      <h3 class="step-title">タイプが判明する</h3>
-      <p class="step-desc">8つのパターンから、あなたの「結果が出ない理由」の構造が明らかになります。</p>
-    </div>
-    <div class="step reveal" style="animation-delay:0.15s">
-      <div class="step-num">03</div>
-      <div class="step-icon">🔓</div>
-      <h3 class="step-title">突破口を手に入れる</h3>
-      <p class="step-desc">無料診断の先に、あなた専用の「失敗パターンと打開策」を完全開示します。</p>
-    </div>
+    <div class="step reveal"><div class="snum">01</div><div class="sico">🎯</div><h3 class="stitl">3問に答える</h3><p class="sdesc">YES / NOの2択。直感で選んでください。考えすぎる必要はありません。</p></div>
+    <div class="step reveal"><div class="snum">02</div><div class="sico">🧬</div><h3 class="stitl">タイプが判明する</h3><p class="sdesc">8つのパターンから、あなたの「結果が出ない理由」の構造が明らかになります。</p></div>
+    <div class="step reveal"><div class="snum">03</div><div class="sico">🔓</div><h3 class="stitl">突破口を手に入れる</h3><p class="sdesc">無料診断の先に、あなた専用の「失敗パターンと打開策」を完全開示します。</p></div>
   </div>
-</section>
+</div></div>
 
 <div class="divider"></div>
 
-<!-- ═══════════════════════════════════════ 8 TYPES ══ -->
-<div class="fw-section">
-  <div class="inner">
-    <section>
-      <span class="section-tag">8 Types</span>
-      <h2 class="section-title reveal">あなたはどのパターン？</h2>
-      <div class="types-grid">
-        <div class="type-chip reveal">
-          <span class="type-emoji">🔥</span>
-          <div class="type-name">完燃型</div>
-          <div class="type-desc">スタートは最速。でも燃え尽きる。</div>
-        </div>
-        <div class="type-chip reveal">
-          <span class="type-emoji">🌀</span>
-          <div class="type-name">完璧主義型</div>
-          <div class="type-desc">準備に時間をかけすぎて動けない。</div>
-        </div>
-        <div class="type-chip reveal">
-          <span class="type-emoji">🪞</span>
-          <div class="type-name">比較麻痺型</div>
-          <div class="type-desc">他人と比べて自己評価がゼロになる。</div>
-        </div>
-        <div class="type-chip reveal">
-          <span class="type-emoji">⚓</span>
-          <div class="type-name">惰性継続型</div>
-          <div class="type-desc">やめられないけど、前にも進めない。</div>
-        </div>
-        <div class="type-chip reveal">
-          <span class="type-emoji">🌩️</span>
-          <div class="type-name">衝動分散型</div>
-          <div class="type-desc">やりたいことが多すぎて全部中途半端。</div>
-        </div>
-        <div class="type-chip reveal">
-          <span class="type-emoji">🔒</span>
-          <div class="type-name">承認依存型</div>
-          <div class="type-desc">人の評価がないと動けない。</div>
-        </div>
-        <div class="type-chip reveal">
-          <span class="type-emoji">🌫️</span>
-          <div class="type-name">目標霧型</div>
-          <div class="type-desc">何がしたいのかわからないまま動く。</div>
-        </div>
-        <div class="type-chip reveal">
-          <span class="type-emoji">⚡</span>
-          <div class="type-name">爆発潜在型</div>
-          <div class="type-desc">力はある。ただ、使い方を知らない。</div>
-        </div>
-      </div>
-    </section>
+<!-- TYPES -->
+<div class="bg2s"><div class="wrap"><div class="sec">
+  <span class="stag reveal">8 Types</span>
+  <h2 class="stitle reveal">あなたはどのパターン？</h2>
+  <div class="tgrid">
+    <div class="tchip reveal"><span class="temo">🔥</span><div class="tname">完燃型</div><div class="tdesc">スタートは最速。でも燃え尽きる。</div></div>
+    <div class="tchip reveal"><span class="temo">🌀</span><div class="tname">完璧主義型</div><div class="tdesc">準備に時間をかけすぎて動けない。</div></div>
+    <div class="tchip reveal"><span class="temo">🪞</span><div class="tname">比較麻痺型</div><div class="tdesc">他人と比べて自己評価がゼロになる。</div></div>
+    <div class="tchip reveal"><span class="temo">⚓</span><div class="tname">惰性継続型</div><div class="tdesc">やめられないけど、前にも進めない。</div></div>
+    <div class="tchip reveal"><span class="temo">🌩️</span><div class="tname">衝動分散型</div><div class="tdesc">やりたいことが多すぎて全部中途半端。</div></div>
+    <div class="tchip reveal"><span class="temo">🔒</span><div class="tname">承認依存型</div><div class="tdesc">人の評価がないと動けない。</div></div>
+    <div class="tchip reveal"><span class="temo">🌫️</span><div class="tname">目標霧型</div><div class="tdesc">何がしたいのかわからないまま動く。</div></div>
+    <div class="tchip reveal"><span class="temo">⚡</span><div class="tname">爆発潜在型</div><div class="tdesc">力はある。ただ、使い方を知らない。</div></div>
   </div>
+</div></div></div>
+
+<!-- QUIZ -->
+<div class="qarea" id="quiz"><div class="qinner">
+  <div class="qhead reveal">
+    <span class="stag" style="display:block;text-align:center;">無料診断</span>
+    <h2 class="stitle" style="text-align:center;font-size:clamp(24px,4vw,36px);">3問に答えるだけ</h2>
+  </div>
+  <div class="pbar"><div class="pfill" id="pf" style="width:33%"></div></div>
+  <div class="qcard active" id="q1">
+    <span class="qstep">Q1 / 3</span>
+    <p class="qtxt">「やろう」と思ったこと、<br>その日のうちに動きましたか？</p>
+    <div class="qopts">
+      <button class="qbtn y" onclick="ans(1,'yes')"><span class="qlbl">YES</span><span class="qsub">思ったらすぐ動いた</span></button>
+      <button class="qbtn n" onclick="ans(1,'no')"><span class="qlbl">NO</span><span class="qsub">思ったまま今日も終わった</span></button>
+    </div>
+  </div>
+  <div class="qcard" id="q2">
+    <span class="qstep">Q2 / 3</span>
+    <p class="qtxt">うまくいかないことがあったとき、<br>その後すぐ切り替えられましたか？</p>
+    <div class="qopts">
+      <button class="qbtn y" onclick="ans(2,'yes')"><span class="qlbl">YES</span><span class="qsub">切り替えて前に進んだ</span></button>
+      <button class="qbtn n" onclick="ans(2,'no')"><span class="qlbl">NO</span><span class="qsub">ずっと頭から離れなかった</span></button>
+    </div>
+  </div>
+  <div class="qcard" id="q3">
+    <span class="qstep">Q3 / 3</span>
+    <p class="qtxt">半年前に「始めたい」と思ったこと、<br>今どうなっていますか？</p>
+    <div class="qopts">
+      <button class="qbtn y" onclick="ans(3,'yes')"><span class="qlbl">YES</span><span class="qsub">もうやってる</span></button>
+      <button class="qbtn n" onclick="ans(3,'no')"><span class="qlbl">NO</span><span class="qsub">まだ「いつかやる」のまま</span></button>
+    </div>
+  </div>
+</div></div>
+
+<!-- ANALYZING -->
+<div id="analyzing" style="display:none;flex-direction:column;align-items:center;justify-content:center;padding:80px 24px;min-height:300px;position:relative;z-index:1;">
+  <div class="an-circle"></div>
+  <p class="an-txt" id="an-msg">パターンを解析中...</p>
 </div>
 
-<!-- ═══════════════════════════════════════ QUIZ ══ -->
-<div id="quiz" style="background:var(--bg);">
-  <div class="quiz-wrap">
-    <div class="quiz-header reveal">
-      <span class="section-tag" style="display:block;text-align:center;margin-bottom:8px;">無料診断</span>
-      <h2 class="section-title" style="text-align:center;font-size:clamp(22px,4vw,34px);">3問に答えるだけ</h2>
-    </div>
-
-    <div class="quiz-progress-bar">
-      <div class="quiz-progress-fill" id="progress-fill" style="width:33%"></div>
-    </div>
-
-    <!-- Q1 -->
-    <div class="quiz-card active" id="q1">
-      <span class="q-step">Q1 / 3</span>
-      <p class="q-text">「やろう」と思ったこと、<br>その日のうちに動きましたか？</p>
-      <div class="q-options">
-        <button class="q-btn yes-btn" onclick="answer(1,'yes')">
-          <span class="q-label">YES</span>
-          <span class="q-sub">思ったらすぐ動いた</span>
-        </button>
-        <button class="q-btn no-btn" onclick="answer(1,'no')">
-          <span class="q-label">NO</span>
-          <span class="q-sub">思ったまま今日も終わった</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Q2 -->
-    <div class="quiz-card" id="q2">
-      <span class="q-step">Q2 / 3</span>
-      <p class="q-text">うまくいかないことがあったとき、<br>その後すぐ切り替えられましたか？</p>
-      <div class="q-options">
-        <button class="q-btn yes-btn" onclick="answer(2,'yes')">
-          <span class="q-label">YES</span>
-          <span class="q-sub">切り替えて前に進んだ</span>
-        </button>
-        <button class="q-btn no-btn" onclick="answer(2,'no')">
-          <span class="q-label">NO</span>
-          <span class="q-sub">ずっと頭から離れなかった</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Q3 -->
-    <div class="quiz-card" id="q3">
-      <span class="q-step">Q3 / 3</span>
-      <p class="q-text">半年前に「始めたい」と思ったこと、<br>今どうなっていますか？</p>
-      <div class="q-options">
-        <button class="q-btn yes-btn" onclick="answer(3,'yes')">
-          <span class="q-label">YES</span>
-          <span class="q-sub">もうやってる</span>
-        </button>
-        <button class="q-btn no-btn" onclick="answer(3,'no')">
-          <span class="q-label">NO</span>
-          <span class="q-sub">まだ「いつかやる」のまま</span>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════ RESULT ══ -->
-<div id="result-screen">
-  <div class="result-header">
-    <div class="result-badge-wrap">
-      <span class="result-badge">診断完了 — Pattern Identified</span>
-    </div>
-    <p class="result-type-label" id="result-code"></p>
-    <h2 class="result-type-name" id="result-name"></h2>
-    <p class="result-type-sub" id="result-desc"></p>
-  </div>
-
-  <!-- TEASER CARD -->
-  <div class="teaser-card">
-    <h3 class="teaser-title">あなたの「停止パターン」の一端：</h3>
-    <div class="teaser-content" id="teaser-text"></div>
-    <div class="teaser-locked">
-      <div class="teaser-lock-item">
-        <span class="lock-icon">🔒</span>
-        <span>停止パターンの<strong>根本原因</strong>（完全解説）</span>
-      </div>
-      <div class="teaser-lock-item">
-        <span class="lock-icon">🔒</span>
-        <span>なぜ繰り返すのか—<strong>心理構造</strong></span>
-      </div>
-      <div class="teaser-lock-item">
-        <span class="lock-icon">🔒</span>
-        <span>今日から実践できる<strong>3つの行動改善プラン</strong></span>
-      </div>
-      <div class="teaser-lock-item">
-        <span class="lock-icon">🔒</span>
-        <span>同タイプが変わるための<strong>ロードマップ</strong></span>
-      </div>
-    </div>
-  </div>
-
-  <!-- WARNING -->
-  <div class="warning-banner">
-    <p>このままだと、<br>同じことをまた繰り返します。</p>
-  </div>
-
-  <!-- CTA BLOCK -->
-  <div class="cta-block">
-    <p class="cta-price">¥500 — 買い切り</p>
-    <h3 class="cta-title">この続きの完全分析を見る（500円）</h3>
-    <ul class="cta-features">
-      <li>あなた専用の「失敗の構造」を完全開示</li>
-      <li>今日から変えられる具体的な行動ルール</li>
-      <li>今日から実行できる3つの行動改善プラン</li>
-      <li>同タイプが変わるための具体的なロードマップ</li>
+<!-- RESULT -->
+<div id="rs">
+  <div class="rbrow"><span class="rbadge">診断完了 — Pattern Identified</span></div>
+  <p class="rcode" id="rc"></p>
+  <h2 class="rname" id="rn"></h2>
+  <p class="rdesc" id="rd"></p>
+  <div class="rp-wrap" id="report-body"></div>
+  <div class="warn"><p>これはまだ入口です。<br>完全分析では、あなた専用の打開策を全て開示します。</p></div>
+  <div class="ctablk">
+    <p class="cprice">¥500 — 買い切り・返金保証あり</p>
+    <h3 class="ch">この続きの完全分析を見る（500円）</h3>
+    <ul class="cfeats">
+      <li>あなたの脳内で何が起きているかを神経科学レベルで詳細解説</li>
+      <li>このパターンが形成された「人生の起点」を特定</li>
+      <li>24時間以内に実行できる具体的な行動プログラム</li>
+      <li>同タイプが変わった事例とロードマップ</li>
     </ul>
-    <a href="https://buy.stripe.com/8x2cN52Ox25Vh0agH65Rm01" class="cta-btn" id="result-cta-btn">
-      この続きの完全分析を見る（500円）→
-      <span class="btn-arrow"></span>
-    </a>
-    <p class="cta-note">クレジットカード・各種決済対応 ／ 即時配信 ／ 返金保証あり</p>
+    <a href="https://buy.stripe.com/8x2cN52Ox25Vh0agH65Rm01" class="cbtn">この続きの完全分析を見る（500円）<span class="arr">→</span></a>
+    <p class="cnote">クレジットカード・各種決済対応 ／ 即時配信</p>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════ SAMPLE ══ -->
-<div class="fw-section">
-  <div class="inner">
-    <section>
-      <span class="section-tag">Sample Result</span>
-      <h2 class="section-title reveal">診断結果のサンプル</h2>
-      <p class="reveal" style="color:var(--ink2);margin-bottom:0;line-height:1.9;">有料分析では、あなた専用のパターン分析と行動改善プランが完全開示されます。</p>
-
-      <div class="sample-wrap reveal">
-        <div class="sample-header">
-          <span class="sample-tag">Sample — Type 02</span>
-          <span class="sample-type">完璧主義型</span>
-        </div>
-        <div class="sample-body">
-          <h3 class="sample-title">あなたは準備に時間をかけすぎて動けないパターンです</h3>
-          <p class="sample-text">準備を徹底的にしてから動こうとするため、スタートが遅くなり、チャンスを逃しやすいパターンです。「まだ準備が足りない」という感覚は、実際には恐怖を回避するための防衛機制です。完璧主義型の人は...</p>
-          <div class="sample-blur">
-            <div class="sample-blur-row">
-              <span class="blur-lock">🔒</span>
-              <div class="blur-content">
-                <div class="blur-label">失敗パターンの核心</div>
-                <div class="blur-bar" style="width:100%"></div>
-                <div class="blur-bar" style="width:70%;margin-top:6px"></div>
-              </div>
-            </div>
-            <div class="sample-blur-row">
-              <span class="blur-lock">🔒</span>
-              <div class="blur-content">
-                <div class="blur-label">今日から変えるための行動ルール</div>
-                <div class="blur-bar" style="width:85%"></div>
-                <div class="blur-bar" style="width:60%;margin-top:6px"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════ UPSELL CTA ══ -->
-<section style="text-align:center;padding:80px 24px;">
-  <span class="section-tag reveal" style="display:block;text-align:center;margin-bottom:12px;">知らないままでいると</span>
-  <h2 class="section-title reveal" style="text-align:center;max-width:600px;margin:0 auto 20px;">5年後も繰り返します。</h2>
-  <p class="reveal" style="color:var(--ink2);max-width:500px;margin:0 auto 36px;line-height:1.9;">無料診断で判明したタイプの「完全版分析」。<br>なぜあなたは結果が出ないのか、その根本構造と、<br>今日から変えられる具体的な行動プランを手に入れてください。</p>
-  <div class="cta-block reveal" style="max-width:560px;margin:0 auto;">
-    <p class="cta-price">完全分析レポート — ¥500</p>
-    <h3 class="cta-title" style="margin-bottom:12px;">買い切り・返金保証あり</h3>
-    <ul class="cta-features" style="margin-bottom:24px;">
-      <li>あなた専用の「失敗の構造」を完全開示</li>
-      <li>今日から変えられる具体的な行動ルールを提示</li>
-      <li>今日から実行できる3つの行動改善プラン</li>
-      <li>同タイプが変わるための具体的なロードマップ</li>
-    </ul>
-    <a href="#quiz" class="cta-btn">
-      まず無料診断を受ける →
-      <span class="btn-arrow"></span>
-    </a>
-    <p class="cta-note">クレジットカード・各種決済対応 ／ 即時配信</p>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════ SCIENCE ══ -->
-<div class="fw-section">
-  <div class="inner">
-    <section>
-      <span class="section-tag">Scientific Basis</span>
-      <h2 class="section-title reveal">なぜこの診断が機能するのか</h2>
-      <p class="reveal" style="color:var(--ink2);max-width:540px;line-height:1.9;margin-bottom:0;">占いでも性格診断でもない。脳科学・心理学の知見に基づく行動分析だ。</p>
-      <div class="science-grid">
-        <div class="science-card reveal">
-          <div class="science-label">Neuroscience</div>
-          <div class="science-title">ドーパミン回路</div>
-          <div class="science-desc">やる気があっても続かない理由がここにある。報酬系の反応パターンが行動を支配している。</div>
-        </div>
-        <div class="science-card reveal">
-          <div class="science-label">Neuroscience</div>
-          <div class="science-title">扁桃体 × 前頭前皮質</div>
-          <div class="science-desc">不安で止まる人、感情で動く人の違いはここで決まる。感情型か理性型かの判定に直結する。</div>
-        </div>
-        <div class="science-card reveal">
-          <div class="science-label">Cognitive Science</div>
-          <div class="science-title">デフォルトモードネットワーク</div>
-          <div class="science-desc">考えすぎて動けない人の脳で起きていること。思考ループの構造を特定する。</div>
-        </div>
-        <div class="science-card reveal">
-          <div class="science-label">Plasticity</div>
-          <div class="science-title">神経可塑性</div>
-          <div class="science-desc">パターンは変えられる。ただし、まず特定が必要。脳は正しいアプローチで変化する。</div>
-        </div>
-        <div class="science-card reveal" style="grid-column: 1 / -1;">
-          <div class="science-label">Psychology Framework</div>
-          <div class="science-title">ビッグファイブ理論 × CBT × アドラー心理学</div>
-          <div class="science-desc">世界最信頼の性格モデルと認知行動療法を組み合わせた分析。これは参考にした理論であり、断定的な医学診断ではない。</div>
-        </div>
-      </div>
-    </section>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════ VIP ══ -->
-<div class="vip-section">
-  <span class="section-tag reveal" style="display:block;text-align:center;margin-bottom:4px;">Individual Consultation</span>
-  <h2 class="section-title reveal" style="text-align:center;max-width:480px;margin:0 auto 40px;">個別AI診断</h2>
-  <div class="vip-card reveal">
-    <div class="vip-header">
-      <span class="vip-tag">Premium — 完全個別対応</span>
-      <h3 class="vip-title">レポートでは届かない核心を、<br>1対1で掘り下げる。</h3>
-      <div class="vip-price-row">
-        <span class="vip-yen">¥</span>
-        <span class="vip-amount">5,000</span>
-        <span class="vip-unit">/ 1回</span>
-      </div>
+<!-- SAMPLE -->
+<div class="bg2s"><div class="wrap"><div class="sec">
+  <span class="stag reveal">Sample Result</span>
+  <h2 class="stitle reveal">診断結果のサンプル</h2>
+  <p class="slead reveal">有料分析では、あなた専用のパターン分析と行動改善プランが完全開示されます。</p>
+  <div class="swrap reveal">
+    <div class="shead2"><span class="stag2">SAMPLE — Type 02</span><span class="stype">完璧主義型</span></div>
+    <div class="sbody">
+      <h3 class="stitle2">あなたは準備に時間をかけすぎて動けないパターンです</h3>
+      <p class="stxt">準備を徹底的にしてから動こうとするため、スタートが遅くなり、チャンスを逃しやすいパターンです。「まだ準備が足りない」という感覚は、実際には恐怖を回避するための防衛機制です。</p>
+      <div class="brow"><span class="blk">🔒</span><div style="flex:1"><div class="blbl">失敗パターンの核心</div><div class="bbar" style="width:100%"></div><div class="bbar" style="width:72%;margin-top:6px"></div></div></div>
+      <div class="brow"><span class="blk">🔒</span><div style="flex:1"><div class="blbl">今日から変えるための行動ルール</div><div class="bbar" style="width:88%"></div><div class="bbar" style="width:55%;margin-top:6px"></div></div></div>
     </div>
-    <div class="vip-body">
-      <ul class="vip-features">
+  </div>
+</div></div></div>
+
+<!-- UPSELL -->
+<div class="wrap"><div class="sec" style="text-align:center">
+  <span class="stag reveal" style="display:block;text-align:center">知らないままでいると</span>
+  <h2 class="stitle reveal" style="text-align:center;max-width:560px;margin:0 auto 16px">5年後も繰り返します。</h2>
+  <p class="slead reveal" style="margin:0 auto 40px;text-align:center">無料診断で判明したタイプの「完全版分析」。<br>根本構造と、今日から変えられる行動プランを手に入れてください。</p>
+  <div class="ctablk reveal" style="max-width:560px;margin:0 auto">
+    <p class="cprice">完全分析レポート — ¥500 / 買い切り</p>
+    <h3 class="ch">返金保証あり・即時配信</h3>
+    <ul class="cfeats"><li>あなた専用の「失敗の構造」を完全開示</li><li>今日から変えられる具体的な行動ルール</li><li>3つの行動改善プランと実践ロードマップ</li></ul>
+    <a href="#quiz" class="cbtn">まず無料診断を受ける <span class="arr">→</span></a>
+    <p class="cnote">クレジットカード・各種決済対応 ／ 即時配信</p>
+  </div>
+</div></div>
+
+<!-- SCIENCE -->
+<div class="bg2s"><div class="wrap"><div class="sec">
+  <span class="stag reveal">Scientific Basis</span>
+  <h2 class="stitle reveal">なぜこの診断が機能するのか</h2>
+  <p class="slead reveal">占いでも性格診断でもない。脳科学・心理学の知見に基づく行動分析だ。</p>
+  <div class="scigrid">
+    <div class="scicard reveal"><div class="scilbl">Neuroscience</div><div class="scitit">ドーパミン回路</div><div class="scidsc">やる気があっても続かない理由がここにある。報酬系の反応パターンが行動を支配している。</div></div>
+    <div class="scicard reveal"><div class="scilbl">Neuroscience</div><div class="scitit">扁桃体 × 前頭前皮質</div><div class="scidsc">不安で止まる人、感情で動く人の違いはここで決まる。感情型か理性型かの判定に直結する。</div></div>
+    <div class="scicard reveal"><div class="scilbl">Cognitive Science</div><div class="scitit">デフォルトモードネットワーク</div><div class="scidsc">考えすぎて動けない人の脳で起きていること。思考ループの構造を特定する。</div></div>
+    <div class="scicard reveal"><div class="scilbl">Plasticity</div><div class="scitit">神経可塑性</div><div class="scidsc">パターンは変えられる。ただし、まず特定が必要。脳は正しいアプローチで変化する。</div></div>
+    <div class="scicard reveal" style="grid-column:1/-1"><div class="scilbl">Psychology Framework</div><div class="scitit">ビッグファイブ理論 × CBT × アドラー心理学</div><div class="scidsc">世界最信頼の性格モデルと認知行動療法を組み合わせた分析。これは参考にした理論であり、断定的な医学診断ではない。</div></div>
+  </div>
+</div></div></div>
+
+<!-- VIP -->
+<div class="wrap"><div class="sec">
+  <span class="stag reveal" style="display:block;text-align:center">Individual Consultation</span>
+  <h2 class="stitle reveal" style="text-align:center;max-width:440px;margin:0 auto 44px">個別AI診断</h2>
+  <div class="vcard reveal">
+    <div class="vhead">
+      <span class="vtag">Premium — 完全個別対応</span>
+      <h3 class="vtitle">レポートでは届かない核心を、<br>1対1で掘り下げる。</h3>
+      <div class="vprow"><span class="vyen">¥</span><span class="vamt">5,000</span><span class="vunit">/ 1回</span></div>
+    </div>
+    <div class="vbody">
+      <ul class="vfeats">
         <li>ビッグファイブ分析に基づき、あなたの特性を特定</li>
         <li>CBTの観点から、思考と行動の連鎖を解説</li>
         <li>脳科学的に、なぜそのパターンが生まれたかを説明</li>
         <li>どこで止まるか／どこを崩すかを特定します</li>
       </ul>
-      <a href="mailto:local.maps.jp@gmail.com?subject=個別AI診断申し込み（¥5,000）&body=【お名前】%0A【ご連絡先】%0A【気になっていること・相談内容】%0A" class="vip-cta" id="vip-cta-btn">
-        個別診断を申し込む →
-      </a>
-      <p class="vip-note">メールにてご連絡ください ／ 24時間以内に返信<br>※決済はご連絡後にご案内します</p>
+      <a href="mailto:local.maps.jp@gmail.com?subject=個別AI診断申し込み（¥5,000）&body=【お名前】%0A【ご連絡先】%0A【相談内容】%0A" class="vbtn" id="vbtn">個別診断を申し込む →</a>
+      <p class="vnote">メールにてご連絡ください ／ 24時間以内に返信<br>※決済はご連絡後にご案内します</p>
     </div>
   </div>
-</div>
+</div></div>
 
-<!-- ═══════════════════════════════════════ FOOTER ══ -->
 <footer>
   <p>© 2024 AI人生パターン診断 — Pattern Analysis Service</p>
-  <p style="margin-top:8px;font-size:11px;">これは参考にした理論であり、断定的な医学診断ではありません。</p>
+  <p style="margin-top:6px;font-size:11px;opacity:.5">これは参考にした理論であり、断定的な医学診断ではありません。</p>
 </footer>
 
 <script>
-// ── PARTICLES ──
-(function() {
-  const container = document.getElementById('particles');
-  const colors = ['rgba(108,63,255,0.25)', 'rgba(0,200,150,0.2)', 'rgba(255,77,109,0.18)', 'rgba(201,168,76,0.2)'];
-  const count = window.innerWidth < 600 ? 12 : 22;
-
-  for (let i = 0; i < count; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    const size = 3 + Math.random() * 8;
-    const color = colors[Math.floor(Math.random() * colors.length)];
-    const left = Math.random() * 100;
-    const duration = 18 + Math.random() * 22;
-    const delay = -Math.random() * duration;
-    const dx = (Math.random() - 0.5) * 120;
-    p.style.cssText = `
-      width:${size}px;height:${size}px;
-      background:${color};
-      left:${left}%;
-      animation-duration:${duration}s;
-      animation-delay:${delay}s;
-      --dx:${dx}px;
-    `;
-    container.appendChild(p);
+(function(){
+  const c=document.getElementById('pts');
+  const cols=['rgba(0,255,224,.5)','rgba(123,92,255,.5)','rgba(255,61,107,.4)','rgba(245,197,66,.4)'];
+  const n=window.innerWidth<600?14:28;
+  for(let i=0;i<n;i++){
+    const d=document.createElement('div');
+    d.className='dot';
+    const sz=2+Math.random()*5;
+    const col=cols[Math.floor(Math.random()*cols.length)];
+    const dur=20+Math.random()*25;
+    const del=-Math.random()*dur;
+    d.style.cssText=`width:${sz}px;height:${sz}px;background:${col};left:${Math.random()*100}%;animation-duration:${dur}s;animation-delay:${del}s;box-shadow:0 0 ${sz*3}px ${col}`;
+    c.appendChild(d);
   }
 })();
 
-// ── QUIZ LOGIC ──
-const answers = {};
-
-const types = {
-  'yes-yes-yes': { code: 'Type 01', name: '完燃型', desc: 'スタートダッシュは誰よりも速い。しかし、そのエネルギーは持続しない。', teaser: 'あなたは「初動の熱量」が非常に高いタイプです。新しいことを始めると全力で取り組みますが、最初の障壁を超えた先で急激にエネルギーが枯渇します。これはやる気の問題ではなく、脳の報酬回路の構造的な問題です。' },
-  'yes-yes-no': { code: 'Type 08', name: '爆発潜在型', desc: 'ポテンシャルは十分ある。ただ、爆発させる方法を知らない。', teaser: 'あなたには確かな行動力と回復力が備わっています。しかし、その力を「継続」に変換するメカニズムが形成されていません。正しい方向に向ければ、8タイプの中で最も速く変化できます。' },
-  'yes-no-yes': { code: 'Type 05', name: '衝動分散型', desc: 'やりたいことが多すぎる。エネルギーが分散して何も完成しない。', teaser: 'あなたの行動力は本物です。ただ、「好奇心の先取り消費」が起きています。新しい刺激に反応するたびにリソースが分散し、どの領域でも深度が出ないまま終わります。' },
-  'yes-no-no': { code: 'Type 03', name: '比較麻痺型', desc: '他人の成功が見えるほど、自分の行動が止まっていく。', teaser: 'あなたは動ける。しかし、他者の進捗が視界に入ると一瞬で自己評価が崩壊します。この「比較トリガー」が特定されれば、同じ状況で全く異なる反応を選べるようになります。' },
-  'no-yes-yes': { code: 'Type 07', name: '目標霧型', desc: '何がしたいのかわからないまま、とりあえず動いてしまう。', teaser: 'あなたは切り替えが早く、継続力もある。しかし「どこへ向かうか」が定まっていないため、エネルギーが正しい方向に集積されません。方向性さえ見えれば、一気に加速できるタイプです。' },
-  'no-yes-no': { code: 'Type 04', name: '惰性継続型', desc: 'やめられないけど、前にも進めない。ループに入っている。', teaser: 'あなたは現状維持に強いエネルギーを持っています。しかしそのエネルギーが「変化への抵抗」として機能しています。やめられない理由の構造を知ることが、唯一の出口です。' },
-  'no-no-yes': { code: 'Type 06', name: '承認依存型', desc: '人の評価がないと、自分の価値がわからなくなる。', teaser: 'あなたには継続する意志がある。しかし「外部からの承認」がないと動けない構造が形成されています。これは幼少期の環境で設定された条件反射であり、認識することで変えられます。' },
-  'no-no-no': { code: 'Type 02', name: '完璧主義型', desc: '準備に時間をかけすぎて動けない。完璧な計画が目的になっている。', teaser: 'あなたの分析力と慎重さは武器です。ただ、「完璧な状態で始めること」が潜在的な目標にすり替わっています。これは恐怖を回避するための防衛機制であり、パターンを認識するだけで解除できます。' }
+const A={};
+const T={
+  'yes-yes-yes':{
+    code:'Type 08', name:'潜在力型', 
+    desc:'全部できるのに、何も積み上がっていない。力の方向が、まだ決まっていません。',
+    report:`<div class="rp-headline">あなたは「全部できるのに、何も積み上がっていない人」です。<br>力の方向が、まだ決まっていません。</div>
+<div class="rp-block"><div class="rp-block-title">▍あなたへの診断</div><p>あなたは力を持っています。行動力も、回復力も、継続力も。<br>でも、その力が成果に変わっていない。<br><br>これはあなたに問題があるのではありません。<br><strong>力の向ける方向が、まだ定まっていないのです。</strong></p></div>
+<div class="rp-block"><div class="rp-block-title">▍あなたの心理構造</div><p>あなたの行動パターンは優れています。始められる、乗り越えられる、続けられる——この3つが揃っている人間は少ない。<br><br>問題は「何のために」この力を使うかが、まだ明確になっていないことです。<br><br><strong>あなたはエンジンが最高性能なのに、目的地が設定されていない車です。</strong></p></div>
+<div class="rp-block"><div class="rp-block-title">▍あなたが繰り返すパターン</div><div class="rp-list"><div class="rp-li">頑張る</div><div class="rp-li">成果が出ない</div><div class="rp-li">また別の方向で頑張る</div><div class="rp-li">また成果が出ない</div><div class="rp-li">「なぜ頑張っても報われないのか」と感じ始める</div></div></div>
+<div class="rp-block"><div class="rp-block-title">▍心理的根本原因</div><p>潜在力型の根底にある問題は「方向性の欠如」と「自己正当化」の組み合わせです。動いているから「頑張っている」と感じる。でも成果に繋がっていない。<br><br><strong>忙しいことと、成果を出すことは全く別物です。</strong></p></div>
+<div class="rp-block rp-rules"><div class="rp-block-title">▍今すぐできる行動ルール</div><div class="rp-rule"><div class="rp-rule-title">ルール1：「何のためにやるのか」を先に決める</div><p>目標ではなく、目的を決めてください。この「なぜ」があなたの羅針盤になります。</p></div><div class="rp-rule"><div class="rp-rule-title">ルール2：行動を仕分ける</div><p>今やっていることをすべて書き出して、どれが本当に目的に繋がっているか確認してください。</p></div><div class="rp-rule"><div class="rp-rule-title">ルール3：月に一度、方向を確認する</div><p>毎月末に「今月の行動は目的に向かっていたか」を振り返ってください。</p></div></div>
+<div class="rp-quote">ここまで読んで分かる通り、問題はすでに明確です。<br>ただし、ここから先は「修正方法」の詳細です。<br>読まなければ、同じことを繰り返します。<br><br><strong>今変えなければ、この状態は続きます。</strong></div>`
+  },
+  'yes-yes-no':{
+    code:'Type 01', name:'燃え尽き型',
+    desc:'始めることで満足している。だから続かない。',
+    report:`<div class="rp-headline">あなたは「始めることで満足している人」です。だから続かない。</div>
+<div class="rp-block"><div class="rp-block-title">▍あなたへの診断</div><p>あなたは「始める力」が誰よりも強い人間です。でも、なぜかいつも途中で止まる。<br><br>これはあなたの意志が弱いのではありません。<strong>脳の報酬システムの使い方が間違っているだけです。</strong></p></div>
+<div class="rp-block"><div class="rp-block-title">▍あなたの心理構造</div><p>あなたの脳は「新しいことを始める瞬間」に最大のドーパミンを放出します。計画を立てる、宣言する、最初の一歩を踏み出す——この瞬間があなたにとっての「ピーク」です。<br><br>問題は、その後です。ドーパミンは急速に下がります。すると脳は「もうこれは新しくない」と判断し、次の刺激を求め始める。<br><br><strong>これが「燃え尽き」の正体です。意志の問題ではなく、神経化学の問題です。</strong></p></div>
+<div class="rp-block"><div class="rp-block-title">▍あなたが繰り返すパターン</div><div class="rp-list"><div class="rp-li">「今度こそ本気でやる」と決意する</div><div class="rp-li">最初の1〜2週間は誰よりも頑張る</div><div class="rp-li">ある日突然、熱が消える</div><div class="rp-li">「また自分はダメだった」と自己嫌悪に陥る</div><div class="rp-li">しばらくして、また新しいことを始める</div></div><p style="margin-top:14px;font-weight:700;color:var(--neon3)">このサイクルを何度繰り返しましたか？</p></div>
+<div class="rp-block"><div class="rp-block-title">▍心理的根本原因</div><p>あなたには「完遂体験」が圧倒的に不足しています。始めては止める、始めては止める——この繰り返しが脳に「どうせ続かない」という回路を刻み込んでいます。<br><br>さらに深刻なのは、この回路は自己嫌悪と結びついているという点です。失敗するたびに自己評価が下がり、次に挑戦するハードルが上がっていく。<br><br><strong>あなたは失敗しているのではありません。間違ったシステムで動いているだけです。</strong></p></div>
+<div class="rp-block rp-rules"><div class="rp-block-title">▍今すぐできる行動ルール</div><div class="rp-rule"><div class="rp-rule-title">ルール1：「3日間だけ」と決める</div><p>「一生続ける」と思うからプレッシャーで止まる。「3日間だけ」と決めて始めてください。</p></div><div class="rp-rule"><div class="rp-rule-title">ルール2：完了の定義を小さくする</div><p>「1時間勉強する」ではなく「テキストを1ページ開く」。達成感を毎日積み上げることが脳の回路を書き換えます。</p></div><div class="rp-rule"><div class="rp-rule-title">ルール3：熱が冷めた日に動く</div><p>モチベーションが高い日は誰でも動けます。熱が冷めた日に「とりあえず1分だけ」動くことが、あなたのパターンを壊す唯一の方法です。</p></div></div>
+<div class="rp-quote">ここまで読んで分かる通り、問題はすでに明確です。<br>ただし、ここから先は「修正方法」の詳細です。<br>読まなければ、同じことを繰り返します。<br><br><strong>今変えなければ、この状態は続きます。</strong></div>`
+  },
+  'yes-no-yes':{
+    code:'Type 04', name:'散漫型',
+    desc:'アイデアを生む天才で、完成させる気がない。だから何も残らない。',
+    report:`<div class="rp-headline">あなたは「アイデアを生む天才で、完成させる気がない人」です。だから何も残らない。</div>
+<div class="rp-block"><div class="rp-block-title">▍あなたへの診断</div><p>あなたはアイデアが溢れ出てくる人間です。でも、何一つ完成しない。<br><br>これはあなたが飽き性なのではありません。<strong>刺激への依存が、完遂を妨げているのです。</strong></p></div>
+<div class="rp-block"><div class="rp-block-title">▍あなたの心理構造</div><p>あなたの脳は「新しい刺激」に対して強く反応します。最初の興奮が冷めた後に訪れる「地道な作業」に、あなたの脳は耐えられない。<br><br><strong>だから次の新しい刺激を求めて、また別のことを始める。</strong></p></div>
+<div class="rp-block"><div class="rp-block-title">▍あなたが繰り返すパターン</div><div class="rp-list"><div class="rp-li">素晴らしいアイデアが浮かぶ</div><div class="rp-li">猛烈に動き始める</div><div class="rp-li">2〜3週間後、別のアイデアが浮かぶ</div><div class="rp-li">そちらに移動する</div><div class="rp-li">気づくと何十もの「未完成のプロジェクト」が溜まっている</div></div></div>
+<div class="rp-block"><div class="rp-block-title">▍心理的根本原因</div><p>散漫型の根底にあるのは「完了への恐怖」と「選択回避」の組み合わせです。何かを完成させることは、他の可能性を捨てることを意味します。<br><br><strong>でも完成しないものは、世界に何の影響も与えません。</strong></p></div>
+<div class="rp-block rp-rules"><div class="rp-block-title">▍今すぐできる行動ルール</div><div class="rp-rule"><div class="rp-rule-title">ルール1：同時進行は最大2つまで</div><p>今やっていることを全部書き出して、2つ以外は「保留リスト」に移してください。</p></div><div class="rp-rule"><div class="rp-rule-title">ルール2：新しいアイデアは72時間待つ</div><p>新しいアイデアが浮かんだら、メモして72時間待つ。ほとんどは消えます。</p></div><div class="rp-rule"><div class="rp-rule-title">ルール3：「完成の定義」を先に決める</div><p>「これが完成したら終わり」という明確なゴールを最初に設定してください。</p></div></div>
+<div class="rp-quote">ここまで読んで分かる通り、問題はすでに明確です。<br>ただし、ここから先は「修正方法」の詳細です。<br>読まなければ、同じことを繰り返します。<br><br><strong>今変えなければ、この状態は続きます。</strong></div>`
+  },
+  'yes-no-no':{
+    code:'Type 04', name:'散漫型',
+    desc:'アイデアを生む天才で、完成させる気がない。だから何も残らない。',
+    report:`<div class="rp-headline">あなたは「アイデアを生む天才で、完成させる気がない人」です。だから何も残らない。</div>
+<div class="rp-block"><div class="rp-block-title">▍あなたへの診断</div><p>あなたはアイデアが溢れ出てくる人間です。でも、何一つ完成しない。<br><br>これはあなたが飽き性なのではありません。<strong>刺激への依存が、完遂を妨げているのです。</strong></p></div>
+<div class="rp-block"><div class="rp-block-title">▍あなたの心理構造</div><p>あなたの脳は「新しい刺激」に対して強く反応します。最初の興奮が冷めた後に訪れる「地道な作業」に、あなたの脳は耐えられない。<br><br><strong>だから次の新しい刺激を求めて、また別のことを始める。</strong></p></div>
+<div class="rp-block"><div class="rp-block-title">▍あなたが繰り返すパターン</div><div class="rp-list"><div class="rp-li">素晴らしいアイデアが浮かぶ</div><div class="rp-li">猛烈に動き始める</div><div class="rp-li">2〜3週間後、別のアイデアが浮かぶ</div><div class="rp-li">そちらに移動する</div><div class="rp-li">気づくと何十もの「未完成のプロジェクト」が溜まっている</div></div></div>
+<div class="rp-block"><div class="rp-block-title">▍心理的根本原因</div><p>散漫型の根底にあるのは「完了への恐怖」と「選択回避」の組み合わせです。何かを完成させることは、他の可能性を捨てることを意味します。<br><br><strong>でも完成しないものは、世界に何の影響も与えません。</strong></p></div>
+<div class="rp-block rp-rules"><div class="rp-block-title">▍今すぐできる行動ルール</div><div class="rp-rule"><div class="rp-rule-title">ルール1：同時進行は最大2つまで</div><p>今やっていることを全部書き出して、2つ以外は「保留リスト」に移してください。</p></div><div class="rp-rule"><div class="rp-rule-title">ルール2：新しいアイデアは72時間待つ</div><p>新しいアイデアが浮かんだら、メモして72時間待つ。ほとんどは消えます。</p></div><div class="rp-rule"><div class="rp-rule-title">ルール3：「完成の定義」を先に決める</div><p>「これが完成したら終わり」という明確なゴールを最初に設定してください。</p></div></div>
+<div class="rp-quote">ここまで読んで分かる通り、問題はすでに明確です。<br>ただし、ここから先は「修正方法」の詳細です。<br>読まなければ、同じことを繰り返します。<br><br><strong>今変えなければ、この状態は続きます。</strong></div>`
+  },
+  'no-yes-yes':{
+    code:'Type 05', name:'漂流型',
+    desc:'変わりたいのに、変わる一歩が踏めない。その一歩を踏まない限り、何も変わりません。',
+    report:`<div class="rp-headline">あなたは「変わりたいのに、変わる一歩が踏めない人」です。その一歩を踏まない限り、何も変わりません。</div>
+<div class="rp-block"><div class="rp-block-title">▍あなたへの診断</div><p>あなたは変わりたいと思っている。でも、最初の一歩が異様に重い。<br><br>これはあなたに勇気がないのではありません。<strong>現状維持への執着が、変化を阻んでいるのです。</strong></p></div>
+<div class="rp-block"><div class="rp-block-title">▍あなたの心理構造</div><p>人間の脳は「変化」を本能的に危険と感じます。現状がどんなに不満足でも、「慣れている状態」は脳にとって安全です。<br><br>これを「現状維持バイアス」と言います。<strong>あなたが動けないのは、あなたの脳が正常に機能している証拠でもあります。</strong><br>ただし、そのバイアスに従い続けると、5年後も同じ場所にいます。</p></div>
+<div class="rp-block"><div class="rp-block-title">▍あなたが繰り返すパターン</div><div class="rp-list"><div class="rp-li">今の状況に不満を感じる</div><div class="rp-li">「変わらなければ」と思う</div><div class="rp-li">でも具体的に動けない</div><div class="rp-li">不満を抱えたまま時間が過ぎる</div><div class="rp-li">また「いつか変わろう」と思う</div></div><p style="margin-top:14px;font-weight:700;color:var(--neon3)">「いつか」は永遠に来ません。</p></div>
+<div class="rp-block"><div class="rp-block-title">▍心理的根本原因</div><p>漂流型の根底にあるのは「損失回避の過剰反応」です。変化することで失うものへの恐怖が、得られるものへの期待を大きく上回っている。<br><br><strong>でも変化しないことで失っているものに、あなたはまだ気づいていません。</strong></p></div>
+<div class="rp-block rp-rules"><div class="rp-block-title">▍今すぐできる行動ルール</div><div class="rp-rule"><div class="rp-rule-title">ルール1：「変わらなかった場合の5年後」を書く</div><p>今のままでいたら5年後はどうなるか。具体的に書いてください。</p></div><div class="rp-rule"><div class="rp-rule-title">ルール2：変化を「小さな実験」として捉える</div><p>「転職する」ではなく「転職サイトに登録する」。小さく始めてください。</p></div><div class="rp-rule"><div class="rp-rule-title">ルール3：48時間以内に一つ動く</div><p>読み終わったら48時間以内に、何か一つ行動してください。</p></div></div>
+<div class="rp-quote">ここまで読んで分かる通り、問題はすでに明確です。<br>ただし、ここから先は「修正方法」の詳細です。<br>読まなければ、同じことを繰り返します。<br><br><strong>今変えなければ、この状態は続きます。</strong></div>`
+  },
+  'no-yes-no':{
+    code:'Type 06', name:'承認依存型',
+    desc:'誰かに許可をもらわないと動けない。その許可は、永遠にもらえません。',
+    report:`<div class="rp-headline">あなたは「誰かに許可をもらわないと動けない人」です。その許可は、永遠にもらえません。</div>
+<div class="rp-block"><div class="rp-block-title">▍あなたへの診断</div><p>あなたは誰かに「いいね」と言われないと動けない人間です。反応がなければ「やっぱり自分には価値がない」と感じる。<br><br>これはあなたが弱いのではありません。<strong>自己価値の判断を、外部に委ねてしまっているのです。</strong></p></div>
+<div class="rp-block"><div class="rp-block-title">▍あなたの心理構造</div><p>承認される → 動ける<br>承認されない → 動けない<br><br>この構造は、あなたの行動を完全に他人に支配されていることを意味します。<br><br><strong>あなたの人生の主導権は、あなたではなく、周囲の反応が握っています。</strong></p></div>
+<div class="rp-block"><div class="rp-block-title">▍あなたが繰り返すパターン</div><div class="rp-list"><div class="rp-li">何かをやってみたいと思う</div><div class="rp-li">誰かに相談する、または反応を伺う</div><div class="rp-li">反応が薄いと「やっぱりダメか」と諦める</div><div class="rp-li">誰かに背中を押されたときだけ動く</div><div class="rp-li">でもその動機は長続きしない</div></div></div>
+<div class="rp-block"><div class="rp-block-title">▍心理的根本原因</div><p>承認依存の根底にあるのは「自己価値の外在化」です。あなたは「自分には価値がある」という感覚を、自分の内側から生み出せていない。<br><br><strong>あなたに必要なのは、自分で自分を承認する力です。</strong></p></div>
+<div class="rp-block rp-rules"><div class="rp-block-title">▍今すぐできる行動ルール</div><div class="rp-rule"><div class="rp-rule-title">ルール1：誰にも言わずに何かをやってみる</div><p>SNSに投稿しない。誰にも報告しない。自分だけのために何かをする体験を積んでください。</p></div><div class="rp-rule"><div class="rp-rule-title">ルール2：「自分承認日記」をつける</div><p>毎日寝る前に「今日自分が頑張ったこと」を3つ書く。</p></div><div class="rp-rule"><div class="rp-rule-title">ルール3：反応がなくても続ける実験をする</div><p>何か小さなことを30日間、誰の反応も求めずに続けてください。</p></div></div>
+<div class="rp-quote">ここまで読んで分かる通り、問題はすでに明確です。<br>ただし、ここから先は「修正方法」の詳細です。<br>読まなければ、同じことを繰り返します。<br><br><strong>今変えなければ、この状態は続きます。</strong></div>`
+  },
+  'no-no-yes':{
+    code:'Type 02', name:'完璧主義型',
+    desc:'準備することが仕事だと思っている。だから永遠に動けない。',
+    report:`<div class="rp-headline">あなたは「準備することが仕事だと思っている人」です。だから永遠に動けない。</div>
+<div class="rp-block"><div class="rp-block-title">▍あなたへの診断</div><p>あなたは「準備が整ったら動く」と思っている人間です。でも、準備が整う日は永遠に来ません。<br><br>これはあなたが怠けているのではありません。<strong>失敗への恐怖が、準備という形を借りて動きを止めているのです。</strong></p></div>
+<div class="rp-block"><div class="rp-block-title">▍あなたの心理構造</div><p>あなたの脳は「失敗すること」を極端に恐れています。この恐怖は幼少期の経験、他者からの評価、完璧を求める環境の中で育まれました。<br><br>「もう少し準備してから」「もっと知識をつけてから」——これはすべて、脳が失敗から自分を守るために作り出した防衛機制です。<br><br><strong>準備しているあなたは、実は戦わずして逃げているのです。</strong></p></div>
+<div class="rp-block"><div class="rp-block-title">▍あなたが繰り返すパターン</div><div class="rp-list"><div class="rp-li">やりたいことが見つかる</div><div class="rp-li">「準備が必要」と感じ、情報収集を始める</div><div class="rp-li">情報が増えるほど「まだ足りない」と感じる</div><div class="rp-li">結局、動かないまま時間が過ぎる</div><div class="rp-li">「あの時やっておけば」と後悔する</div></div><p style="margin-top:14px;font-weight:700;color:var(--neon3)">この後悔を、あと何回繰り返しますか？</p></div>
+<div class="rp-block"><div class="rp-block-title">▍心理的根本原因</div><p>完璧主義の根底にあるのは「自己価値の条件付け」です。あなたは無意識のうちに「完璧にできた自分だけが価値がある」と信じています。<br><br>だから失敗が怖い。失敗=自分の価値の否定、と脳が判断しているからです。<br><br><strong>でも現実は逆です。行動した人だけが、失敗を通じて成長できます。</strong></p></div>
+<div class="rp-block rp-rules"><div class="rp-block-title">▍今すぐできる行動ルール</div><div class="rp-rule"><div class="rp-rule-title">ルール1：「60点で出す」を習慣にする</div><p>完璧な100点を目指すより、60点のものを出して改善する方が10倍速く成長できます。</p></div><div class="rp-rule"><div class="rp-rule-title">ルール2：24時間以内に最初の一歩を踏む</div><p>「やろう」と思った瞬間から24時間以内に、何か一つ行動してください。</p></div><div class="rp-rule"><div class="rp-rule-title">ルール3：「失敗リスト」を作る</div><p>過去の失敗を書き出してください。そのほとんどが、今のあなたの人生に何の影響も与えていないはずです。</p></div></div>
+<div class="rp-quote">ここまで読んで分かる通り、問題はすでに明確です。<br>ただし、ここから先は「修正方法」の詳細です。<br>読まなければ、同じことを繰り返します。<br><br><strong>今変えなければ、この状態は続きます。</strong></div>`
+  },
+  'no-no-no':{
+    code:'Type 07', name:'霧中型',
+    desc:'動いているのに、どこへも向かっていない。方向なき努力は消耗するだけです。',
+    report:`<div class="rp-headline">あなたは「動いているのに、どこへも向かっていない人」です。方向なき努力は消耗するだけです。</div>
+<div class="rp-block"><div class="rp-block-title">▍あなたへの診断</div><p>あなたは今、自分が何をしたいのかわからない状態にいます。動いてはいる。でも、どこへ向かっているのかわからない。<br><br>これはあなたがおかしいのではありません。<strong>方向を決めることへの恐怖が、あなたを霧の中に閉じ込めているのです。</strong></p></div>
+<div class="rp-block"><div class="rp-block-title">▍あなたの心理構造</div><p>方向を決めることは、他の可能性を捨てることを意味します。あなたの脳はこの「可能性を閉じる痛み」を回避するために、意図的に方向を曖昧にしています。<br><br>方向が決まっていなければ、失敗もない。<br><strong>でも方向がなければ、成功もありません。</strong></p></div>
+<div class="rp-block"><div class="rp-block-title">▍あなたが繰り返すパターン</div><div class="rp-list"><div class="rp-li">何かをやってみる</div><div class="rp-li">しっくりこない</div><div class="rp-li">また別のことをやってみる</div><div class="rp-li">またしっくりこない</div><div class="rp-li">「自分には何も向いていない」と感じ始める</div></div></div>
+<div class="rp-block"><div class="rp-block-title">▍心理的根本原因</div><p>霧中型の根底にあるのは「選択回避」と「現状維持バイアス」の組み合わせです。<br><br>自分は「動いた先」にしか見つかりません。<strong>考えて見つけようとしても、永遠に見つかりません。動いた先にだけ、答えがあります。</strong></p></div>
+<div class="rp-block rp-rules"><div class="rp-block-title">▍今すぐできる行動ルール</div><div class="rp-rule"><div class="rp-rule-title">ルール1：「とりあえずやってみる」リストを作る</div><p>興味があることを10個書き出して、一番簡単なものから始める。</p></div><div class="rp-rule"><div class="rp-rule-title">ルール2：1ヶ月単位で実験する</div><p>「これが向いているか」を考えるのではなく、「1ヶ月やってみてどうだったか」を確認する。</p></div><div class="rp-rule"><div class="rp-rule-title">ルール3：「苦にならないこと」を探す</div><p>情熱を探すのではなく、気づいたら時間が経っていること——そこに答えがあります。</p></div></div>
+<div class="rp-quote">ここまで読んで分かる通り、問題はすでに明確です。<br>ただし、ここから先は「修正方法」の詳細です。<br>読まなければ、同じことを繰り返します。<br><br><strong>今変えなければ、この状態は続きます。</strong></div>`
+  },
 };
 
-function answer(q, val) {
-  answers['q' + q] = val;
-
-  if (q < 3) {
-    document.getElementById('q' + q).classList.remove('active');
-    document.getElementById('q' + (q+1)).classList.add('active');
-    const progress = [33, 66, 100][q];
-    document.getElementById('progress-fill').style.width = progress + '%';
+function ans(q,v){
+  A['q'+q]=v;
+  if(q<3){
+    document.getElementById('q'+q).classList.remove('active');
+    document.getElementById('q'+(q+1)).classList.add('active');
+    document.getElementById('pf').style.width=[33,66,100][q]+'%';
   } else {
-    document.getElementById('progress-fill').style.width = '100%';
-    showResult();
+    document.getElementById('pf').style.width='100%';
+    // Show analyzing animation
+    document.querySelectorAll('.qcard').forEach(c=>c.style.display='none');
+    document.querySelector('.pbar').style.display='none';
+    document.querySelector('.qhead').style.display='none';
+    const analyzing = document.getElementById('analyzing');
+    analyzing.style.display='flex';
+    analyzing.scrollIntoView({behavior:'smooth',block:'center'});
+    // After 2 seconds show result
+    setTimeout(function(){
+      analyzing.style.display='none';
+      const k=A.q1+'-'+A.q2+'-'+A.q3;
+      const t=T[k]||T['no-no-no'];
+      document.getElementById('rc').textContent=t.code;
+      document.getElementById('rn').textContent=t.name;
+      document.getElementById('rd').textContent=t.desc;
+      document.getElementById('report-body').innerHTML=t.report;
+      const rs=document.getElementById('rs');
+      rs.style.display='block';
+      rs.scrollIntoView({behavior:'smooth',block:'start'});
+    }, 2200);
   }
 }
 
-function showResult() {
-  const key = `${answers.q1}-${answers.q2}-${answers.q3}`;
-  const type = types[key] || types['no-no-no'];
+const ro=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('on');ro.unobserve(e.target)}})},{threshold:.1,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
 
-  document.getElementById('result-code').textContent = type.code;
-  document.getElementById('result-name').textContent = type.name;
-  document.getElementById('result-desc').textContent = type.desc;
-  document.getElementById('teaser-text').textContent = type.teaser;
-
-  document.querySelectorAll('.quiz-card').forEach(c => c.style.display = 'none');
-  document.querySelector('.quiz-progress-bar').style.display = 'none';
-  document.querySelector('.quiz-header').style.display = 'none';
-
-  const result = document.getElementById('result-screen');
-  result.style.display = 'block';
-  result.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-// ── REVEAL ON SCROLL ──
-const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
-      revealObserver.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-
-document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
-
-// ── VIP STRIPE LINK UPDATE ──
-// When ¥5,000 Stripe link is ready, update this:
-// document.getElementById('vip-cta-btn').href = 'https://buy.stripe.com/YOUR_5000_LINK';
+// Stripeリンク取得後: document.getElementById('vbtn').href='https://buy.stripe.com/YOUR_LINK';
 </script>
 </body>
 </html>
