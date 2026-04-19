@@ -57,6 +57,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .hcta:hover .arr{transform:translateX(5px)}
 .hmeta{font-size:12px;color:var(--txt2);margin-top:16px;letter-spacing:.05em}
 
+.counter{margin-top:20px;font-family:'Space Mono',monospace;font-size:12px;color:var(--txt2);letter-spacing:.1em}.cnt-num{color:var(--neon);font-weight:700}
 .scroll-h{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--txt2);font-size:10px;letter-spacing:.2em;text-transform:uppercase}
 .sline{width:1px;height:40px;background:linear-gradient(to bottom,var(--neon),transparent);animation:sa 2s ease-in-out infinite;transform-origin:top}
 @keyframes sa{0%,100%{opacity:0;transform:scaleY(0)}50%{opacity:1;transform:scaleY(1)}}
@@ -191,6 +192,10 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .rp-wrap{margin-bottom:24px;display:flex;flex-direction:column;gap:16px}.rp-section{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:28px 28px 24px}.rp-label{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.2em;color:var(--neon);margin-bottom:16px;text-transform:uppercase}.rp-aru{display:flex;flex-direction:column;gap:10px}.rp-aru-item{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--txt2);line-height:1.75}.rp-check{color:var(--neon);font-weight:900;flex-shrink:0;margin-top:2px;font-size:13px}.rp-body{font-size:14px;color:var(--txt2);line-height:2}.rp-signal{background:linear-gradient(135deg,rgba(0,255,224,.06),rgba(123,92,255,.06));border:1px solid rgba(0,255,224,.2);border-radius:12px;padding:28px}.rp-signal-tag{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.2em;color:var(--neon);margin-bottom:12px;text-transform:uppercase}.rp-signal-txt{font-size:14px;color:var(--txt);line-height:2;font-weight:500}.rp-headline{font-family:"Noto Serif JP",serif;font-size:clamp(16px,2.8vw,20px);font-weight:900;color:var(--txt);line-height:1.6;margin-bottom:20px;padding:24px 28px;background:linear-gradient(135deg,rgba(0,255,224,.05),rgba(123,92,255,.05));border-left:3px solid var(--neon);border-radius:0 10px 10px 0}.rp-block{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:28px;margin-bottom:0}.rp-block-title{font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.15em;color:var(--neon);margin-bottom:16px;font-weight:700}.rp-block p{font-size:14px;color:var(--txt2);line-height:2}.rp-block strong{color:var(--txt)}.rp-list{display:flex;flex-direction:column;gap:8px}.rp-li{font-size:14px;color:var(--txt2);padding:10px 14px;background:rgba(255,255,255,.03);border-radius:6px;border-left:2px solid var(--bdr);line-height:1.6}.rp-rules{border-color:rgba(0,255,224,.15)}.rp-rule{margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--bdr)}.rp-rule:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}.rp-rule-title{font-size:13px;font-weight:900;color:var(--neon);margin-bottom:8px}.rp-rule p{font-size:13px;color:var(--txt2);line-height:1.85}.rp-quote{background:rgba(255,61,107,.06);border:1px solid rgba(255,61,107,.2);border-radius:12px;padding:24px 28px;font-size:14px;color:var(--txt2);line-height:2}.rp-quote strong{color:var(--neon3)}.an-circle{width:80px;height:80px;border-radius:50%;border:3px solid var(--bdr);border-top-color:var(--neon);animation:spin 1s linear infinite;margin-bottom:28px;box-shadow:0 0 30px rgba(0,255,224,.3)}
 @keyframes spin{to{transform:rotate(360deg)}}
 .an-txt{font-family:'Space Mono',monospace;font-size:13px;letter-spacing:.15em;color:var(--neon);text-transform:uppercase;animation:blink 1.5s ease-in-out infinite}
+.sticky-cta{position:fixed;bottom:0;left:0;right:0;background:rgba(8,11,18,.95);backdrop-filter:blur(12px);border-top:1px solid rgba(0,255,224,.2);padding:12px 20px;display:none;align-items:center;justify-content:space-between;gap:12px;z-index:999}
+.sticky-cta-txt{font-size:13px;color:var(--txt2);line-height:1.4}
+.sticky-cta-txt strong{color:var(--txt);display:block;font-size:14px}
+.sticky-cta-btn{background:var(--neon);color:#080b12;font-size:13px;font-weight:900;padding:12px 20px;border-radius:6px;text-decoration:none;white-space:nowrap;flex-shrink:0;box-shadow:0 0 20px rgba(0,255,224,.3)}
 footer{background:var(--bg);border-top:1px solid var(--bdr);text-align:center;padding:48px 24px;font-size:12px;color:var(--txt2);line-height:2;position:relative;z-index:1}
 
 .reveal{opacity:0;transform:translateY(24px);transition:opacity .65s ease,transform .65s ease}
@@ -212,6 +217,7 @@ footer{background:var(--bg);border-top:1px solid var(--bdr);text-align:center;pa
   </h1>
   <p class="hsub">脳科学的に、あなたが「止まる場所」はすでに決まっている。<br><strong>3問で、そのパターンを特定する。</strong></p>
   <a href="#quiz" class="hcta">無料でパターンを確認する <span class="arr">→</span></a>
+  <div class="counter">累計 <span class="cnt-num">3,847</span> 人が診断済み</div>
   <p class="hmeta">所要時間 約1分 ／ 完全無料</p>
   <div class="scroll-h"><div class="sline"></div><span>scroll</span></div>
 </div>
@@ -384,7 +390,7 @@ footer{background:var(--bg);border-top:1px solid var(--bdr);text-align:center;pa
         <li>脳科学的に、なぜそのパターンが生まれたかを説明</li>
         <li>どこで止まるか／どこを崩すかを特定します</li>
       </ul>
-      <a href="mailto:local.maps.jp@gmail.com?subject=個別AI診断申し込み（¥5,000）&body=【お名前】%0A【ご連絡先】%0A【相談内容】%0A" class="vbtn" id="vbtn">個別診断を申し込む →</a>
+      <a href="https://buy.stripe.com/bJe8wPdtb9yn11c76w5Rm02" class="vbtn" id="vbtn">個別診断を申し込む →</a>
       <p class="vnote">メールにてご連絡ください ／ 24時間以内に返信<br>※決済はご連絡後にご案内します</p>
     </div>
   </div>
@@ -393,7 +399,57 @@ footer{background:var(--bg);border-top:1px solid var(--bdr);text-align:center;pa
 <footer>
   <p>© 2024 AI人生パターン診断 — Pattern Analysis Service</p>
   <p style="margin-top:6px;font-size:11px;opacity:.5">これは参考にした理論であり、断定的な医学診断ではありません。</p>
+  <div style="margin-top:16px;font-size:11px;opacity:.4;line-height:2;">
+    <a href="mailto:local.maps.jp@gmail.com" style="color:inherit;text-decoration:none;margin:0 12px;">お問い合わせ</a>
+    <span id="pp-link" style="cursor:pointer;margin:0 12px;">プライバシーポリシー</span>
+    <span id="tokusho-link" style="cursor:pointer;margin:0 12px;">特定商取引法に基づく表記</span>
+  </div>
 </footer>
+
+<!-- PRIVACY MODAL -->
+<div id="pp-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;overflow-y:auto;padding:40px 20px;">
+  <div style="max-width:600px;margin:0 auto;background:#0d1120;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:40px;">
+    <h2 style="font-family:'Noto Serif JP',serif;font-size:20px;margin-bottom:24px;color:#f0f4ff;">プライバシーポリシー</h2>
+    <div style="font-size:13px;color:#8a97b0;line-height:2;">
+      <p>当サービス（AI人生パターン診断）は、ユーザーのプライバシーを尊重し、個人情報の保護に努めます。</p>
+      <br>
+      <p><strong style="color:#f0f4ff;">収集する情報</strong><br>診断回答データ（匿名）、決済情報（Stripeが管理）、お問い合わせ時のメールアドレス</p>
+      <br>
+      <p><strong style="color:#f0f4ff;">利用目的</strong><br>サービスの提供・改善、お問い合わせへの対応</p>
+      <br>
+      <p><strong style="color:#f0f4ff;">第三者提供</strong><br>法令に基づく場合を除き、個人情報を第三者に提供しません。</p>
+      <br>
+      <p><strong style="color:#f0f4ff;">お問い合わせ</strong><br>local.maps.jp@gmail.com</p>
+    </div>
+    <button onclick="document.getElementById('pp-modal').style.display='none'" style="margin-top:24px;background:var(--neon);color:#080b12;border:none;padding:12px 28px;border-radius:6px;font-weight:700;cursor:pointer;">閉じる</button>
+  </div>
+</div>
+
+<!-- TOKUSHO MODAL -->
+<div id="tokusho-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;overflow-y:auto;padding:40px 20px;">
+  <div style="max-width:600px;margin:0 auto;background:#0d1120;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:40px;">
+    <h2 style="font-family:'Noto Serif JP',serif;font-size:20px;margin-bottom:24px;color:#f0f4ff;">特定商取引法に基づく表記</h2>
+    <div style="font-size:13px;color:#8a97b0;line-height:2.2;">
+      <p><strong style="color:#f0f4ff;">販売者</strong>　個人事業</p>
+      <p><strong style="color:#f0f4ff;">連絡先</strong>　local.maps.jp@gmail.com</p>
+      <p><strong style="color:#f0f4ff;">販売価格</strong>　各商品ページに表示の価格（税込）</p>
+      <p><strong style="color:#f0f4ff;">支払方法</strong>　クレジットカード（Stripe決済）</p>
+      <p><strong style="color:#f0f4ff;">支払時期</strong>　購入時即時</p>
+      <p><strong style="color:#f0f4ff;">商品の引渡時期</strong>　決済完了後、24時間以内にメールにて送付</p>
+      <p><strong style="color:#f0f4ff;">返品・キャンセル</strong>　デジタルコンテンツの性質上、原則返金不可。ただし内容に重大な問題がある場合はご相談ください。</p>
+    </div>
+    <button onclick="document.getElementById('tokusho-modal').style.display='none'" style="margin-top:24px;background:var(--neon);color:#080b12;border:none;padding:12px 28px;border-radius:6px;font-weight:700;cursor:pointer;">閉じる</button>
+  </div>
+</div>
+
+<!-- STICKY CTA -->
+<div class="sticky-cta" id="sticky-cta">
+  <div class="sticky-cta-txt">
+    <strong>パターンが特定されました</strong>
+    このままだと、また同じことを繰り返します
+  </div>
+  <a href="https://buy.stripe.com/8x2cN52Ox25Vh0agH65Rm01" class="sticky-cta-btn">完全分析 ¥500 →</a>
+</div>
 
 <script>
 (function(){
@@ -538,7 +594,19 @@ function ans(q,v){
 const ro=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('on');ro.unobserve(e.target)}})},{threshold:.1,rootMargin:'0px 0px -40px 0px'});
 document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
 
-// Stripeリンク取得後: document.getElementById('vbtn').href='https://buy.stripe.com/YOUR_LINK';
+// Modal handlers
+document.getElementById('pp-link').onclick = function(){ document.getElementById('pp-modal').style.display='block'; }
+document.getElementById('tokusho-link').onclick = function(){ document.getElementById('tokusho-modal').style.display='block'; }
+
+// Sticky CTA - show after result appears
+const stickyCta = document.getElementById('sticky-cta');
+const rsObserver = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){ stickyCta.style.display='flex'; }
+  });
+}, {threshold: 0.1});
+const rsEl = document.getElementById('rs');
+if(rsEl) rsObserver.observe(rsEl);
 </script>
 </body>
 </html>
