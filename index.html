@@ -146,6 +146,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .cfeats li::before{content:'✓';color:var(--neon);font-weight:900;flex-shrink:0;margin-top:2px}
 .cbtn{display:inline-flex;align-items:center;justify-content:center;gap:10px;background:var(--neon);color:#080b12;font-size:16px;font-weight:900;padding:20px 40px;border-radius:8px;text-decoration:none;width:100%;max-width:420px;box-shadow:0 0 40px rgba(0,255,224,.3),0 0 80px rgba(0,255,224,.1);transition:transform .2s,box-shadow .2s;letter-spacing:.02em;font-family:'Noto Sans JP',sans-serif}
 .cbtn:hover{transform:translateY(-2px);box-shadow:0 0 60px rgba(0,255,224,.45),0 0 100px rgba(0,255,224,.15)}
+.ctrust{font-size:12px;color:var(--txt2);margin-top:14px;line-height:1.8;opacity:.7;border-left:2px solid var(--neon);padding-left:12px;text-align:left;max-width:380px;margin:14px auto 0}
 .cnote{font-size:11px;color:var(--txt2);margin-top:16px;line-height:1.7;opacity:.6}
 
 /* SCIENCE */
@@ -326,6 +327,7 @@ footer{background:var(--bg);border-top:1px solid var(--bdr);text-align:center;pa
       <li>同タイプが変わった事例とロードマップ</li>
     </ul>
     <a href="https://buy.stripe.com/8x2cN52Ox25Vh0agH65Rm01" class="cbtn">この続きの完全分析を見る（500円）<span class="arr">→</span></a>
+    <p class="ctrust">AIの一次解析に加え、スタッフが内容を最終確認してからお届けします。<br>そのため最大24時間いただいております。</p>
     <p class="cnote">クレジットカード・各種決済対応 ／ 即時配信</p>
   </div>
 </div>
@@ -576,8 +578,17 @@ function ans(q,v){
     const analyzing = document.getElementById('analyzing');
     analyzing.style.display='flex';
     analyzing.scrollIntoView({behavior:'smooth',block:'center'});
+    // Cycle through analyzing messages
+    const msgs = ['神経化学データを照合中...','行動パターンを特定中...','脳回路の構造を解析中...','診断結果を生成中...'];
+    let mi = 0;
+    const msgEl = document.getElementById('an-msg');
+    const msgInterval = setInterval(function(){
+      mi = (mi+1) % msgs.length;
+      if(msgEl) msgEl.textContent = msgs[mi];
+    }, 500);
     // After 2 seconds show result
     setTimeout(function(){
+      clearInterval(msgInterval);
       analyzing.style.display='none';
       const k=A.q1+'-'+A.q2+'-'+A.q3;
       const t=T[k]||T['no-no-no'];
