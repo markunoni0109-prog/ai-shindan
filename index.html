@@ -43,6 +43,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .bdot{width:6px;height:6px;background:var(--neon);border-radius:50%;box-shadow:0 0 8px var(--neon);animation:blink 2s ease-in-out infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
+.hero-label{font-family:'Space Mono',monospace;font-size:clamp(12px,2vw,16px);letter-spacing:.25em;color:var(--neon);text-transform:uppercase;margin-bottom:20px;border:1px solid rgba(0,255,224,.3);padding:8px 24px;border-radius:100px;background:rgba(0,255,224,.05)}
 .htitle{font-family:'Noto Serif JP',serif;font-weight:900;font-size:clamp(38px,8vw,82px);line-height:1.15;margin-bottom:8px}
 .hl1{display:block;color:var(--txt)}
 .hl2{display:block;background:linear-gradient(90deg,var(--neon) 0%,var(--neon2) 60%,var(--neon3) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;animation:gm 4s linear infinite alternate;filter:drop-shadow(0 0 30px rgba(0,255,224,.4))}
@@ -211,12 +212,12 @@ footer{background:var(--bg);border-top:1px solid var(--bdr);text-align:center;pa
 <div class="hero">
   <div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div>
   <div class="badge"><span class="bdot"></span>AI Pattern Analysis — Live</div>
+  <p class="hero-label">無料 人生パターン診断</p>
   <h1 class="htitle">
-    <span class="hl1">自分がダメなんじゃない。</span>
-    <span class="hl2">同じパターンが、同じ結果を作ってるだけ。</span>
+    <span class="hl1">あなたは、行き詰まっている？</span>
   </h1>
-  <p class="hsub">脳科学的に、あなたが「止まる場所」はすでに決まっている。<br><strong>3問で、そのパターンを特定する。</strong></p>
-  <a href="#quiz" class="hcta">無料でパターンを確認する <span class="arr">→</span></a>
+  <p class="hsub">脳科学的に、あなたが「止まる場所」は<br>すでに決まっている。<br><strong>3問で、そのパターンを特定する。</strong></p>
+  <a href="#quiz" class="hcta">診断開始（60秒・無料）<span class="arr">→</span></a>
   <div class="counter">累計 <span class="cnt-num" id="counter">0</span> 人が診断済み</div>
   <p class="hmeta">所要時間 約1分 ／ 完全無料</p>
   <div class="scroll-h"><div class="sline"></div><span>scroll</span></div>
