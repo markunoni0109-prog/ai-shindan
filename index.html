@@ -43,6 +43,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .bdot{width:6px;height:6px;background:var(--neon);border-radius:50%;box-shadow:0 0 8px var(--neon);animation:blink 2s ease-in-out infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
+.hero-cards{display:flex;flex-direction:column;gap:10px;max-width:480px;margin:0 auto 32px;text-align:left;position:relative;z-index:1}
+.hero-card{display:flex;align-items:flex-start;gap:12px;padding:14px 18px;background:rgba(255,255,255,.04);border:1px solid rgba(0,255,224,.15);border-radius:8px}
+.hc-icon{font-size:20px;flex-shrink:0;margin-top:2px}
+.hc-txt{font-size:13px;color:#8a97b0;line-height:1.75}
+.hc-txt strong{color:#f0f4ff}
 .hero-label{font-family:'Space Mono',monospace;font-size:clamp(12px,2vw,16px);letter-spacing:.25em;color:var(--neon);text-transform:uppercase;margin-bottom:20px;border:1px solid rgba(0,255,224,.3);padding:8px 24px;border-radius:100px;background:rgba(0,255,224,.05)}
 .htitle{font-family:'Noto Serif JP',serif;font-weight:900;font-size:clamp(38px,8vw,82px);line-height:1.15;margin-bottom:8px}
 .hl1{display:block;color:var(--txt)}
@@ -213,11 +218,15 @@ footer{background:var(--bg);border-top:1px solid var(--bdr);text-align:center;pa
 <div class="hero">
   <div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div>
   <div class="badge"><span class="bdot"></span>AI Pattern Analysis — Live</div>
-  <p class="hero-label">無料 人生パターン診断</p>
   <h1 class="htitle">
-    <span class="hl1">あなたは、行き詰まっている？</span>
+    <span class="hl1">無料</span>
+    <span class="hl2">人生パターン診断</span>
   </h1>
-  <p class="hsub">脳科学的に、あなたが「止まる場所」は<br>すでに決まっている。<br><strong>3問で、そのパターンを特定する。</strong></p>
+  <div class="hero-cards">
+    <div class="hero-card"><span class="hc-icon">🧠</span><p class="hc-txt">意志の弱さではなく、<strong>脳のパターン</strong>が原因。脳科学的に特定します。</p></div>
+    <div class="hero-card"><span class="hc-icon">⚡</span><p class="hc-txt"><strong>3問・60秒</strong>で完了。8タイプからあなたの「止まる構造」を解析。</p></div>
+    <div class="hero-card"><span class="hc-icon">🎯</span><p class="hc-txt">診断後に<strong>具体的な行動プラン</strong>を提示。同じ失敗を繰り返さない。</p></div>
+  </div>
   <a href="#quiz" class="hcta">診断開始（60秒・無料）<span class="arr">→</span></a>
   <div class="counter">累計 <span class="cnt-num" id="counter">0</span> 人が診断済み</div>
   <p class="hmeta">所要時間 約1分 ／ 完全無料</p>
