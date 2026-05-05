@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI個別パターン診断 Premium | AI Hunter</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700;900&family=Noto+Sans+JP:wght@300;400;700&family=Orbitron:wght@700&display=swap');
+
+:root{
+  --black:#04020e;
+  --deep:#08041a;
+  --purple:#3a1070;
+  --accent:#8844ee;
+  --bright:#cc99ff;
+  --text:#e0d4ff;
+  --muted:#7755aa;
+  --red:#ff4444;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  background:var(--black);
+  color:var(--text);
+  font-family:'Noto Sans JP',sans-serif;
+  line-height:1.8;
+  overflow-x:hidden;
+}
+
+/* NOISE OVERLAY */
+body::before{
+  content:'';
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;opacity:0.4;
+}
+
+.container{max-width:640px;margin:0 auto;padding:0 20px;position:relative;z-index:1}
+
+/* HERO */
+.hero{
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;
+  padding:60px 20px;
+  position:relative;
+  overflow:hidden;
+}
+
+.hero::before{
+  content:'';
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:600px;height:600px;
+  background:radial-gradient(circle,rgba(136,68,238,0.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+
+.limit-badge{
+  display:inline-block;
+  background:rgba(255,68,68,0.1);
+  border:1px solid rgba(255,68,68,0.4);
+  color:#ff6666;
+  font-size:11px;
+  letter-spacing:3px;
+  padding:6px 18px;
+  border-radius:20px;
+  margin-bottom:32px;
+  animation:blink 2s infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.6}}
+
+.hero-eyebrow{
+  font-family:'Orbitron',monospace;
+  font-size:10px;
+  letter-spacing:5px;
+  color:var(--muted);
+  margin-bottom:20px;
+  text-transform:uppercase;
+}
+
+.hero-title{
+  font-family:'Noto Serif JP',serif;
+  font-size:clamp(28px,7vw,42px);
+  font-weight:900;
+  line-height:1.3;
+  color:#fff;
+  margin-bottom:16px;
+  letter-spacing:-0.5px;
+}
+
+.hero-title em{
+  font-style:normal;
+  color:var(--bright);
+  border-bottom:2px solid var(--accent);
+}
+
+.hero-sub{
+  font-size:14px;
+  color:var(--muted);
+  margin-bottom:8px;
+  letter-spacing:1px;
+}
+
+.hero-desc{
+  font-size:13px;
+  color:#5533aa;
+  letter-spacing:2px;
+  margin-bottom:40px;
+}
+
+.cta-main{
+  display:block;
+  background:linear-gradient(135deg,#5522aa,#8844ee);
+  color:#fff;
+  text-decoration:none;
+  font-size:16px;
+  font-weight:700;
+  letter-spacing:2px;
+  padding:18px 32px;
+  border-radius:4px;
+  margin-bottom:12px;
+  transition:all 0.3s;
+  box-shadow:0 4px 30px rgba(136,68,238,0.4);
+  position:relative;
+  overflow:hidden;
+}
+.cta-main::after{
+  content:'';
+  position:absolute;top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);
+  animation:shine 3s infinite;
+}
+@keyframes shine{0%{left:-100%}100%{left:200%}}
+.cta-main:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(136,68,238,0.6)}
+
+.cta-price{font-size:12px;color:var(--muted);letter-spacing:2px}
+
+/* DIVIDER */
+.divider{
+  width:1px;height:80px;
+  background:linear-gradient(to bottom,transparent,var(--purple),transparent);
+  margin:0 auto;
+}
+
+/* SECTION */
+.section{padding:60px 0}
+
+.section-label{
+  font-family:'Orbitron',monospace;
+  font-size:9px;
+  letter-spacing:5px;
+  color:var(--muted);
+  text-transform:uppercase;
+  margin-bottom:20px;
+  display:flex;align-items:center;gap:12px;
+}
+.section-label::before,.section-label::after{
+  content:'';flex:1;height:1px;
+  background:linear-gradient(to right,transparent,var(--purple));
+}
+.section-label::after{background:linear-gradient(to left,transparent,var(--purple))}
+
+.section-title{
+  font-family:'Noto Serif JP',serif;
+  font-size:clamp(22px,5vw,32px);
+  font-weight:700;
+  color:#fff;
+  margin-bottom:20px;
+  line-height:1.4;
+}
+
+.section-body{
+  font-size:14px;
+  color:#a088cc;
+  line-height:2;
+}
+
+/* WHAT */
+.what-box{
+  background:rgba(15,6,40,0.8);
+  border:1px solid rgba(100,50,200,0.2);
+  border-left:3px solid var(--accent);
+  border-radius:4px;
+  padding:24px;
+  margin:24px 0;
+}
+.what-box p{font-size:14px;color:#b090dd;line-height:2}
+
+/* SERVICES */
+.service-list{margin:24px 0}
+.service-item{
+  display:flex;align-items:flex-start;gap:16px;
+  padding:16px 0;
+  border-bottom:1px solid rgba(60,20,120,0.3);
+}
+.service-item:last-child{border-bottom:none}
+.service-num{
+  font-family:'Orbitron',monospace;
+  font-size:11px;color:var(--accent);
+  flex-shrink:0;margin-top:3px;
+}
+.service-text{font-size:14px;color:#c0a0ee;line-height:1.7}
+
+/* TARGET */
+.target-list{margin:24px 0}
+.target-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px 0;
+  font-size:14px;color:#a088cc;
+}
+.target-item::before{
+  content:'◈';color:var(--accent);flex-shrink:0;
+}
+
+/* FORMAT */
+.format-box{
+  background:rgba(8,4,24,0.9);
+  border:1px solid rgba(80,40,160,0.3);
+  border-radius:8px;
+  padding:24px;
+  margin:24px 0;
+}
+.format-row{
+  display:flex;justify-content:space-between;
+  align-items:center;
+  padding:12px 0;
+  border-bottom:1px solid rgba(50,20,100,0.3);
+  font-size:13px;
+}
+.format-row:last-child{border-bottom:none}
+.format-key{color:var(--muted)}
+.format-val{color:var(--bright);font-weight:700}
+
+/* LIMIT */
+.limit-box{
+  background:rgba(80,10,10,0.3);
+  border:1px solid rgba(200,50,50,0.3);
+  border-radius:8px;
+  padding:24px;
+  text-align:center;
+  margin:24px 0;
+}
+.limit-num{
+  font-family:'Orbitron',monospace;
+  font-size:48px;font-weight:700;
+  color:#ff6666;
+  line-height:1;margin-bottom:8px;
+}
+.limit-text{font-size:12px;color:#aa6666;letter-spacing:2px}
+.limit-desc{font-size:13px;color:#885555;margin-top:12px;line-height:1.7}
+
+/* FINAL */
+.final-section{
+  padding:80px 20px;
+  text-align:center;
+  position:relative;
+}
+.final-section::before{
+  content:'';
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:300px;height:300px;
+  background:radial-gradient(circle,rgba(136,68,238,0.08) 0%,transparent 70%);
+}
+
+.final-quote{
+  font-family:'Noto Serif JP',serif;
+  font-size:clamp(18px,4vw,26px);
+  font-weight:700;
+  color:#fff;
+  line-height:1.6;
+  margin-bottom:16px;
+}
+.final-sub{
+  font-size:13px;color:var(--muted);
+  margin-bottom:40px;letter-spacing:2px;
+}
+
+/* FOOTER */
+footer{
+  padding:40px 20px;
+  text-align:center;
+  border-top:1px solid rgba(50,20,100,0.2);
+}
+footer a{color:var(--muted);text-decoration:none;font-size:12px;letter-spacing:2px}
+
+/* FADE IN */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity 0.8s,transform 0.8s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="limit-badge">※ 1日3名限定</div>
+  <div class="hero-eyebrow">AI Hunter — Premium</div>
+  <h1 class="hero-title">
+    ここから先は、<br>
+    <em>あなた個人の問題</em>になる。
+  </h1>
+  <p class="hero-sub">同じタイプでも、人生は全員違う。</p>
+  <p class="hero-desc">AIがあなた専用の"パターン"を特定する。</p>
+  <a href="https://buy.stripe.com/bJe8wPdtb9yn11c76w5Rm02" class="cta-main">
+    個別診断を申し込む（¥5,000）→
+  </a>
+  <p class="cta-price">※ 5分の診断では届かない"核心"を扱う</p>
+</section>
+
+<div class="divider"></div>
+
+<!-- WHAT -->
+<section class="section fade-in">
+  <div class="container">
+    <div class="section-label">What</div>
+    <h2 class="section-title">これは一般的な診断ではない。</h2>
+    <div class="what-box">
+      <p>あなたの行動履歴・思考・選択の流れから、<br>
+      <strong style="color:#cc99ff">"どこでズレるか"</strong>を特定する個別分析だ。<br><br>
+      これは占いではない。<br>
+      データとパターンに基づいた分析だ。</p>
+    </div>
+    <p class="section-body">同じタイプでも、止まる理由は全員違う。<br>だからこれは、あなた専用の設計になる。</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SERVICES -->
+<section class="section fade-in">
+  <div class="container">
+    <div class="section-label">Contents</div>
+    <h2 class="section-title">提供内容</h2>
+    <div class="service-list">
+      <div class="service-item">
+        <span class="service-num">01</span>
+        <span class="service-text">あなたのパターン特定（深掘り）<br><small style="color:#6644aa">表面的なタイプ分類ではなく、根本の構造を解析する</small></span>
+      </div>
+      <div class="service-item">
+        <span class="service-num">02</span>
+        <span class="service-text">止まるトリガー分析<br><small style="color:#6644aa">なぜ同じ場所で止まるのか。その引き金を特定する</small></span>
+      </div>
+      <div class="service-item">
+        <span class="service-num">03</span>
+        <span class="service-text">行動ルール設計<br><small style="color:#6644aa">あなたの脳に合った動き方のルールを作る</small></span>
+      </div>
+      <div class="service-item">
+        <span class="service-num">04</span>
+        <span class="service-text">具体的改善プラン<br><small style="color:#6644aa">明日から使える行動指針を提示する</small></span>
+      </div>
+    </div>
+
+    <div class="format-box">
+      <div class="format-row">
+        <span class="format-key">形式</span>
+        <span class="format-val">メール詳細レポート送付</span>
+      </div>
+      <div class="format-row">
+        <span class="format-key">追加対応</span>
+        <span class="format-val">質問1回まで</span>
+      </div>
+      <div class="format-row">
+        <span class="format-key">料金</span>
+        <span class="format-val">¥5,000（税込）</span>
+      </div>
+      <div class="format-row">
+        <span class="format-key">納期</span>
+        <span class="format-val">3営業日以内</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TARGET -->
+<section class="section fade-in">
+  <div class="container">
+    <div class="section-label">Target</div>
+    <h2 class="section-title">こんな人のための診断だ。</h2>
+    <div class="target-list">
+      <div class="target-item">何度も同じ失敗を繰り返している</div>
+      <div class="target-item">やる気はあるのに続かない</div>
+      <div class="target-item">原因は分かっているのに変えられない</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- LIMIT -->
+<section class="section fade-in">
+  <div class="container">
+    <div class="section-label">Limit</div>
+    <h2 class="section-title">なぜ制限するのか。</h2>
+    <div class="limit-box">
+      <div class="limit-num">3</div>
+      <div class="limit-text">1日の受付上限</div>
+      <div class="limit-desc">1件ごとに分析時間を確保するため、<br>対応数を制限しています。</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FINAL CTA -->
+<section class="final-section fade-in">
+  <div class="container">
+    <p class="final-quote">
+      ここまで読んで動かないなら、<br>また同じ結果になる。
+    </p>
+    <p class="final-sub">今変えるか、このまま繰り返すか。</p>
+    <a href="https://buy.stripe.com/bJe8wPdtb9yn11c76w5Rm02" class="cta-main">
+      個別診断を申し込む（¥5,000）→
+    </a>
+    <p class="cta-price" style="margin-top:12px">※ 1日3名限定 · 3営業日以内にメール送付</p>
+  </div>
+</section>
+
+<footer>
+  <a href="https://ai-hunter.jp">ai-hunter.jp</a>
+  <p style="color:#2d1660;font-size:11px;margin-top:8px;letter-spacing:2px">運命は、ただのパターンだ。</p>
+</footer>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if(e.isIntersecting) e.target.classList.add('visible');
+  });
+}, {threshold: 0.1});
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
