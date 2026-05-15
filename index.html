@@ -22,7 +22,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .divider{width:80px;height:2px;background:linear-gradient(90deg,#7b5cff,#a78fff);margin:0 auto 28px}
 
 /* サブタイトル */
-.sub{font-family:'Space Grotesk',sans-serif;font-size:clamp(11px,2vw,13px);letter-spacing:.35em;color:rgba(255,255,255,0.45);margin-bottom:64px}
+.sub{font-family:'Space Grotesk',sans-serif;font-size:clamp(11px,2vw,13px);letter-spacing:.35em;color:rgba(255,255,255,0.7);margin-bottom:64px}
 
 /* カードグリッド */
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;width:100%}
@@ -45,8 +45,13 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 footer{position:relative;z-index:1;margin-top:60px;font-size:11px;color:rgba(255,255,255,0.2);letter-spacing:.1em;}
 
 @media(max-width:480px){
-  .cards{grid-template-columns:1fr;max-width:280px;margin:0 auto}
-  .logo{letter-spacing:.06em}
+  .logo{font-size:36px;letter-spacing:.04em}
+  .sub{font-size:10px;letter-spacing:.2em;color:rgba(255,255,255,0.9)}
+  .cards{grid-template-columns:repeat(3,1fr);gap:10px}
+  .card{padding:20px 8px}
+  .card-icon{font-size:28px}
+  .card-name{font-size:14px;font-weight:700}
+  .card-desc{font-size:11px;color:rgba(255,255,255,0.8)}
 }
 </style>
 </head>
