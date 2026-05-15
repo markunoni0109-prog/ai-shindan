@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI HUNTER | I Ching Engine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=Noto+Sans+JP:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #dddbd4;
+    --bg2: #d0cec6;
+    --bg3: #c4c2b9;
+    --text: #080807;
+    --text2: #242420;
+    --text3: #505048;
+    --blue: #0d4a8c;
+    --blue-light: #c8daf4;
+    --blue-mid: #1f64b8;
+    --green-light: #c4e0cc;
+    --green: #0e4e26;
+    --amber-light: #f0deb0;
+    --amber: #6e4008;
+    --border: #b0aea6;
+    --border2: #9a9890;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Noto Sans JP', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    border-bottom: 0.5px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg);
+  }
+  .header-logo {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    color: var(--text3);
+  }
+  .header-logo span { color: var(--text2); }
+  .header-ts {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+  }
+
+  /* ── MAIN WRAPPER ── */
+  .main {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 0 20px 60px;
+  }
+
+  /* ── TOP SCREEN ── */
+  #screen-top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 80px 0 40px;
+    text-align: center;
+  }
+  .engine-badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .18em;
+    color: var(--text3);
+    border: 0.5px solid var(--border2);
+    padding: 4px 12px;
+    border-radius: 2px;
+    margin-bottom: 28px;
+  }
+  .engine-title {
+    font-family: var(--mono);
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--text);
+    letter-spacing: .04em;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+  .engine-sub {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: .08em;
+    margin-bottom: 48px;
+  }
+  .start-btn {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: .1em;
+    color: var(--text);
+    background: var(--bg);
+    border: 0.5px solid var(--border2);
+    padding: 14px 40px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    margin-bottom: 20px;
+  }
+  .start-btn:hover { border-color: var(--text2); background: var(--bg2); }
+  .start-btn:active { transform: scale(0.98); }
+  .notice {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text3);
+    letter-spacing: .06em;
+    line-height: 2;
+  }
+
+  /* ── CASTING SCREEN ── */
+  #screen-cast { display: none; padding: 40px 0; }
+  .cast-header {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .14em;
+    color: var(--text3);
+    margin-bottom: 16px;
+  }
+  .cast-log {
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    border-radius: 4px;
+    padding: 16px 18px;
+    min-height: 140px;
+    margin-bottom: 16px;
+  }
+  .cast-row {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text2);
+    line-height: 2.2;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    animation: fadeIn .2s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+  .cast-key { color: var(--text3); min-width: 48px; }
+  .cast-coins { letter-spacing: 4px; font-size: 13px; }
+  .coin-o { color: var(--text); }
+  .coin-u { color: var(--border2); }
+  .cast-change { color: var(--blue); font-weight: 500; }
+  .cast-sys {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    line-height: 2.4;
+    animation: fadeIn .2s ease;
+  }
+  .proceed-btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .08em;
+    color: var(--text);
+    background: var(--bg);
+    border: 0.5px solid var(--border2);
+    padding: 10px 24px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: border-color .2s;
+  }
+  .proceed-btn:disabled { opacity: .4; cursor: default; }
+  .proceed-btn:not(:disabled):hover { border-color: var(--text2); }
+
+  /* ── RESULT SCREEN ── */
+  #screen-result { display: none; padding: 32px 0; }
+
+  .sec-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .14em;
+    color: var(--text3);
+    margin-bottom: 8px;
+  }
+  .sec-box {
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+
+  /* 卦表示 */
+  .hex-wrap {
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
+  }
+  .hex-col { display: flex; flex-direction: column; gap: 3px; }
+  .hex-lbl { font-family: var(--mono); font-size: 9px; color: var(--text3); margin-bottom: 6px; letter-spacing: .1em; }
+  .fl { height: 7px; width: 52px; border-radius: 1px; background: var(--text); }
+  .bw { display: flex; gap: 4px; }
+  .hl { height: 7px; width: 23px; border-radius: 1px; background: var(--text); }
+  .hex-name { font-size: 15px; font-weight: 500; color: var(--text); margin-top: 8px; }
+  .hex-yomi { font-family: var(--mono); font-size: 10px; color: var(--text3); margin-top: 2px; }
+  .hex-arrow { font-size: 18px; color: var(--border2); align-self: center; margin-top: 20px; }
+
+  /* タグ */
+  .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 9px;
+    padding: 1px 7px;
+    border-radius: 2px;
+    margin-right: 5px;
+    vertical-align: middle;
+    border: 0.5px solid;
+  }
+  .tag-h { background: var(--blue-light); color: #072a52; border-color: #6a9ed8; }
+  .tag-s { background: var(--green-light); color: #073418; border-color: #4a9a6a; }
+  .tag-c { background: var(--amber-light); color: var(--amber); border-color: #a87830; }
+
+  /* 解析結果 */
+  .read-row { display: flex; gap: 8px; margin: 7px 0; align-items: flex-start; }
+  .read-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--border2); margin-top: 8px; flex-shrink: 0; }
+  .read-main { font-size: 12px; color: var(--text2); line-height: 1.8; font-family: var(--mono); }
+  .read-why { font-size: 10px; color: var(--text3); margin-top: 1px; line-height: 1.6; }
+  .read-accent { color: var(--text); font-weight: 500; }
+
+  /* AI NOTE */
+  .note-box {
+    background: var(--blue-light);
+    border: 0.5px solid #6a9ed8;
+    border-radius: 4px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+  }
+  .note-label { font-family: var(--mono); font-size: 9px; color: var(--blue); letter-spacing: .14em; margin-bottom: 6px; }
+  .note-line { font-family: var(--mono); font-size: 11px; color: #0d3468; line-height: 2; }
+
+  /* WEEKLY DIRECTIVE */
+  .directive-box {
+    border-left: 2px solid var(--blue-mid);
+    padding: 14px 18px;
+    background: var(--bg2);
+    border-radius: 0 4px 4px 0;
+    margin-bottom: 10px;
+  }
+  .directive-label { font-family: var(--mono); font-size: 9px; color: var(--blue); letter-spacing: .14em; margin-bottom: 10px; }
+  .directive-main { font-size: 15px; color: var(--text); line-height: 1.8; margin-bottom: 10px; font-weight: 500; }
+  .directive-sub {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.9;
+    border-top: 0.5px solid var(--border);
+    padding-top: 10px;
+  }
+
+  /* RAW DATA */
+  .raw-box {
+    background: var(--bg3);
+    border: 0.5px solid var(--border);
+    border-radius: 4px;
+    padding: 12px 14px;
+    margin-bottom: 20px;
+  }
+  .raw-label { font-family: var(--mono); font-size: 9px; color: var(--text3); letter-spacing: .14em; margin-bottom: 8px; }
+  .raw-row {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    line-height: 2.1;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .raw-key { color: var(--border2); min-width: 42px; }
+
+  /* 結果詳細ブロック */
+  .detail-box {
+    border: 0.5px solid var(--border2);
+    border-radius: 4px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    background: var(--bg2);
+  }
+  .detail-label { font-family: var(--mono); font-size: 9px; color: var(--text2); letter-spacing: .14em; margin-bottom: 12px; }
+  .detail-main {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.8;
+    margin-bottom: 12px;
+    border-left: 2px solid var(--blue-mid);
+    padding-left: 12px;
+  }
+  .detail-sub {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 2;
+    border-top: 0.5px solid var(--border);
+    padding-top: 10px;
+  }
+
+  /* RETRY */
+  .retry-wrap { text-align: center; }
+  .retry-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    color: var(--text2);
+    background: transparent;
+    border: 0.5px solid var(--border2);
+    padding: 9px 22px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: border-color .2s;
+  }
+  .retry-btn:hover { border-color: var(--text); }
+
+  /* ── FOOTER ── */
+  .footer {
+    border-top: 0.5px solid var(--border);
+    padding: 16px 24px;
+    margin-top: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-text { font-family: var(--mono); font-size: 9px; color: var(--text3); letter-spacing: .08em; }
+
+  @media (max-width: 480px) {
+    .engine-title { font-size: 22px; }
+    .hex-wrap { gap: 18px; }
+    .main { padding: 0 16px 48px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-logo"><span>AI HUNTER</span> / I Ching Engine</div>
+  <div class="header-ts" id="ts"></div>
+</header>
+
+<div class="main">
+
+  <!-- TOP SCREEN -->
+  <div id="screen-top">
+    <div class="engine-badge">YIJING ANALYSIS ENGINE v5.0</div>
+    <div class="engine-title">I Ching Engine</div>
+    <div class="engine-sub">擲銭法 × デジタル乱数 × 64卦データベース</div>
+    <button class="start-btn" onclick="startCast()">今週の解析を開始</button>
+    <div class="notice">
+      登録不要 &nbsp;|&nbsp; 生年月日不要 &nbsp;|&nbsp; 質問入力不要<br>
+      「今の流れ」と「変化の傾向」を解析します
+    </div>
+  </div>
+
+  <!-- CASTING SCREEN -->
+  <div id="screen-cast">
+    <div class="cast-header">// CASTING LOG — 擲銭シミュレーション</div>
+    <div class="cast-log" id="cast-log"></div>
+    <button class="proceed-btn" id="proceed-btn" onclick="showResult()" disabled>解析結果を表示 →</button>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div id="screen-result">
+
+    <div class="sec-label">// 卦象マトリクス</div>
+    <div class="sec-box">
+      <div class="hex-wrap">
+        <div>
+          <div class="hex-lbl">本卦 [HONKE]</div>
+          <div class="hex-col" id="honke-lines"></div>
+          <div class="hex-name" id="honke-name"></div>
+          <div class="hex-yomi" id="honke-yomi"></div>
+        </div>
+        <div class="hex-arrow">→</div>
+        <div>
+          <div class="hex-lbl">之卦 [SHIKE]</div>
+          <div class="hex-col" id="shike-lines"></div>
+          <div class="hex-name" id="shike-name"></div>
+          <div class="hex-yomi" id="shike-yomi"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="note-box" id="ai-note"></div>
+
+    <div class="sec-label">// 解析結果</div>
+    <div class="sec-box" id="analysis-block"></div>
+
+    <div class="raw-box">
+      <div class="raw-label">// RAW DATA — 偶然性ログ</div>
+      <div id="raw-log"></div>
+    </div>
+
+    <div class="detail-box" id="result-detail" style="display:none;">
+      <div class="detail-label">// 今週の結果詳細</div>
+      <div class="detail-main" id="detail-main"></div>
+      <div class="detail-sub" id="detail-sub"></div>
+    </div>
+
+    <div class="retry-wrap">
+      <button class="retry-btn" onclick="resetAll()">再解析 →</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-text">AI HUNTER © 2026 &nbsp;|&nbsp; ai-hunter.jp</div>
+  <div class="footer-text">「未来予知」ではなく「今の流れの傾向分析」です</div>
+</footer>
+
+<script>
+const HEX = {
+"111111":{num:1,name:"乾為天",yomi:"けんいてん",core:"純粋な創造力・剛健",flow:"拡大・全力前進",why:"六爻すべて陽。天の純一な力が満ちる。迷わず動く時。"},
+"000000":{num:2,name:"坤為地",yomi:"こんいち",core:"包容・受容・育成",flow:"蓄積・内守",why:"六爻すべて陰。大地の包む力。外に出さず内に向ける局面。"},
+"100010":{num:3,name:"水雷屯",yomi:"すいらいちゅん",core:"黎明・産みの苦しみ",flow:"基盤構築",why:"震（動）が坎（険）の下に。芽吹きの力はあるが障害がある。"},
+"010001":{num:4,name:"山水蒙",yomi:"さんすいもう",core:"蒙昧・学習期",flow:"吸収・準備",why:"霧の中の山。今は知識を吸収する段階。"},
+"111010":{num:5,name:"水天需",yomi:"すいてんじゅ",core:"待機・必然の到来",flow:"忍耐・準備",why:"乾の強い力を持ちながら雨を待つ。強者の待機。"},
+"010111":{num:6,name:"天水訟",yomi:"てんすいしょう",core:"対立・主張",flow:"調停・妥協",why:"乾と坎が逆方向に動く。摩擦と主張。中途で止めることが吉。"},
+"010000":{num:7,name:"地水師",yomi:"ちすいし",core:"統率・大義",flow:"組織・動員",why:"坎（水）が坤（地）の内に潜む。見えない力を指導力で動かす。"},
+"000010":{num:8,name:"水地比",yomi:"すいちひ",core:"親和・協調",flow:"結束・信頼",why:"水が地に親しむ象。人と人が自然に引き合う時。"},
+"111011":{num:9,name:"風天小畜",yomi:"ふうてんしょうちく",core:"小蓄積・制御",flow:"漸進・準備",why:"巽（小）が乾（大）を一時制御。大きな力を小さく蓄積する時。"},
+"110111":{num:10,name:"天沢履",yomi:"てんたくり",core:"礼節・危中の前進",flow:"慎重な前進",why:"兌（柔）が乾（剛）の下にいる。礼で危険を通過する形。"},
+"111000":{num:11,name:"地天泰",yomi:"ちてんたい",core:"天地交感・最良期",flow:"全面拡大",why:"乾（上昇気）が下に、坤（下降気）が上に。陰陽交わり循環する最良形。"},
+"000111":{num:12,name:"天地否",yomi:"てんちひ",core:"閉塞・停滞",flow:"内守・退避",why:"乾が上昇し坤が下降。互いに離れ気が交わらない詰まった状態。"},
+"101111":{num:13,name:"天火同人",yomi:"てんかどうじん",core:"同志・共同",flow:"連帯・協力",why:"離（火）が乾の下で広く照らす。大義のもとで人が集まる形。"},
+"111101":{num:14,name:"火天大有",yomi:"かてんたいゆう",core:"大豊・所有",flow:"収穫・分配",why:"一の柔爻が五の剛爻を従える。豊かさが自然に集まってくる形。"},
+"001000":{num:15,name:"地山謙",yomi:"ちさんけん",core:"謙虚・徳の充実",flow:"低姿勢での前進",why:"高い山が地に伏す象。謙が64卦唯一凶なしの卦。"},
+"000100":{num:16,name:"雷地豫",yomi:"らいちよ",core:"準備万端・喜悦",flow:"能動的展開",why:"震（雷）が坤（地）の上で響く。準備が整い喜びとともに前進できる状態。"},
+"110100":{num:17,name:"沢雷随",yomi:"たくらいずい",core:"随順・柔軟",flow:"流れに乗る",why:"兌（悦）が震（動）の上に。動きに喜んで従う象。"},
+"001011":{num:18,name:"山風蠱",yomi:"さんふうこ",core:"腐敗の改革",flow:"刷新・立て直し",why:"山に風が入り腐敗が進んだ状態。しかし改革の起点でもある。"},
+"110000":{num:19,name:"地沢臨",yomi:"ちたくりん",core:"臨む・指導",flow:"拡大・接近",why:"大いなるものが近づいてくる。陽気が増している時期。"},
+"000011":{num:20,name:"風地観",yomi:"ふうちかん",core:"観察・洞察",flow:"内省・準備",why:"高みから全体を見渡す時。見せることで教化する卦。"},
+"101100":{num:21,name:"火雷噬嗑",yomi:"からいぜいごう",core:"決断・障害除去",flow:"断行・処断",why:"噛み砕いて合わせる。毅然とした決断が障害を除去する。"},
+"001101":{num:22,name:"山火賁",yomi:"さんかひ",core:"装飾・外観",flow:"形式整備",why:"火が山の麓で輝く。形を整えることに意味がある時。"},
+"000001":{num:23,name:"山地剥",yomi:"さんちはく",core:"剥落・侵食",flow:"静守・待機",why:"五陰が一陽を剥ぎ取ろうとする。最も陰が充満した状態。動かず守る。"},
+"100000":{num:24,name:"地雷復",yomi:"ちらいふく",core:"復活・再始動",flow:"再構築・蓄積",why:"五陰の下から一陽が復る。冬至の卦。エネルギーが内側から動き始めている。"},
+"100111":{num:25,name:"天雷无妄",yomi:"てんらいむもう",core:"無偽・自然",flow:"誠実な行動",why:"天の命に従い偽りなく動く。打算のない行動が正道。"},
+"111001":{num:26,name:"山天大畜",yomi:"さんてんたいちく",core:"大蓄積",flow:"知識・経験の活用",why:"艮（止）が乾（大）を止めて蓄える。内部に巨大なエネルギーを保持。"},
+"100001":{num:27,name:"山雷頤",yomi:"さんらいい",core:"養育・選別",flow:"何を養うかの問い",why:"口の象形。何を取り入れ何を語るかを問う卦。"},
+"011110":{num:28,name:"沢風大過",yomi:"たくふうたいか",core:"大過・非常事態",flow:"決断・突破",why:"棟木がたわむ象。中心に力が過剰集中。非常手段が必要。"},
+"010010":{num:29,name:"坎為水",yomi:"かんいすい",core:"重険・意志の継続",flow:"誠実な継続",why:"険難二重。しかし水は止まらず流れ続ける。"},
+"101101":{num:30,name:"離為火",yomi:"りいか",core:"明晰・依拠",flow:"輝きの継続",why:"炎二重。火は何かに依拠して燃える。柔順に従い輝く。"},
+"001110":{num:31,name:"沢山咸",yomi:"たくさんかん",core:"感応・交感",flow:"相互感化",why:"心が空虚だからこそ相手を感じ取れる。感応の本質を示す卦。"},
+"011100":{num:32,name:"雷風恒",yomi:"らいふうこう",core:"恒久・継続",flow:"一貫した継続",why:"変化の中の不変。継続する力の卦。"},
+"001111":{num:33,name:"天山遯",yomi:"てんさんとん",core:"退隠・戦略的撤退",flow:"退却・温存",why:"陰が増えてきた。賢者が時を見て退く。退くことで力を温存する形。"},
+"111100":{num:34,name:"雷天大壮",yomi:"らいてんたいそう",core:"大勢力・正義の力",flow:"正しい前進",why:"乾（大）の上に震（動）。大きな力が動き出した状態。正義を以て使う。"},
+"000101":{num:35,name:"火地晋",yomi:"かちしん",core:"晋進・昇進",flow:"認知・上昇",why:"太陽が地平線を出る象。才能が認められ地位が上がる時。"},
+"101000":{num:36,name:"地火明夷",yomi:"ちかめいい",core:"光の受難・潜伏",flow:"内守・隠忍",why:"太陽が地に沈む象。才能を隠し外は従順に。"},
+"101011":{num:37,name:"風火家人",yomi:"ふうかかじん",core:"家族・内部秩序",flow:"内固め・規律",why:"火から風が起きる象。家の内部の秩序と役割の卦。"},
+"110101":{num:38,name:"火沢睽",yomi:"かたくけい",core:"乖離・相違",flow:"小事の推進",why:"離と兌が背を向ける。対立の中に共通点を見つける視点が必要。"},
+"010100":{num:39,name:"水山蹇",yomi:"すいさんけん",core:"前途多難",flow:"迂回・待機",why:"前に険、後ろに山。進退両難。今は後退が正解。"},
+"001010":{num:40,name:"雷水解",yomi:"らいすいかい",core:"解放・解消",flow:"清算・前進",why:"震（動）が坎（険）を解く。雷雨の後の晴れ。緊張が解け動ける状態。"},
+"110001":{num:41,name:"山沢損",yomi:"さんたくそん",core:"損して益を得る",flow:"自己犠牲・誠実",why:"減じることで本質が見える。下から上へ。"},
+"100011":{num:42,name:"風雷益",yomi:"ふうらいえき",core:"益・恵み",flow:"積極的行動",why:"上から下へ利益が流れる。今は行動する最良の時。"},
+"011111":{num:43,name:"沢天夬",yomi:"たくてんかい",core:"決断・断絶",flow:"公明正大な除去",why:"一陰が五陽の上。公正な宣言で断ち切る時。"},
+"111110":{num:44,name:"天風姤",yomi:"てんふうこう",core:"遭遇・誘惑",flow:"意志の強化",why:"一陰が五陽の下から忍び込む。小さな誘惑が大を崩す始まりになり得る。"},
+"000110":{num:45,name:"沢地萃",yomi:"たくちすい",core:"集合・統合",flow:"求心・結集",why:"水が地に集まる如く人が集まる。凝集する時。"},
+"011000":{num:46,name:"地風升",yomi:"ちふうしょう",core:"上昇・昇進",flow:"着実な上昇",why:"木が大地から真っ直ぐ伸びる象。段階的上昇。"},
+"010110":{num:47,name:"沢水困",yomi:"たくすいこん",core:"困窮・閉塞",flow:"信念の維持",why:"沢の水が尽きた状態。言葉より行動で示す時。"},
+"011010":{num:48,name:"水風井",yomi:"すいふうせい",core:"恒常の恵み・修養",flow:"継続的な貢献",why:"場所は変わらずに恵みを与え続ける。井戸の徳。"},
+"011101":{num:49,name:"沢火革",yomi:"たくかかく",core:"革命・変革",flow:"大変革",why:"水と火が互いを克す形。旧制度を焼き尽くす変革の卦。"},
+"101110":{num:50,name:"火風鼎",yomi:"かふうてい",core:"文明・人材育成",flow:"適材適所",why:"薪が火を燃やし上に鼎がある。人材と場所が合わさる形。"},
+"100100":{num:51,name:"震為雷",yomi:"しんいらい",core:"衝撃・覚醒",flow:"動じない継続",why:"雷二重。大衝撃が来るが恐れる必要はない。雷の後に清澄な空気が来る。"},
+"001001":{num:52,name:"艮為山",yomi:"ごんいさん",core:"静止・内省",flow:"執着の解放",why:"山二重。止まるべき時に止まる。執着を手放すことで平安を得る。"},
+"011001":{num:54,name:"雷沢帰妹",yomi:"らいたくきまい",core:"不正規・補佐",flow:"立場を守る従順",why:"正式でない関係。立場を守り誠実に尽くすことが吉。"},
+"100110":{num:55,name:"雷火豊",yomi:"らいかほう",core:"豊かさの頂点",flow:"最大限の発揮",why:"震と離が共鳴する。太陽が真南に来た正午の卦。"},
+"001100":{num:62,name:"雷山小過",yomi:"らいさんしょうか",core:"小さな超過",flow:"慎重な小前進",why:"翼を垂れた鳥の象。大事はなし難く小事のみ成就する時。"},
+"010101":{num:63,name:"水火既済",yomi:"すいかきせい",core:"完成・頂点後の油断",flow:"現状維持の警戒",why:"全てが整った形。しかし完成は衰退の始まり。油断禁物。"},
+"101010":{num:64,name:"火水未済",yomi:"かすいびせい",core:"未完成・可能性",flow:"慎重な準備",why:"全てが未だ整わないが整う寸前。可能性に満ちた状態。"}
+};
+
+const WEEKLY = {
+"111111":{w_main:"今週は全力で動いていい週。迷ったら前に進め。",w_sub:"やろうと思っていたことを先送りにしない。会議でも交渉でも、自分から話を動かす側に回った方がいい。エネルギーが高い時期なので、消極的な選択が一番もったいない。"},
+"000000":{w_main:"今週は待つことが正解。自分から動かなくていい。",w_sub:"新しいことを始めるより、今あるものを丁寧に続ける週。人の話をよく聞いて、判断は急がない。焦りを感じたら、それ自体がサインだと思っていい。"},
+"100010":{w_main:"今週は「始まりの混乱」の中にいる。焦らず一歩ずつ。",w_sub:"物事がなかなか形にならない、手応えが薄いと感じるかもしれない。それは当たり前の段階。今週は結果より「種を蒔いたか」を基準にする。助けを借りることを躊躇しない。"},
+"010001":{w_main:"今週は「知らない」を認めることが最大の強みになる。",w_sub:"わからないことをわかったふりをしない週。素直に質問する、教えを乞う、その行動が後から大きく効いてくる。急いで答えを出すより、理解を深めることを優先する。"},
+"111010":{w_main:"今週は「待てる人」が勝つ週。タイミングを見極めよ。",w_sub:"準備は整っているのに、まだ動けない状況があるかもしれない。それは正しい状態。焦って先走ると機を逃す。来るべきタイミングは必ず来る。今週は仕込みと観察に集中する。"},
+"010111":{w_main:"今週は争いを大きくしない。引き際を知ることが吉。",w_sub:"意見の対立や摩擦が起きやすい週。自分が正しくても、全面対決すると消耗する。勝ちに行くより、落としどころを探る動きが賢い。第三者に間に入ってもらうことも有効。"},
+"010000":{w_main:"今週は「旗を立てる」週。大義を明確にすれば人がついてくる。",w_sub:"何のためにやるか、誰のためにやるかを言語化することが先決。それが明確であれば、人を動かすことができる週。目的が曖昧なまま動くと空回りする。"},
+"000010":{w_main:"今週は人と繋がることに投資する週。関係を深める好機。",w_sub:"一人で抱え込まず、信頼できる人に声をかける。連絡を後回しにしていた人に連絡する、食事や会話の機会を作る、そういう行動が今週は特に意味を持つ。"},
+"111011":{w_main:"今週は小さく着実に積み上げる週。大技は不要。",w_sub:"大きな成果を狙うより、毎日少しずつ前進することが正解の週。完璧を目指さず、7割の完成度で動かし続ける。小さな積み重ねが来週以降に効いてくる。"},
+"110111":{w_main:"今週は礼儀と誠実さが通行証になる。形を大事にせよ。",w_sub:"難しい相手、緊張する場面があるかもしれない。そういう時ほど、丁寧な言葉、適切な挨拶、礼節を守ることが突破口になる。中身より「どう見せるか」が今週は重要。"},
+"111000":{w_main:"今週は攻めに出ていい。準備してきたことを動かすタイミング。",w_sub:"人との連携が特にうまくいく週。頼みごとをする、協力を申し出る、交渉を進める、どれも今週やってしまった方がいい。流れが来ている時期なので、動いた分だけ返ってくる。"},
+"000111":{w_main:"今週は無理に動かない。嵐が来ている時は建物の中にいた方がいい。",w_sub:"計画が進まない、話が通じない、そういう感覚があるなら正しい認識。新規のアクションより、情報収集と関係の整理に時間を使う。大きな決断は来週以降に持ち越す。"},
+"101111":{w_main:"今週は仲間を集める週。一人でやろうとしない。",w_sub:"共通の目標を持つ人と動くことで、大きな成果が出やすい週。声をかけるのをためらっていた人に声をかけてみる。チームで動くことで自分一人ではできないことが可能になる。"},
+"111101":{w_main:"今週は成果を受け取る週。ただし独占しないこと。",w_sub:"努力が実る形が出やすい。評価される、売上が上がる、話がまとまる、そういうことが起きやすい週。全部自分でやろうとせず、周囲にも分配する意識が次の流れを作る。"},
+"001000":{w_main:"今週は「下手に出る」ことが最強の戦略になる。",w_sub:"自分の実力や成果をアピールしたくなっても、今週はあえて抑える。聞き役に回る、相手を立てる、そういう行動が信頼を積み上げる。評価は後からついてくると思っていい。"},
+"000100":{w_main:"今週は準備万端で打って出る週。楽しみながら動け。",w_sub:"やる気とエネルギーが一致する週。計画していたことを実行に移すのに最適なタイミング。周囲を巻き込み、明るく前向きに動くことで周りの協力も得やすくなる。"},
+"110100":{w_main:"今週は流れに乗る週。自分の判断より状況を読め。",w_sub:"自分のペースや主張を押し通すより、今起きている流れに柔軟に乗ることが正解の週。相手の動きに合わせる、状況の変化を素直に受け入れる、そういう姿勢が吉をもたらす。"},
+"001011":{w_main:"今週は「腐ったものを取り除く」週。先送りにしない。",w_sub:"うまくいっていないこと、ずっと気になっていること、それに向き合う週。改革は痛みを伴うが、今やらないと後でもっと大変になる。小さな問題でも、見て見ぬふりをやめる。"},
+"110000":{w_main:"今週は積極的に人と関わる週。自分から近づいていけ。",w_sub:"指導する、教える、サポートする、そういう役割が回ってきやすい週。上の立場から下を慈しむように接すると、自然と人がついてくる。行動量を増やす週。"},
+"000011":{w_main:"今週は観察する週。動く前にじっくり見極めよ。",w_sub:"今週は行動より観察に重きを置く。何が起きているか、誰が何を求めているか、状況を丁寧に見ることで来週以降の判断精度が上がる。"},
+"101100":{w_main:"今週は障害をはっきり取り除く週。曖昧にしない。",w_sub:"問題を先送りにしていたなら、今週が動くタイミング。白黒つけることを恐れない。毅然とした行動が今週は吉をもたらす。"},
+"001101":{w_main:"今週は「見せ方」を整える週。中身より形に気を配れ。",w_sub:"資料のデザイン、服装、言葉遣い、第一印象に関わるものを整える週。内容が同じでも、見せ方次第で評価が変わる。プレゼンや提案がある場合は磨き込みに時間を使う。"},
+"000001":{w_main:"今週は守りを固める週。余計なことに手を出さない。",w_sub:"外からの圧力や侵食が強い時期。今週は新しいことを始めず、今持っているものを守ることに専念する。信頼できる人だけと付き合い、判断は最小限に絞る。"},
+"100000":{w_main:"今週は「再起動」の週。外より内側を整えることに集中せよ。",w_sub:"何かを広げるタイミングではなく、足元を固め直すタイミング。やることを絞って、一つひとつを丁寧にこなす。人に会うより、一人で考える時間を確保した方がいい週。"},
+"100111":{w_main:"今週は打算を捨てて動く週。純粋に正しいと思うことをやれ。",w_sub:"損得を考えすぎると動けなくなる週。見返りを期待せず、誠実に行動することが結果的に最短ルートになる。正しく動いていれば必ず道は開ける。"},
+"111001":{w_main:"今週は蓄積する週。今すぐ使わなくていい力をためよ。",w_sub:"大きく動くより、知識・人脈・資金・体力を蓄える週。今インプットしたことが後で大きく活きる。勉強、読書、人の話を聞く、そういう地味な行動が今週は最も価値が高い。"},
+"100001":{w_main:"今週は「何を入れるか」を意識する週。情報も食事も言葉も選べ。",w_sub:"無駄な情報に時間を使いすぎていないか確認を。本当に必要なインプットに絞ると頭が整理される。発言も同様で、言わなくていいことは言わない方が吉。"},
+"011110":{w_main:"今週は非常事態モードで動く週。普通の判断では足りない。",w_sub:"通常のやり方では乗り越えられない局面が来るかもしれない。大胆な決断、リスクを取った行動が必要になる。一人で抱え込まず、思い切って人に助けを求めることも選択肢に入れる。"},
+"010010":{w_main:"今週はしんどいかもしれない。それでも止まるな。",w_sub:"障害が重なる週になりやすい。でもここで止まると流れが止まる。水が岩の隙間を通り抜けるように、小さな前進を積み重ねることが重要。"},
+"101101":{w_main:"今週は「何に依拠するか」を明確にすることが先決。",w_sub:"自分一人で抱え込まず、信頼できる人や仕組みに頼ることが力になる週。得意なことで光る、苦手は人に任せる、そういう分担が今週はうまく機能する。"},
+"001110":{w_main:"今週は感じる力を大事にする週。直感に素直になれ。",w_sub:"論理より感覚が正しい答えを出しやすい週。会いたいと思った人に連絡する、気になることを放置しない、そういう素直な反応が良い流れを作る。"},
+"011100":{w_main:"今週は続けることそのものが成果になる週。",w_sub:"結果が見えなくても、続けていることに価値がある週。新しいことより、今やっていることを粘り強く継続する。一貫した行動が長期的な成果につながっていく。"},
+"001111":{w_main:"今週は退くことが正解。潔く引くことで次が開ける。",w_sub:"無理に押し進めず、一歩引く判断が吉の週。距離を置くことは負けではなく、次のための温存。エネルギーを温存して、再起のタイミングを静かに待つ。"},
+"111100":{w_main:"今週は力が充実している。ただし使い方に気をつけろ。",w_sub:"エネルギーが高く、強気に動きたくなる週。力は本物だが、力任せに突き進むと壁にぶつかる。正しい目的のために、正しい方法で使うことを意識する。"},
+"000101":{w_main:"今週は積極的に前に出る週。評価されるチャンスを逃すな。",w_sub:"才能や成果が認められやすい週。自分からアピールする、発信する、提案する、そういう行動が評価につながる。遠慮しすぎず、堂々と自分の仕事を見せていく姿勢が吉。"},
+"101000":{w_main:"今週は光を内側に保つ週。表に出さず、内で燃やせ。",w_sub:"理不尽な環境や評価されない状況があるかもしれない。それでも腐らず、自分の軸を内側で磨き続ける週。外には従順に見せながら、内側の信念と準備を絶やさない。"},
+"101011":{w_main:"今週は「内側」を整える週。近くにいる人を大切にせよ。",w_sub:"チーム、家族、身近な人間関係を見直す週。目の前の人との関係を丁寧に扱うことが今週の優先事項。役割分担を明確にし、それぞれが自分の責任を果たす体制を作る。"},
+"110101":{w_main:"今週は違いを受け入れる週。対立を無理に解消しなくていい。",w_sub:"考え方や価値観の違いが表面化しやすい週。違いの中に補完関係を見つける視点が重要。小さな合意を一つひとつ積み重ねることで、大きな対立も徐々に解消されていく。"},
+"010100":{w_main:"今週は無理に進まない。回り道が最短ルートになる週。",w_sub:"前に進もうとするほど障害が増える週。迂回するか、一旦止まることが正解。仲間の力を借りる、専門家に相談する、一人で突破しようとしないことが鍵になる。"},
+"001010":{w_main:"今週は解放の週。溜まっていたものが解けていく。",w_sub:"長引いていた問題が解決に向かう、緊張していた関係が和らぐ、そういう動きが起きやすい週。過去の問題は早めに清算し、前に進む準備をする。"},
+"110001":{w_main:"今週は「減らす」ことで豊かになる週。手放す勇気を持て。",w_sub:"抱えすぎているもの、維持コストが高いものを手放すことで本質が見えてくる。余分なタスク、不要な人間関係、無駄な習慣を整理する。シンプルにした分だけ大事なものに集中できる。"},
+"100011":{w_main:"今週は行動した分だけ返ってくる週。惜しみなく動け。",w_sub:"投資と回収のバランスが良い週。時間、お金、労力を惜しまず使うことで、大きなリターンが期待できる。他者の利益になる行動が回り回って自分に返ってくる。"},
+"011111":{w_main:"今週は決断する週。あいまいなものに白黒つけよ。",w_sub:"ずっと保留にしてきた問題に決着をつける週。感情的にではなく、公明正大に、関係者に明確に伝える形で処理する。先延ばしにしていた決断ほど、今週動かすことで来週以降が楽になる。"},
+"111110":{w_main:"今週は誘惑に注意する週。小さな妥協が大きなズレを生む。",w_sub:"魅力的な提案や誘いが来やすい週だが、自分の軸からブレるものには乗らない。「少しくらいいいか」という判断が後で響いてくる。今週は基本に忠実に、原則から外れない行動を心がける。"},
+"000110":{w_main:"今週は人を集める週。求心力を発揮せよ。",w_sub:"共通の目的を持つ人たちが集まりやすい週。「集まる場」を作る側に回ることが吉。人が集まることで新しい化学反応が生まれる。"},
+"011000":{w_main:"今週は着実に上を目指す週。焦らず一段ずつ登れ。",w_sub:"急な上昇より、段階を踏んだ成長が正解の週。謙虚な姿勢を保ちながら、自分より上の立場の人に積極的に接触する。その出会いが次のステップへの扉になる。"},
+"010110":{w_main:"今週は言葉より行動で示す週。語るより動け。",w_sub:"何を言っても通じない、評価されないと感じるかもしれない。言い訳や説明より、結果を出すことに集中する。信念を持って動き続ければ、必ず状況は変わる。"},
+"011010":{w_main:"今週は自分の場所で、コツコツ与え続ける週。",w_sub:"派手な動きより、今いる場所で丁寧に仕事をすることが最も価値のある週。周囲に惜しみなく与え、サポートする。それが積み重なって揺るぎない信頼になっていく。"},
+"011101":{w_main:"今週は変革を起こす週。古い殻を思い切って脱げ。",w_sub:"今まで続けてきたやり方を変える勇気が問われる週。変えることへの抵抗感があっても、時機はきている。関係者に説明し理解を得てから動くことが成功の条件。"},
+"101110":{w_main:"今週は適材適所を意識する週。人を活かすことが成果につながる。",w_sub:"自分一人の能力より、チームの組み合わせで大きな仕事をする週。誰に何を任せるか、その判断が結果を左右する。才能ある人を正しい場所に置くことで全体の力が上がる。"},
+"100100":{w_main:"今週は予想外のことが起きるかもしれない。動じるな。",w_sub:"急な連絡、予定変更、想定外の出来事。そういうことが来やすい週。焦って判断すると失敗する。一拍置いて、冷静に対応することが最優先。衝撃の後には必ず落ち着いた時間が来る。"},
+"001001":{w_main:"今週は止まることが前進になる週。内側を静めよ。",w_sub:"動きたくなっても、今週はあえて止まる選択が正解。瞑想、休息、一人の時間を作ることでエネルギーが回復する。今持っている執着や焦りを手放すことで、次の動きのための土台ができる。"},
+"011001":{w_main:"今週は自分の立場を守る週。でしゃばらず誠実に動け。",w_sub:"正式な権限や立場がない場面でも、誠実さと努力で信頼を積み上げることが今週のテーマ。主役でなくても、自分の役割を全力で果たすことが後の大きなチャンスにつながる。"},
+"100110":{w_main:"今週は絶頂期。全力で出し切れ。ただし慢心するな。",w_sub:"エネルギーも運気も最高潮の週。今週やったことは大きな成果につながりやすい。ただし頂点はいつまでも続かない。今の豊かさを享受しながら、次の準備も同時に始めておく。"},
+"001100":{w_main:"今週は小さく慎重に動く週。大きな賭けに出ない。",w_sub:"大事業や大きな決断は今週向きではない。小さな改善、細かいフォロー、地道なメンテナンスに集中する。少し控えめに動くことが今週の吉を呼ぶ。"},
+"010101":{w_main:"今週はうまくいっている時こそ気を引き締める週。",w_sub:"物事が順調に進んでいるように見える時期。だからこそ油断が危ない。細かいところのチェックを怠らない、確認作業を省かない、そういう地味な習慣が今週は特に重要になる。"},
+"101010":{w_main:"今週はゴール直前。焦らず丁寧に最後の詰めをせよ。",w_sub:"完成まであと一歩という局面が多い週。ここで慌てると最後のところで失敗する。急がず、確認しながら進める。「もう少し」という感覚があるなら、その感覚は正しい。"},
+"default":{w_main:"今週は自分の立ち位置を確認することから始めよ。",w_sub:"何かを大きく動かす前に、今自分がどこにいるかを把握する週。焦りを感じているなら、その原因を一つひとつ整理してみる。誠実に、丁寧に対応することが、結果的に一番早い。"}
+};
+
+const FLOW_MAP = {
+"全面拡大→内守・退避":"勢力の頂点から閉塞局面へ。急ブレーキの兆候。",
+"再構築・蓄積→何を養うかの問い":"復活エネルギーが「質の選別」へ移行。取り込むものを問われる段階。",
+"拡大・全力前進→蓄積・内守":"純粋な前進から受容モードへ。陽極まって陰に転じる自然な流れ。",
+"蓄積・内守→拡大・全力前進":"受容から創造へ。陰が陽に転じる好機。",
+"基盤構築→吸収・準備":"産みの苦しみから学習期へ。困難が学びの場に変わる。",
+"再構築・蓄積→大変革":"内部での蓄積が外部への変革エネルギーに転換する。",
+"全面拡大→何を養うかの問い":"拡大路線から質の吟味へ。量より質へのシフト信号。",
+"収穫・分配→内守・退避":"豊かさの頂点から防衛局面へ。利益確定のタイミング。",
+"内守・退避→再構築・蓄積":"嵐が過ぎ、静かに力を蓄え直す局面への移行。",
+"誠実な行動→一貫した継続":"打算なき行動が継続の力に変わる。長期の軸が定まる。",
+"default":"現在の局面が次の状態へ移行しつつある。変化の兆候を見逃すな。"
+};
+
+const SYS_MSGS = [
+  "Initializing hexagram matrix...",
+  "Loading 64-hexagram database...",
+  "Coin pattern analysis ready.",
+  "Change line detection active.",
+  "Flow transition model loaded.",
+  "Hexagram matching in progress...",
+  "Weekly directive engine online.",
+];
+
+let yaos = [], step = 0, sysStep = 0;
+
+function p2(n) { return String(n).padStart(2,'0'); }
+function rnd() { return Math.random() < 0.5 ? 3 : 2; }
+
+function setTs() {
+  const n = new Date();
+  document.getElementById('ts').textContent =
+    `${n.getFullYear()}.${p2(n.getMonth()+1)}.${p2(n.getDate())} ${p2(n.getHours())}:${p2(n.getMinutes())}`;
+}
+
+function startCast() {
+  setTs();
+  document.getElementById('screen-top').style.display = 'none';
+  document.getElementById('screen-cast').style.display = 'block';
+  yaos = []; step = 0; sysStep = 0;
+  document.getElementById('cast-log').innerHTML = '';
+  nextSys();
+}
+
+function nextSys() {
+  if (sysStep < 2) {
+    const d = document.createElement('div');
+    d.className = 'cast-sys';
+    d.textContent = '> ' + SYS_MSGS[sysStep];
+    document.getElementById('cast-log').appendChild(d);
+    sysStep++;
+    setTimeout(nextSys, 300);
+  } else {
+    nextYao();
+  }
+}
+
+function nextYao() {
+  if (step >= 6) {
+    const d = document.createElement('div');
+    d.className = 'cast-sys';
+    d.textContent = '> ' + SYS_MSGS[4 + Math.min(sysStep - 8, 2)];
+    document.getElementById('cast-log').appendChild(d);
+    setTimeout(() => {
+      const d2 = document.createElement('div');
+      d2.className = 'cast-sys';
+      d2.textContent = '> Analysis complete. Ready.';
+      document.getElementById('cast-log').appendChild(d2);
+      const btn = document.getElementById('proceed-btn');
+      btn.disabled = false;
+      btn.textContent = '解析結果を表示 →';
+    }, 400);
+    return;
+  }
+  const coins = [rnd(), rnd(), rnd()];
+  const sum = coins.reduce((a,b) => a+b, 0);
+  const type = sum===6?"老陰":sum===7?"少陽":sum===8?"少陰":"老陽";
+  yaos.push({coins, sum, type});
+  step++;
+  const isC = type==="老陰" || type==="老陽";
+  const syms = coins.map(c => `<span class="${c===3?'coin-o':'coin-u'}">${c===3?'●':'○'}</span>`).join(' ');
+  const pattern = coins.map(c => c===3?'表':'裏').join('');
+  const row = document.createElement('div');
+  row.className = 'cast-row';
+  row.innerHTML = `<span class="cast-key">[爻${step}]</span><span class="cast-coins">${syms}</span><span style="color:#888;font-size:10px;">${pattern} → 和${sum}</span><span style="color:${isC?'#1a5fa8':'#bbb'};font-size:10px;min-width:48px;">${type}${isC?' ◀':''}</span>`;
+  document.getElementById('cast-log').appendChild(row);
+  setTimeout(nextYao, 280);
+}
+
+function showResult() {
+  document.getElementById('screen-cast').style.display = 'none';
+  document.getElementById('screen-result').style.display = 'block';
+
+  const hBits = yaos.map(y => (y.sum===6||y.sum===8)?"0":"1");
+  const sBits = yaos.map(y => {
+    if(y.type==="老陰") return "1";
+    if(y.type==="老陽") return "0";
+    return (y.sum===6||y.sum===8)?"0":"1";
+  });
+  const honke = HEX[hBits.join("")] || HEX["111111"];
+  const shike = HEX[sBits.join("")] || HEX["000000"];
+  const hasC = yaos.some(y => y.type==="老陰"||y.type==="老陽");
+  const changes = yaos.filter(y => y.type==="老陰"||y.type==="老陽");
+
+  // 卦ライン
+  renderLines('honke-lines', hBits);
+  document.getElementById('honke-name').textContent = honke.name;
+  document.getElementById('honke-yomi').textContent = honke.yomi;
+  renderLines('shike-lines', sBits);
+  document.getElementById('shike-name').textContent = hasC ? shike.name : '—';
+  document.getElementById('shike-yomi').textContent = hasC ? shike.yomi : '変爻なし';
+
+  // WEEKLY
+  const wd = WEEKLY[hBits.join("")] || WEEKLY["default"];
+
+  // AI NOTE
+  document.getElementById('ai-note').innerHTML = `<div class="note-label">// AI NOTE</div>${buildNote(yaos, honke, shike, hasC, changes)}`;
+
+  // 解析結果
+  let ana = '';
+  ana += `<div class="read-row"><div class="read-dot"></div><div><div class="read-main"><span class="tag tag-h">本卦</span><span class="read-accent">${honke.name}</span> — ${honke.core}</div><div class="read-why">${honke.why}</div></div></div>`;
+  if (hasC) {
+    const fk = `${honke.flow}→${shike.flow}`;
+    const fn = FLOW_MAP[fk] || FLOW_MAP["default"];
+    ana += `<div class="read-row"><div class="read-dot"></div><div><div class="read-main"><span class="tag tag-c">変爻${changes.length}本</span>${honke.flow} → ${shike.flow}</div><div class="read-why">${fn}</div></div></div>`;
+    ana += `<div class="read-row"><div class="read-dot"></div><div><div class="read-main"><span class="tag tag-s">之卦</span><span class="read-accent">${shike.name}</span> — ${shike.core}</div><div class="read-why">${shike.why}</div></div></div>`;
+  } else {
+    ana += `<div class="read-row"><div class="read-dot"></div><div><div class="read-main" style="color:#999;">変爻なし — ${honke.core}の状態が安定継続。現在局面を深めることが優先。</div></div></div>`;
+  }
+  document.getElementById('analysis-block').innerHTML = ana;
+
+  // 結果詳細（一番下）
+  document.getElementById('detail-main').textContent = wd.w_main;
+  document.getElementById('detail-sub').textContent = wd.w_sub;
+  document.getElementById('result-detail').style.display = 'block';
+
+  // RAW DATA
+  let raw = '';
+  yaos.forEach((y,i) => {
+    const isC = y.type==="老陰"||y.type==="老陽";
+    const syms = y.coins.map(c => `<span style="color:${c===3?'#555':'#ccc'}">${c===3?'●':'○'}</span>`).join(' ');
+    raw += `<div class="raw-row"><span class="raw-key">[爻${i+1}]</span><span style="letter-spacing:3px;font-size:12px;">${syms}</span><span>${y.coins.map(c=>c===3?'表':'裏').join('')} → 和${y.sum}</span><span style="color:${isC?'#1a5fa8':'#ccc'};">${y.type}${isC?' ◀':''}</span></div>`;
+  });
+  document.getElementById('raw-log').innerHTML = raw;
+}
+
+function buildNote(yaos, honke, shike, hasC, changes) {
+  let lines = [];
+  const upperC = changes.filter(y => yaos.indexOf(y) >= 3).length;
+  const lowerC = changes.length - upperC;
+  if (changes.length === 0) {
+    lines.push('変爻なし — 現局面固定。安定継続パターンを検出。');
+    lines.push(`${honke.core}の状態が維持されている。外部変化率：低。`);
+  } else if (changes.length === 1) {
+    lines.push('変爻1本 — 移行の初動段階。変化シグナル微弱。');
+    lines.push(`内部変化率：上昇中。局面遷移の予兆あり。`);
+  } else if (changes.length >= 4) {
+    lines.push(`変爻${changes.length}本 — 局面の大規模転換を検出。高変化率。`);
+    lines.push('接触イベント増加傾向。複数領域での同時変化。');
+  } else {
+    lines.push(`変爻${changes.length}本 — 局面移行プロセス進行中。`);
+  }
+  if (upperC > lowerC && upperC > 0)
+    lines.push('変爻が上卦（4-6爻）に集中 — 終局面から新循環へ移行傾向。');
+  else if (lowerC > upperC && lowerC > 0)
+    lines.push('変爻が下卦（1-3爻）に集中 — 内部・基盤レベルから変化が始動。');
+  if (hasC)
+    lines.push(`遷移パターン記録：${honke.name}（${honke.flow}）→ ${shike.name}（${shike.flow}）`);
+  return lines.map(l => `<div class="note-line">› ${l}</div>`).join('');
+}
+
+function renderLines(id, bits) {
+  const el = document.getElementById(id);
+  let h = '';
+  for (let i = 5; i >= 0; i--)
+    h += bits[i]==="1" ? `<div class="fl"></div>` : `<div class="bw"><div class="hl"></div><div class="hl"></div></div>`;
+  el.innerHTML = h;
+}
+
+function resetAll() {
+  document.getElementById('screen-result').style.display = 'none';
+  document.getElementById('result-detail').style.display = 'none';
+  document.getElementById('screen-top').style.display = 'flex';
+}
+
+setTs();
+</script>
+</body>
+</html>
