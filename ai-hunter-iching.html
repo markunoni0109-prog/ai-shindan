@@ -8,12 +8,12 @@
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=Noto+Sans+JP:wght@300;400;500&display=swap');
 
   :root {
-    --bg: #dddbd4;
-    --bg2: #d0cec6;
-    --bg3: #c4c2b9;
-    --text: #080807;
-    --text2: #242420;
-    --text3: #505048;
+    --bg: #c8c6bf;
+    --bg2: #bcbab2;
+    --bg3: #b0aea6;
+    --text: #000000;
+    --text2: #111110;
+    --text3: #2a2a26;
     --blue: #0d4a8c;
     --blue-light: #c8daf4;
     --blue-mid: #1f64b8;
@@ -35,6 +35,8 @@
     color: var(--text);
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
+    font-size: 15px;
+    font-weight: 500;
   }
 
   /* ── HEADER ── */
@@ -335,10 +337,43 @@
   }
   .footer-text { font-family: var(--mono); font-size: 9px; color: var(--text3); letter-spacing: .08em; }
 
-  @media (max-width: 480px) {
-    .engine-title { font-size: 22px; }
-    .hex-wrap { gap: 18px; }
-    .main { padding: 0 16px 48px; }
+  @media (max-width: 600px) {
+    .header { padding: 12px 16px; }
+    .header-logo { font-size: 11px; }
+    .header-ts { font-size: 10px; }
+    .main { padding: 0 12px 60px; }
+    #screen-top { padding: 48px 0 32px; }
+    .engine-badge { font-size: 9px; }
+    .engine-title { font-size: 26px; }
+    .engine-sub { font-size: 13px; }
+    .start-btn { font-size: 15px; padding: 16px 32px; width: 100%; }
+    .notice { font-size: 12px; }
+    .cast-header { font-size: 11px; }
+    .cast-item { font-size: 13px; gap: 8px; flex-wrap: wrap; }
+    .proceed-btn { width: 100%; font-size: 14px; padding: 16px; }
+    .hex-wrap { gap: 14px; justify-content: space-around; }
+    .hex-lines { font-size: 28px; }
+    .hex-name { font-size: 20px; }
+    .hex-yomi { font-size: 12px; }
+    .hex-arrow { font-size: 18px; }
+    .sec-box { padding: 14px 12px; }
+    .sec-label { font-size: 11px; }
+    .note-box { padding: 10px 12px; }
+    .note-label { font-size: 10px; }
+    .note-line { font-size: 13px; }
+    .read-main { font-size: 15px; }
+    .read-why { font-size: 13px; }
+    .tag { font-size: 10px; padding: 2px 6px; }
+    .raw-box { padding: 12px; }
+    .raw-label { font-size: 11px; }
+    .raw-row { font-size: 12px; gap: 8px; flex-wrap: wrap; }
+    .raw-key { min-width: 36px; font-size: 12px; }
+    .detail-box { padding: 14px 12px; }
+    .detail-main { font-size: 13px; }
+    .detail-sub { font-size: 11px; }
+    .retry-btn { width: 100%; font-size: 12px; padding: 14px; }
+    .footer { flex-direction: column; gap: 6px; text-align: center; padding: 14px 16px; }
+    .footer-text { font-size: 9px; }
   }
 </style>
 </head>
