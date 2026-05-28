@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LOTO HUNTER | AI HUNTER</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050810;
+    --surface: #0a0f1e;
+    --card: #0d1428;
+    --border: #1a2744;
+    --accent: #00d4ff;
+    --accent2: #0066ff;
+    --gold: #ffd700;
+    --hit: #00ff88;
+    --miss: #ff3366;
+    --text: #e0e8ff;
+    --muted: #4a5580;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .container { max-width: 900px; margin: 0 auto; padding: 20px; position: relative; z-index: 1; }
+  .header { text-align: center; padding: 40px 0 30px; border-bottom: 1px solid var(--border); margin-bottom: 40px; }
+  .header-brand { font-family: 'Orbitron', monospace; font-size: 11px; letter-spacing: 6px; color: var(--accent); margin-bottom: 8px; }
+  .header-title { font-family: 'Orbitron', monospace; font-size: clamp(28px, 5vw, 48px); font-weight: 900; color: #fff; letter-spacing: 4px; text-shadow: 0 0 30px rgba(0,212,255,0.4); }
+  .header-title span { color: var(--accent); }
+  .header-sub { font-size: 12px; color: var(--muted); letter-spacing: 3px; margin-top: 10px; font-family: 'Share Tech Mono', monospace; }
+  .algo-bar { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); padding: 12px 20px; margin-bottom: 40px; font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 1px; }
+  .algo-label { color: var(--muted); font-size: 10px; letter-spacing: 2px; margin-bottom: 4px; }
+
+  /* 最新3回カード */
+  .round-card { background: var(--card); border: 1px solid var(--border); margin-bottom: 30px; position: relative; overflow: hidden; opacity: 0; transform: translateY(20px); animation: fadeUp 0.6s ease forwards; }
+  .round-card:nth-child(1) { animation-delay: 0.1s; }
+  .round-card:nth-child(2) { animation-delay: 0.3s; }
+  .round-card:nth-child(3) { animation-delay: 0.5s; }
+  @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+  .round-card.latest { border-color: var(--accent); box-shadow: 0 0 30px rgba(0,212,255,0.1); }
+  .round-card.latest::before { content: 'LATEST'; position: absolute; top: 12px; right: 12px; font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 2px; color: var(--accent); background: rgba(0,212,255,0.1); border: 1px solid var(--accent); padding: 3px 8px; }
+  .round-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; background: rgba(255,255,255,0.02); }
+  .round-num { font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 900; color: var(--accent); }
+  .round-date { font-size: 12px; color: var(--muted); font-family: 'Share Tech Mono', monospace; }
+  .round-stage { margin-left: auto; font-size: 11px; font-family: 'Share Tech Mono', monospace; padding: 4px 10px; border: 1px solid; }
+  .stage-low { color: #00ff88; border-color: #00ff88; background: rgba(0,255,136,0.05); }
+  .stage-mid { color: #00d4ff; border-color: #00d4ff; background: rgba(0,212,255,0.05); }
+  .stage-high { color: #ff6600; border-color: #ff6600; background: rgba(255,102,0,0.05); }
+  .winning-section { padding: 20px; border-bottom: 1px solid var(--border); }
+  .section-label { font-size: 10px; letter-spacing: 3px; color: var(--muted); margin-bottom: 12px; font-family: 'Share Tech Mono', monospace; }
+  .winning-numbers { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .num-ball { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', monospace; font-weight: 700; font-size: 15px; }
+  .num-ball.winning { background: linear-gradient(135deg, #1a2744, #0d1428); border: 2px solid var(--accent); color: var(--accent); box-shadow: 0 0 12px rgba(0,212,255,0.3); }
+  .num-ball.bonus { background: linear-gradient(135deg, #2a1a00, #1a1000); border: 2px solid var(--gold); color: var(--gold); box-shadow: 0 0 12px rgba(255,215,0,0.3); }
+  .bonus-label { font-size: 10px; color: var(--gold); font-family: 'Share Tech Mono', monospace; margin-left: 4px; }
+  .predict-section { padding: 20px; }
+  .predict-row { display: grid; grid-template-columns: 80px 1fr auto; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+  .predict-row:last-child { border-bottom: none; }
+  .predict-label { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); }
+  .predict-nums { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pnum { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 700; border: 1px solid var(--border); background: var(--surface); color: var(--muted); }
+  .pnum.hit { border-color: var(--hit); color: var(--hit); background: rgba(0,255,136,0.1); box-shadow: 0 0 8px rgba(0,255,136,0.3); animation: hitPulse 1.5s ease-in-out infinite; }
+  @keyframes hitPulse { 0%,100%{box-shadow:0 0 8px rgba(0,255,136,0.3)} 50%{box-shadow:0 0 16px rgba(0,255,136,0.6)} }
+  .predict-score { text-align: right; }
+  .hit-count { font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 900; }
+  .hit-count.count-0 { color: var(--muted); }
+  .hit-count.count-1 { color: #6699ff; }
+  .hit-count.count-2 { color: var(--accent); }
+  .hit-count.count-3 { color: var(--hit); }
+  .hit-label { font-size: 9px; color: var(--muted); font-family: 'Share Tech Mono', monospace; letter-spacing: 1px; }
+  .summary-bar { padding: 12px 20px; background: rgba(0,212,255,0.03); border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .summary-text { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); }
+  .summary-best { font-family: 'Orbitron', monospace; font-size: 12px; color: var(--accent); }
+
+  /* 過去ログセクション */
+  .log-section { margin-top: 50px; }
+  .log-title { font-family: 'Orbitron', monospace; font-size: 14px; letter-spacing: 4px; color: var(--muted); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  .log-item { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--muted); margin-bottom: 16px; padding: 16px 20px; opacity: 0; animation: fadeUp 0.6s ease forwards; }
+  .log-item:nth-child(2) { animation-delay: 0.1s; border-left-color: #4a5580; }
+  .log-item:nth-child(3) { animation-delay: 0.2s; border-left-color: #4a5580; }
+  .log-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .log-num { font-family: 'Orbitron', monospace; font-size: 16px; font-weight: 700; color: var(--muted); }
+  .log-date { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); }
+  .log-model { margin-left: auto; font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--muted); background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 3px 8px; }
+  .log-winning { font-family: 'Orbitron', monospace; font-size: 13px; color: var(--accent); margin-bottom: 10px; letter-spacing: 2px; }
+  .log-winning span { color: var(--gold); }
+  .log-list { list-style: none; }
+  .log-list li { font-family: 'Share Tech Mono', monospace; font-size: 12px; color: var(--muted); padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.02); display: flex; justify-content: space-between; }
+  .log-list li:last-child { border-bottom: none; }
+  .log-list .match { color: var(--accent); }
+  .log-list .match-hit { color: var(--hit); }
+  .log-note { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #ff6600; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+
+  .scanline { position: fixed; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); animation: scan 4s linear infinite; opacity: 0.3; pointer-events: none; z-index: 999; }
+  @keyframes scan { 0%{top:0} 100%{top:100vh} }
+  .footer { text-align: center; padding: 40px 0; font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 2px; border-top: 1px solid var(--border); margin-top: 20px; }
+
+  @media (max-width: 600px) {
+    .predict-row { grid-template-columns: 60px 1fr auto; gap: 8px; }
+    .pnum { width: 28px; height: 28px; font-size: 10px; }
+    .num-ball { width: 36px; height: 36px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="container">
+
+  <div class="header">
+    <div class="header-brand">AI HUNTER</div>
+    <div class="header-title">LOTO <span>HUNTER</span></div>
+    <div class="header-sub">SANCTUARY OF DATA ANALYSIS</div>
+  </div>
+
+  <div class="algo-bar">
+    <div class="algo-label">ALGORITHM v5.1 CLAUDE-MASTER（現行）</div>
+    Score = Z(Freq) + Z(Gap) + Z(Pair)×1.25 + Z(Trend)×1.50 + Z(OddEven)×0.80 + Z(ZoneLink)×1.00
+  </div>
+
+  <!-- 第2106回 -->
+  <div class="round-card latest">
+    <div class="round-header">
+      <div><div class="round-num">#2106</div><div class="round-date">2026.05.28</div></div>
+      <div class="round-stage stage-mid">中間 / 128</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">01</div><div class="num-ball winning">06</div><div class="num-ball winning">17</div>
+        <div class="num-ball winning">27</div><div class="num-ball winning">34</div><div class="num-ball winning">43</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">24</div>
+      </div>
+    </div>
+    <div class="predict-section">
+      <div class="section-label">AI PREDICTION vs RESULT — Claude v5.1</div>
+      <div class="predict-row">
+        <div class="predict-label">口1 低め</div>
+        <div class="predict-nums"><div class="pnum hit">01</div><div class="pnum">08</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">24</div><div class="pnum">37</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口2 中間1</div>
+        <div class="predict-nums"><div class="pnum">08</div><div class="pnum">15</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">24</div><div class="pnum hit">43</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口3 中間2</div>
+        <div class="predict-nums"><div class="pnum">08</div><div class="pnum">15</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">28</div><div class="pnum hit">43</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口4 高め</div>
+        <div class="predict-nums"><div class="pnum">14</div><div class="pnum">15</div><div class="pnum">21</div><div class="pnum">28</div><div class="pnum">30</div><div class="pnum hit">43</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口5 補填</div>
+        <div class="predict-nums"><div class="pnum">08</div><div class="pnum">15</div><div class="pnum">18</div><div class="pnum">24</div><div class="pnum">37</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-text">BEST: 1 MATCH / BONUS MISS</div>
+      <div class="summary-best">43 → 4口的中</div>
+    </div>
+  </div>
+
+  <!-- 第2105回 -->
+  <div class="round-card">
+    <div class="round-header">
+      <div><div class="round-num">#2105</div><div class="round-date">2026.05.25</div></div>
+      <div class="round-stage stage-high">高め / 165</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">05</div><div class="num-ball winning">26</div><div class="num-ball winning">28</div>
+        <div class="num-ball winning">30</div><div class="num-ball winning">36</div><div class="num-ball winning">40</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">32</div>
+      </div>
+    </div>
+    <div class="predict-section">
+      <div class="section-label">AI PREDICTION vs RESULT — Claude v5.0</div>
+      <div class="predict-row">
+        <div class="predict-label">口1 低め</div>
+        <div class="predict-nums"><div class="pnum">02</div><div class="pnum">08</div><div class="pnum">17</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">37</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口2〜4</div>
+        <div class="predict-nums"><div class="pnum">08</div><div class="pnum">15</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum hit">30</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口5 高め</div>
+        <div class="predict-nums"><div class="pnum">14</div><div class="pnum">15</div><div class="pnum">21</div><div class="pnum hit">28</div><div class="pnum hit">30</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-2">2</div><div class="hit-label">MATCH</div></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-text">BEST: 2 MATCH / BONUS MISS</div>
+      <div class="summary-best">合計165 → フィルター外が敗因</div>
+    </div>
+  </div>
+
+  <!-- 第2104回 -->
+  <div class="round-card">
+    <div class="round-header">
+      <div><div class="round-num">#2104</div><div class="round-date">2026.05.21</div></div>
+      <div class="round-stage stage-mid">中間 / 145</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">18</div><div class="num-ball winning">19</div><div class="num-ball winning">21</div>
+        <div class="num-ball winning">25</div><div class="num-ball winning">28</div><div class="num-ball winning">34</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">04</div>
+      </div>
+    </div>
+    <div class="predict-section">
+      <div class="section-label">AI PREDICTION vs RESULT — Gemini v4.1（最終予測）</div>
+      <div class="predict-row">
+        <div class="predict-label">口1〜5</div>
+        <div class="predict-nums"><div class="pnum">07</div><div class="pnum">14</div><div class="pnum hit">18</div><div class="pnum hit">21</div><div class="pnum">24</div><div class="pnum">37</div></div>
+        <div class="predict-score"><div class="hit-count count-2">2</div><div class="hit-label">MATCH</div></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-text">BEST: 2 MATCH / BONUS MISS</div>
+      <div class="summary-best">18・21 → 全5口的中</div>
+    </div>
+  </div>
+
+  <!-- 過去ログ -->
+  <div class="log-section">
+    <div class="log-title">ARCHIVE LOG — 過去の記録</div>
+
+    <!-- 第2103回 -->
+    <div class="log-item">
+      <div class="log-header">
+        <div class="log-num">#2103</div>
+        <div class="log-date">2026.05.18</div>
+        <div class="log-model">予測なし</div>
+      </div>
+      <div class="log-winning">当選: 01-02-04-05-08-38 <span>BONUS: 39</span></div>
+      <ul class="log-list">
+        <li><span>・合計58 → 超低域集中・連番多数</span><span class="match">購入なし</span></li>
+        <li><span>・1〜8が5個という歴史的低出目</span></li>
+        <li><span>・この回の分析が合計値フィルター撤廃につながった</span></li>
+      </ul>
+      <div class="log-note">⚠ 旧フィルター（合計110〜150）では100%排除されるパターン → v4.1で80〜160に拡張</div>
+    </div>
+
+    <!-- 第2102回 -->
+    <div class="log-item">
+      <div class="log-header">
+        <div class="log-num">#2102</div>
+        <div class="log-date">2026.05.14</div>
+        <div class="log-model">Claude × ORBIT 共同予測</div>
+      </div>
+      <div class="log-winning">当選: 18-21-25-28-30-43 <span>BONUS: 08</span></div>
+      <ul class="log-list">
+        <li><span>・A: [6,10,18,24,26,37]</span><span class="match">24一致 1個</span></li>
+        <li><span>・B: [8,14,29,30,36,42]</span><span class="match">0個</span></li>
+        <li><span>・C: [5,17,24,33,39,43]</span><span class="match-hit">43一致 1個</span></li>
+        <li><span>・D: [6,13,27,30,34,40]</span><span class="match">30一致 1個</span></li>
+        <li><span>・E: [1,19,22,31,38,41]</span><span class="match">0個</span></li>
+      </ul>
+      <div class="log-note">最高1個一致 / ボーナス08 → 全口外れ</div>
+    </div>
+
+    <!-- 第2101回 -->
+    <div class="log-item">
+      <div class="log-header">
+        <div class="log-num">#2101</div>
+        <div class="log-date">2026.05.11</div>
+        <div class="log-model">Gemini v4.0</div>
+      </div>
+      <div class="log-winning">当選: 01-17-29-33-40-42 <span>BONUS: 21</span></div>
+      <ul class="log-list">
+        <li><span>・口1: [8,14,17,24,29,37]</span><span class="match-hit">17,29一致 2個</span></li>
+        <li><span>・口2: [8,14,17,21,24,37]</span><span class="match">17一致 1個 ⭐BONUS21</span></li>
+        <li><span>・口3: [8,14,17,24,27,37]</span><span class="match">17一致 1個</span></li>
+        <li><span>・口4: [8,14,21,24,29,37]</span><span class="match">29一致 1個 ⭐BONUS21</span></li>
+        <li><span>・口5: [8,14,17,24,29,35]</span><span class="match-hit">17,29一致 2個</span></li>
+      </ul>
+      <div class="log-note">最高2個一致 / 軸数字8・14・24が全滅 → 固定軸の危険性が発覚</div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    DATA NEVER LIES · AI HUNTER · @onikumar029
+  </div>
+
+</div>
+</body>
+</html>
