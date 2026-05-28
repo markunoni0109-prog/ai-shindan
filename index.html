@@ -3,87 +3,472 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI-HUNTER.JP | Sanctuary of Data Analysis</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;900&family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
+<title>AI HUNTER | Sanctuary of Data Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;font-family:'Noto Sans JP',sans-serif}
-body{background:#0a0a0f;color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow-x:hidden}
+  :root {
+    --bg: #030608;
+    --navy: #050c1e;
+    --accent: #00d4ff;
+    --accent2: #0052cc;
+    --silver: #a8b8cc;
+    --text: #e0e8f0;
+    --muted: #3a4a6a;
+    --gold: #ffd700;
+  }
 
-/* 背景グラデーション */
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 30% 40%,rgba(60,30,100,0.5) 0%,transparent 60%),radial-gradient(ellipse at 70% 60%,rgba(10,30,60,0.4) 0%,transparent 55%);pointer-events:none;z-index:0}
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-.container{position:relative;z-index:1;text-align:center;padding:0 24px;width:100%;max-width:700px}
+  html, body {
+    width: 100%;
+    min-height: 100vh;
+    background: var(--bg);
+    font-family: 'Noto Sans JP', sans-serif;
+    overflow-x: hidden;
+  }
 
-/* ロゴ */
-.logo{font-family:'Space Grotesk',sans-serif;font-size:clamp(28px,7vw,90px);font-weight:900;letter-spacing:0;color:#fff;line-height:1;margin-bottom:20px}
+  /* ===== キャンバス背景 ===== */
+  #canvas-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
 
-/* 紫ライン */
-.divider{width:80px;height:2px;background:linear-gradient(90deg,#7b5cff,#a78fff);margin:0 auto 28px}
+  /* ===== メインコンテナ ===== */
+  .hero {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px 80px;
+    text-align: center;
+  }
 
-/* サブタイトル */
-.sub{font-family:'Space Grotesk',sans-serif;font-size:clamp(11px,2vw,13px);letter-spacing:.35em;color:rgba(255,255,255,0.7);margin-bottom:64px}
+  /* ===== トップバッジ ===== */
+  .top-badge {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    border: 1px solid rgba(0,212,255,0.3);
+    padding: 6px 16px;
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeDown 1s ease 0.2s forwards;
+  }
 
-/* カードグリッド */
-.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;width:100%}
+  /* ===== ロゴ ===== */
+  .logo {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(36px, 10vw, 80px);
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 6px;
+    line-height: 1;
+    margin-bottom: 16px;
+    opacity: 0;
+    animation: fadeDown 1s ease 0.4s forwards;
+    text-shadow:
+      0 0 40px rgba(0,212,255,0.2),
+      0 0 80px rgba(0,212,255,0.1);
+  }
 
-/* カード共通 */
-.card{background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.12);border-radius:16px;padding:28px 16px;text-decoration:none;transition:background .2s,border-color .2s}
-.card.active:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.25)}
-.card.inactive{opacity:0.4;cursor:default}
+  .logo span { color: var(--accent); }
 
-/* カードアイコン */
-.card-icon{font-size:36px;margin-bottom:14px;display:block}
+  /* ===== サブタイトル ===== */
+  .sub {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(9px, 2vw, 11px);
+    letter-spacing: 5px;
+    color: var(--silver);
+    margin-bottom: 64px;
+    opacity: 0;
+    animation: fadeDown 1s ease 0.6s forwards;
+  }
 
-/* カード名 */
-.card-name{font-size:16px;font-weight:500;color:#fff;margin-bottom:8px}
+  /* ===== コンパス ===== */
+  .compass-wrap {
+    position: relative;
+    width: clamp(160px, 40vw, 220px);
+    height: clamp(160px, 40vw, 220px);
+    margin: 0 auto 64px;
+    opacity: 0;
+    animation: fadeIn 1.5s ease 0.8s forwards;
+  }
 
-/* カード説明 */
-.card-desc{font-size:12px;color:rgba(255,255,255,0.5);line-height:1.7}
+  .compass-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(168,184,204,0.5);
+    animation: rotateSlow 20s linear infinite;
+  }
 
-/* フッター */
-footer{position:relative;z-index:1;margin-top:60px;font-size:11px;color:rgba(255,255,255,0.2);letter-spacing:.1em;}
+  .compass-ring::before,
+  .compass-ring::after {
+    content: '';
+    position: absolute;
+    background: var(--accent);
+    border-radius: 2px;
+  }
 
-@media(max-width:480px){
-  .logo{font-size:32px;letter-spacing:.04em}
-  .sub{font-size:10px;letter-spacing:.15em;color:rgba(255,255,255,0.85);margin-bottom:40px}
-  .cards{grid-template-columns:1fr;max-width:320px;margin:0 auto;gap:12px}
-  .card{padding:24px 20px;display:flex;align-items:center;gap:16px;text-align:left}
-  .card-icon{font-size:32px;margin-bottom:0;flex-shrink:0}
-  .card-name{font-size:16px;font-weight:700;margin-bottom:4px}
-  .card-desc{font-size:12px;color:rgba(255,255,255,0.75)}
-}
+  /* 目盛り */
+  .compass-ring::before {
+    width: 1px;
+    height: 12px;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 0 6px var(--accent);
+  }
+
+  .compass-ring::after {
+    width: 12px;
+    height: 1px;
+    right: -1px;
+    top: 50%;
+    transform: translateY(-50%);
+    box-shadow: 0 0 6px var(--accent);
+  }
+
+  .compass-ring2 {
+    position: absolute;
+    inset: 12%;
+    border-radius: 50%;
+    border: 0.5px solid rgba(168,184,204,0.25);
+    animation: rotateSlow 30s linear infinite reverse;
+  }
+
+  /* 矢印（北） */
+  .compass-arrow {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: rotateSlow 8s ease-in-out infinite alternate;
+  }
+
+  .arrow-n {
+    position: absolute;
+    width: 0;
+    height: 0;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-bottom: 48px solid var(--accent);
+    filter: drop-shadow(0 0 8px var(--accent));
+  }
+
+  .arrow-s {
+    position: absolute;
+    width: 0;
+    height: 0;
+    bottom: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 48px solid rgba(168,184,204,0.4);
+  }
+
+  /* コア */
+  .compass-core {
+    position: absolute;
+    inset: 38%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,212,255,0.3), transparent 70%);
+    border: 1px solid var(--accent);
+    box-shadow:
+      0 0 20px rgba(0,212,255,0.4),
+      inset 0 0 20px rgba(0,212,255,0.1);
+    animation: corePulse 3s ease-in-out infinite;
+  }
+
+  /* グロー */
+  .compass-glow {
+    position: absolute;
+    inset: -20%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,82,204,0.15), transparent 70%);
+    pointer-events: none;
+  }
+
+  /* ===== キャッチコピー ===== */
+  .catch {
+    font-size: clamp(18px, 4vw, 24px);
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 4px;
+    margin-bottom: 16px;
+    opacity: 0;
+    animation: fadeUp 1s ease 1.2s forwards;
+  }
+
+  .catch-sub {
+    font-size: clamp(11px, 2.5vw, 13px);
+    color: var(--silver);
+    letter-spacing: 2px;
+    margin-bottom: 56px;
+    opacity: 0;
+    animation: fadeUp 1s ease 1.4s forwards;
+  }
+
+  /* ===== ボタン ===== */
+  .btn-group {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    max-width: 480px;
+    opacity: 0;
+    animation: fadeUp 1s ease 1.6s forwards;
+  }
+
+  .btn {
+    flex: 1;
+    position: relative;
+    padding: 20px 16px;
+    background: rgba(5,12,30,0.9);
+    border: 1px solid var(--muted);
+    color: #fff;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,212,255,0.05), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .btn:hover {
+    border-color: var(--accent);
+    box-shadow:
+      0 0 20px rgba(0,212,255,0.2),
+      inset 0 0 20px rgba(0,212,255,0.05);
+    transform: translateY(-2px);
+  }
+
+  .btn:hover::before { opacity: 1; }
+
+  .btn-keiba:hover { border-color: var(--gold); box-shadow: 0 0 20px rgba(255,215,0,0.2); }
+  .btn-keiba:hover::before { background: linear-gradient(135deg, rgba(255,215,0,0.05), transparent); }
+
+  .btn-icon {
+    font-size: 28px;
+  }
+
+  .btn-name {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(11px, 2.5vw, 13px);
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+
+  .btn-desc {
+    font-size: 10px;
+    color: var(--silver);
+    letter-spacing: 1px;
+  }
+
+  .btn-arrow {
+    position: absolute;
+    bottom: 10px;
+    right: 12px;
+    font-size: 10px;
+    color: var(--accent);
+    font-family: 'Orbitron', monospace;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .btn:hover .btn-arrow { opacity: 1; }
+
+  /* ===== フッター ===== */
+  .footer {
+    position: relative;
+    z-index: 1;
+    padding: 24px;
+    text-align: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--muted);
+  }
+
+  /* ===== アニメーション ===== */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes rotateSlow {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  @keyframes corePulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(0,212,255,0.4), inset 0 0 20px rgba(0,212,255,0.1); }
+    50%       { box-shadow: 0 0 40px rgba(0,212,255,0.7), inset 0 0 30px rgba(0,212,255,0.2); }
+  }
+
+  /* ===== レスポンシブ ===== */
+  @media (max-width: 480px) {
+    .btn-group { flex-direction: column; max-width: 320px; }
+    .btn { flex-direction: row; padding: 18px 20px; gap: 16px; text-align: left; align-items: center; }
+    .btn-icon { font-size: 32px; flex-shrink: 0; }
+    .btn-name { font-size: 13px; }
+  }
 </style>
 </head>
 <body>
 
-<div class="container">
-  <h1 class="logo">AI HUNTER</h1>
-  <div class="divider"></div>
+<!-- 背景パーティクル -->
+<canvas id="canvas-bg"></canvas>
+
+<div class="hero">
+  <div class="top-badge">POWERED BY AI · DATA ANALYSIS</div>
+
+  <h1 class="logo">AI <span>HUNTER</span></h1>
   <p class="sub">SANCTUARY OF DATA ANALYSIS</p>
 
-  <div class="cards">
-    <a href="./ai-hunter-iching.html" class="card active">
-      <span class="card-icon">☯</span>
-      <div class="card-name">易学AI</div>
-      <div class="card-desc">今週の流れを<br>64卦で解析</div>
+  <!-- コンパス -->
+  <div class="compass-wrap">
+    <div class="compass-glow"></div>
+    <div class="compass-ring"></div>
+    <div class="compass-ring2"></div>
+    <div class="compass-arrow">
+      <div class="arrow-n"></div>
+      <div class="arrow-s"></div>
+    </div>
+    <div class="compass-core"></div>
+  </div>
+
+  <p class="catch">運じゃない。パターンだ。</p>
+  <p class="catch-sub">データは嘘をつかない</p>
+
+  <!-- ボタン2つ -->
+  <div class="btn-group">
+    <a href="./keiba.html" class="btn btn-keiba">
+      <span class="btn-icon">🏇</span>
+      <div>
+        <div class="btn-name">競馬ハンター</div>
+        <div class="btn-desc">AI予測・データ分析</div>
+      </div>
+      <span class="btn-arrow">→</span>
     </a>
-
-    <div class="card inactive">
-      <span class="card-icon">🏇</span>
-      <div class="card-name">競馬AI</div>
-      <div class="card-desc">近日公開</div>
-    </div>
-
-    <div class="card inactive">
-      <span class="card-icon">🎯</span>
-      <div class="card-name">ロトAI</div>
-      <div class="card-desc">近日公開</div>
-    </div>
+    <a href="./loto6_results.html" class="btn btn-loto">
+      <span class="btn-icon">🎯</span>
+      <div>
+        <div class="btn-name">ロトハンター</div>
+        <div class="btn-desc">ロト6 研究ログ</div>
+      </div>
+      <span class="btn-arrow">→</span>
+    </a>
   </div>
 </div>
 
-<footer>© 2026 AI-HUNTER.JP</footer>
+<footer class="footer">© 2026 AI-HUNTER.JP · DATA NEVER LIES</footer>
 
+<script>
+// パーティクル背景
+const canvas = document.getElementById('canvas-bg');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+const particles = [];
+const NUM = 80;
+
+for (let i = 0; i < NUM; i++) {
+  particles.push({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    r: Math.random() * 1.2 + 0.3,
+    vx: (Math.random() - 0.5) * 0.3,
+    vy: (Math.random() - 0.5) * 0.3,
+    alpha: Math.random() * 0.5 + 0.1
+  });
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // グリッドライン
+  ctx.strokeStyle = 'rgba(0,212,255,0.03)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < canvas.width; x += 40) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+  }
+  for (let y = 0; y < canvas.height; y += 40) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+  }
+
+  // パーティクル
+  particles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.x < 0) p.x = canvas.width;
+    if (p.x > canvas.width) p.x = 0;
+    if (p.y < 0) p.y = canvas.height;
+    if (p.y > canvas.height) p.y = 0;
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(0,212,255,${p.alpha})`;
+    ctx.fill();
+  });
+
+  // 接続ライン
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 120) {
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = `rgba(0,212,255,${0.06 * (1 - dist/120)})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+  }
+
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
 </body>
 </html>
