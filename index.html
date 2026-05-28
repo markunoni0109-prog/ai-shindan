@@ -3,340 +3,429 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LOTO HUNTER | AI HUNTER</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<title>AI HUNTER | Sanctuary of Data Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #050810;
-    --surface: #0a0f1e;
-    --card: #0d1428;
-    --border: #1a2744;
+    --bg: #030608;
+    --navy: #050c1e;
     --accent: #00d4ff;
-    --accent2: #0066ff;
+    --accent2: #0052cc;
+    --silver: #a8b8cc;
+    --text: #e0e8f0;
+    --muted: #3a4a6a;
     --gold: #ffd700;
-    --hit: #00ff88;
-    --miss: #ff3366;
-    --text: #e0e8ff;
-    --muted: #4a5580;
   }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Noto Sans JP', sans-serif;
+
+  html, body {
+    width: 100%;
     min-height: 100vh;
+    background: var(--bg);
+    font-family: 'Noto Sans JP', sans-serif;
     overflow-x: hidden;
   }
+
+  /* ===== キャンバス背景 ===== */
   #canvas-bg {
     position: fixed;
     inset: 0;
     z-index: 0;
     pointer-events: none;
   }
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
+
+  /* ===== メインコンテナ ===== */
+  .hero {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px 80px;
+    text-align: center;
   }
-  .container { max-width: 900px; margin: 0 auto; padding: 20px; position: relative; z-index: 1; }
-  .header { text-align: center; padding: 40px 0 30px; border-bottom: 1px solid var(--border); margin-bottom: 40px; }
-  .header-brand { font-family: 'Orbitron', monospace; font-size: 11px; letter-spacing: 6px; color: var(--accent); margin-bottom: 8px; }
-  .header-title { font-family: 'Orbitron', monospace; font-size: clamp(28px, 5vw, 48px); font-weight: 900; color: #fff; letter-spacing: 4px; text-shadow: 0 0 30px rgba(0,212,255,0.4); }
-  .header-title span { color: var(--accent); }
-  .header-sub { font-size: 12px; color: var(--muted); letter-spacing: 3px; margin-top: 10px; font-family: 'Share Tech Mono', monospace; }
-  .algo-bar { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); padding: 12px 20px; margin-bottom: 40px; font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 1px; }
-  .algo-label { color: var(--muted); font-size: 10px; letter-spacing: 2px; margin-bottom: 4px; }
 
-  /* 最新3回カード */
-  .round-card { background: var(--card); border: 1px solid var(--border); margin-bottom: 30px; position: relative; overflow: hidden; opacity: 0; transform: translateY(20px); animation: fadeUp 0.6s ease forwards; }
-  .round-card:nth-child(1) { animation-delay: 0.1s; }
-  .round-card:nth-child(2) { animation-delay: 0.3s; }
-  .round-card:nth-child(3) { animation-delay: 0.5s; }
-  @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
-  .round-card.latest { border-color: var(--accent); box-shadow: 0 0 30px rgba(0,212,255,0.1); }
-  .round-card.latest::before { content: 'LATEST'; position: absolute; top: 12px; right: 12px; font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 2px; color: var(--accent); background: rgba(0,212,255,0.1); border: 1px solid var(--accent); padding: 3px 8px; }
-  .round-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; background: rgba(255,255,255,0.02); }
-  .round-num { font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 900; color: var(--accent); }
-  .round-date { font-size: 12px; color: var(--muted); font-family: 'Share Tech Mono', monospace; }
-  .round-stage { margin-left: auto; font-size: 11px; font-family: 'Share Tech Mono', monospace; padding: 4px 10px; border: 1px solid; }
-  .stage-low { color: #00ff88; border-color: #00ff88; background: rgba(0,255,136,0.05); }
-  .stage-mid { color: #00d4ff; border-color: #00d4ff; background: rgba(0,212,255,0.05); }
-  .stage-high { color: #ff6600; border-color: #ff6600; background: rgba(255,102,0,0.05); }
-  .winning-section { padding: 20px; border-bottom: 1px solid var(--border); }
-  .section-label { font-size: 10px; letter-spacing: 3px; color: var(--muted); margin-bottom: 12px; font-family: 'Share Tech Mono', monospace; }
-  .winning-numbers { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  .num-ball { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', monospace; font-weight: 700; font-size: 15px; }
-  .num-ball.winning { background: linear-gradient(135deg, #1a2744, #0d1428); border: 2px solid var(--accent); color: var(--accent); box-shadow: 0 0 12px rgba(0,212,255,0.3); }
-  .num-ball.bonus { background: linear-gradient(135deg, #2a1a00, #1a1000); border: 2px solid var(--gold); color: var(--gold); box-shadow: 0 0 12px rgba(255,215,0,0.3); }
-  .bonus-label { font-size: 10px; color: var(--gold); font-family: 'Share Tech Mono', monospace; margin-left: 4px; }
-  .predict-section { padding: 20px; }
-  .predict-row { display: grid; grid-template-columns: 80px 1fr auto; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
-  .predict-row:last-child { border-bottom: none; }
-  .predict-label { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); }
-  .predict-nums { display: flex; gap: 6px; flex-wrap: wrap; }
-  .pnum { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 700; border: 1px solid var(--border); background: var(--surface); color: var(--muted); }
-  .pnum.hit { border-color: var(--hit); color: var(--hit); background: rgba(0,255,136,0.1); box-shadow: 0 0 8px rgba(0,255,136,0.3); animation: hitPulse 1.5s ease-in-out infinite; }
-  @keyframes hitPulse { 0%,100%{box-shadow:0 0 8px rgba(0,255,136,0.3)} 50%{box-shadow:0 0 16px rgba(0,255,136,0.6)} }
-  .predict-score { text-align: right; }
-  .hit-count { font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 900; }
-  .hit-count.count-0 { color: var(--muted); }
-  .hit-count.count-1 { color: #6699ff; }
-  .hit-count.count-2 { color: var(--accent); }
-  .hit-count.count-3 { color: var(--hit); }
-  .hit-label { font-size: 9px; color: var(--muted); font-family: 'Share Tech Mono', monospace; letter-spacing: 1px; }
-  .summary-bar { padding: 12px 20px; background: rgba(0,212,255,0.03); border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-  .summary-text { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); }
-  .summary-best { font-family: 'Orbitron', monospace; font-size: 12px; color: var(--accent); }
+  /* ===== トップバッジ ===== */
+  .top-badge {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    border: 1px solid rgba(0,212,255,0.3);
+    padding: 6px 16px;
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeDown 1s ease 0.2s forwards;
+  }
 
-  /* 過去ログセクション */
-  .log-section { margin-top: 50px; }
-  .log-title { font-family: 'Orbitron', monospace; font-size: 14px; letter-spacing: 4px; color: var(--muted); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
-  .log-item { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--muted); margin-bottom: 16px; padding: 16px 20px; opacity: 0; animation: fadeUp 0.6s ease forwards; }
-  .log-item:nth-child(2) { animation-delay: 0.1s; border-left-color: #4a5580; }
-  .log-item:nth-child(3) { animation-delay: 0.2s; border-left-color: #4a5580; }
-  .log-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-  .log-num { font-family: 'Orbitron', monospace; font-size: 16px; font-weight: 700; color: var(--muted); }
-  .log-date { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); }
-  .log-model { margin-left: auto; font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--muted); background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 3px 8px; }
-  .log-winning { font-family: 'Orbitron', monospace; font-size: 13px; color: var(--accent); margin-bottom: 10px; letter-spacing: 2px; }
-  .log-winning span { color: var(--gold); }
-  .log-list { list-style: none; }
-  .log-list li { font-family: 'Share Tech Mono', monospace; font-size: 12px; color: var(--muted); padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.02); display: flex; justify-content: space-between; }
-  .log-list li:last-child { border-bottom: none; }
-  .log-list .match { color: var(--accent); }
-  .log-list .match-hit { color: var(--hit); }
-  .log-note { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #ff6600; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+  /* ===== ロゴ ===== */
+  .logo {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(36px, 10vw, 80px);
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 6px;
+    line-height: 1;
+    margin-bottom: 16px;
+    opacity: 0;
+    animation: fadeDown 1s ease 0.4s forwards;
+    text-shadow:
+      0 0 40px rgba(0,212,255,0.2),
+      0 0 80px rgba(0,212,255,0.1);
+  }
 
-  .scanline { position: fixed; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); animation: scan 4s linear infinite; opacity: 0.3; pointer-events: none; z-index: 999; }
-  @keyframes scan { 0%{top:0} 100%{top:100vh} }
-  .footer { text-align: center; padding: 40px 0; font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 2px; border-top: 1px solid var(--border); margin-top: 20px; }
+  .logo span { color: var(--accent); }
 
-  @media (max-width: 600px) {
-    .predict-row { grid-template-columns: 60px 1fr auto; gap: 8px; }
-    .pnum { width: 28px; height: 28px; font-size: 10px; }
-    .num-ball { width: 36px; height: 36px; font-size: 13px; }
+  /* ===== サブタイトル ===== */
+  .sub {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(9px, 2vw, 11px);
+    letter-spacing: 5px;
+    color: var(--silver);
+    margin-bottom: 64px;
+    opacity: 0;
+    animation: fadeDown 1s ease 0.6s forwards;
+  }
+
+  /* ===== コンパス ===== */
+  .compass-wrap {
+    position: relative;
+    width: clamp(160px, 40vw, 220px);
+    height: clamp(160px, 40vw, 220px);
+    margin: 0 auto 64px;
+    opacity: 0;
+    animation: fadeIn 1.5s ease 0.8s forwards;
+  }
+
+  .compass-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(168,184,204,0.5);
+    animation: rotateSlow 20s linear infinite;
+  }
+
+  .compass-ring::before,
+  .compass-ring::after {
+    content: '';
+    position: absolute;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  /* 目盛り */
+  .compass-ring::before {
+    width: 1px;
+    height: 12px;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 0 6px var(--accent);
+  }
+
+  .compass-ring::after {
+    width: 12px;
+    height: 1px;
+    right: -1px;
+    top: 50%;
+    transform: translateY(-50%);
+    box-shadow: 0 0 6px var(--accent);
+  }
+
+  .compass-ring2 {
+    position: absolute;
+    inset: 12%;
+    border-radius: 50%;
+    border: 0.5px solid rgba(168,184,204,0.25);
+    animation: rotateSlow 30s linear infinite reverse;
+  }
+
+  /* 矢印（北） */
+  .compass-arrow {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: rotateSlow 8s ease-in-out infinite alternate;
+  }
+
+  .arrow-n {
+    position: absolute;
+    width: 0;
+    height: 0;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-bottom: 48px solid var(--accent);
+    filter: drop-shadow(0 0 8px var(--accent));
+  }
+
+  .arrow-s {
+    position: absolute;
+    width: 0;
+    height: 0;
+    bottom: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 48px solid rgba(168,184,204,0.4);
+  }
+
+  /* コア */
+  .compass-core {
+    position: absolute;
+    inset: 38%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,212,255,0.3), transparent 70%);
+    border: 1px solid var(--accent);
+    box-shadow:
+      0 0 20px rgba(0,212,255,0.4),
+      inset 0 0 20px rgba(0,212,255,0.1);
+    animation: corePulse 3s ease-in-out infinite;
+  }
+
+  /* グロー */
+  .compass-glow {
+    position: absolute;
+    inset: -20%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,82,204,0.15), transparent 70%);
+    pointer-events: none;
+  }
+
+  /* ===== キャッチコピー ===== */
+  .catch {
+    font-size: clamp(18px, 4vw, 24px);
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 4px;
+    margin-bottom: 16px;
+    opacity: 0;
+    animation: fadeUp 1s ease 1.2s forwards;
+  }
+
+  .catch-sub {
+    font-size: clamp(11px, 2.5vw, 13px);
+    color: var(--silver);
+    letter-spacing: 2px;
+    margin-bottom: 56px;
+    opacity: 0;
+    animation: fadeUp 1s ease 1.4s forwards;
+  }
+
+  /* ===== ボタン ===== */
+  .btn-group {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    max-width: 480px;
+    opacity: 0;
+    animation: fadeUp 1s ease 1.6s forwards;
+  }
+
+  .btn {
+    flex: 1;
+    position: relative;
+    padding: 20px 16px;
+    background: rgba(5,12,30,0.9);
+    border: 1px solid var(--muted);
+    color: #fff;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,212,255,0.05), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .btn:hover {
+    border-color: var(--accent);
+    box-shadow:
+      0 0 20px rgba(0,212,255,0.2),
+      inset 0 0 20px rgba(0,212,255,0.05);
+    transform: translateY(-2px);
+  }
+
+  .btn:hover::before { opacity: 1; }
+
+  .btn-keiba:hover { border-color: var(--gold); box-shadow: 0 0 20px rgba(255,215,0,0.2); }
+  .btn-keiba:hover::before { background: linear-gradient(135deg, rgba(255,215,0,0.05), transparent); }
+
+  .btn-icon {
+    font-size: 28px;
+  }
+
+  .btn-name {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(11px, 2.5vw, 13px);
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+
+  .btn-desc {
+    font-size: 10px;
+    color: var(--silver);
+    letter-spacing: 1px;
+  }
+
+  .btn-arrow {
+    position: absolute;
+    bottom: 10px;
+    right: 12px;
+    font-size: 10px;
+    color: var(--accent);
+    font-family: 'Orbitron', monospace;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .btn:hover .btn-arrow { opacity: 1; }
+
+  /* ===== フッター ===== */
+  .footer {
+    position: relative;
+    z-index: 1;
+    padding: 24px;
+    text-align: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--muted);
+  }
+
+  /* ===== アニメーション ===== */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes rotateSlow {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  @keyframes corePulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(0,212,255,0.4), inset 0 0 20px rgba(0,212,255,0.1); }
+    50%       { box-shadow: 0 0 40px rgba(0,212,255,0.7), inset 0 0 30px rgba(0,212,255,0.2); }
+  }
+
+  /* ===== レスポンシブ ===== */
+  @media (max-width: 480px) {
+    .btn-group { flex-direction: column; max-width: 320px; }
+    .btn { flex-direction: row; padding: 18px 20px; gap: 16px; text-align: left; align-items: center; }
+    .btn-icon { font-size: 32px; flex-shrink: 0; }
+    .btn-name { font-size: 13px; }
   }
 </style>
 </head>
 <body>
+
+<!-- 背景パーティクル -->
 <canvas id="canvas-bg"></canvas>
-<div class="scanline"></div>
-<div class="container">
 
-  <div class="header">
-    <div class="header-brand">AI HUNTER</div>
-    <div class="header-title">LOTO <span>HUNTER</span></div>
-    <div class="header-sub">SANCTUARY OF DATA ANALYSIS</div>
+<div class="hero">
+  <div class="top-badge">POWERED BY AI · DATA ANALYSIS</div>
+
+  <h1 class="logo">AI <span>HUNTER</span></h1>
+  <p class="sub">SANCTUARY OF DATA ANALYSIS</p>
+
+  <!-- コンパス -->
+  <div class="compass-wrap">
+    <div class="compass-glow"></div>
+    <div class="compass-ring"></div>
+    <div class="compass-ring2"></div>
+    <div class="compass-arrow">
+      <div class="arrow-n"></div>
+      <div class="arrow-s"></div>
+    </div>
+    <div class="compass-core"></div>
   </div>
 
-  <div class="algo-bar">
-    <div class="algo-label">ALGORITHM v5.1 CLAUDE-MASTER（現行）</div>
-    Score = Z(Freq) + Z(Gap) + Z(Pair)×1.25 + Z(Trend)×1.50 + Z(OddEven)×0.80 + Z(ZoneLink)×1.00
+  <p class="catch">運じゃない。パターンだ。</p>
+  <p class="catch-sub">データは嘘をつかない</p>
+
+  <!-- ボタン2つ -->
+  <div class="btn-group">
+    <a href="./keiba.html" class="btn btn-keiba">
+      <span class="btn-icon">🏇</span>
+      <div>
+        <div class="btn-name">競馬ハンター</div>
+        <div class="btn-desc">AI予測・データ分析</div>
+      </div>
+      <span class="btn-arrow">→</span>
+    </a>
+    <a href="./loto6_results.html" class="btn btn-loto">
+      <span class="btn-icon">🎯</span>
+      <div>
+        <div class="btn-name">ロトハンター</div>
+        <div class="btn-desc">ロト6 研究ログ</div>
+      </div>
+      <span class="btn-arrow">→</span>
+    </a>
   </div>
-
-  <!-- 第2106回 -->
-  <div class="round-card latest">
-    <div class="round-header">
-      <div><div class="round-num">#2106</div><div class="round-date">2026.05.28</div></div>
-      <div class="round-stage stage-mid">中間 / 128</div>
-    </div>
-    <div class="winning-section">
-      <div class="section-label">WINNING NUMBERS</div>
-      <div class="winning-numbers">
-        <div class="num-ball winning">01</div><div class="num-ball winning">06</div><div class="num-ball winning">17</div>
-        <div class="num-ball winning">27</div><div class="num-ball winning">34</div><div class="num-ball winning">43</div>
-        <span class="bonus-label">BONUS</span><div class="num-ball bonus">24</div>
-      </div>
-    </div>
-    <div class="predict-section">
-      <div class="section-label">AI PREDICTION vs RESULT — Claude v5.1</div>
-      <div class="predict-row">
-        <div class="predict-label">口1 低め</div>
-        <div class="predict-nums"><div class="pnum hit">01</div><div class="pnum">08</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">24</div><div class="pnum">37</div></div>
-        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
-      </div>
-      <div class="predict-row">
-        <div class="predict-label">口2 中間1</div>
-        <div class="predict-nums"><div class="pnum">08</div><div class="pnum">15</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">24</div><div class="pnum hit">43</div></div>
-        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
-      </div>
-      <div class="predict-row">
-        <div class="predict-label">口3 中間2</div>
-        <div class="predict-nums"><div class="pnum">08</div><div class="pnum">15</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">28</div><div class="pnum hit">43</div></div>
-        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
-      </div>
-      <div class="predict-row">
-        <div class="predict-label">口4 高め</div>
-        <div class="predict-nums"><div class="pnum">14</div><div class="pnum">15</div><div class="pnum">21</div><div class="pnum">28</div><div class="pnum">30</div><div class="pnum hit">43</div></div>
-        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
-      </div>
-      <div class="predict-row">
-        <div class="predict-label">口5 補填</div>
-        <div class="predict-nums"><div class="pnum">08</div><div class="pnum">15</div><div class="pnum">18</div><div class="pnum">24</div><div class="pnum">37</div><div class="pnum">42</div></div>
-        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
-      </div>
-    </div>
-    <div class="summary-bar">
-      <div class="summary-text">BEST: 1 MATCH / BONUS MISS</div>
-      <div class="summary-best">43 → 4口的中</div>
-    </div>
-  </div>
-
-  <!-- 第2105回 -->
-  <div class="round-card">
-    <div class="round-header">
-      <div><div class="round-num">#2105</div><div class="round-date">2026.05.25</div></div>
-      <div class="round-stage stage-high">高め / 165</div>
-    </div>
-    <div class="winning-section">
-      <div class="section-label">WINNING NUMBERS</div>
-      <div class="winning-numbers">
-        <div class="num-ball winning">05</div><div class="num-ball winning">26</div><div class="num-ball winning">28</div>
-        <div class="num-ball winning">30</div><div class="num-ball winning">36</div><div class="num-ball winning">40</div>
-        <span class="bonus-label">BONUS</span><div class="num-ball bonus">32</div>
-      </div>
-    </div>
-    <div class="predict-section">
-      <div class="section-label">AI PREDICTION vs RESULT — Claude v5.0</div>
-      <div class="predict-row">
-        <div class="predict-label">口1 低め</div>
-        <div class="predict-nums"><div class="pnum">02</div><div class="pnum">08</div><div class="pnum">17</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">37</div></div>
-        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
-      </div>
-      <div class="predict-row">
-        <div class="predict-label">口2〜4</div>
-        <div class="predict-nums"><div class="pnum">08</div><div class="pnum">15</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum hit">30</div><div class="pnum">43</div></div>
-        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
-      </div>
-      <div class="predict-row">
-        <div class="predict-label">口5 高め</div>
-        <div class="predict-nums"><div class="pnum">14</div><div class="pnum">15</div><div class="pnum">21</div><div class="pnum hit">28</div><div class="pnum hit">30</div><div class="pnum">43</div></div>
-        <div class="predict-score"><div class="hit-count count-2">2</div><div class="hit-label">MATCH</div></div>
-      </div>
-    </div>
-    <div class="summary-bar">
-      <div class="summary-text">BEST: 2 MATCH / BONUS MISS</div>
-      <div class="summary-best">合計165 → フィルター外が敗因</div>
-    </div>
-  </div>
-
-  <!-- 第2104回 -->
-  <div class="round-card">
-    <div class="round-header">
-      <div><div class="round-num">#2104</div><div class="round-date">2026.05.21</div></div>
-      <div class="round-stage stage-mid">中間 / 145</div>
-    </div>
-    <div class="winning-section">
-      <div class="section-label">WINNING NUMBERS</div>
-      <div class="winning-numbers">
-        <div class="num-ball winning">18</div><div class="num-ball winning">19</div><div class="num-ball winning">21</div>
-        <div class="num-ball winning">25</div><div class="num-ball winning">28</div><div class="num-ball winning">34</div>
-        <span class="bonus-label">BONUS</span><div class="num-ball bonus">04</div>
-      </div>
-    </div>
-    <div class="predict-section">
-      <div class="section-label">AI PREDICTION vs RESULT — Gemini v4.1（最終予測）</div>
-      <div class="predict-row">
-        <div class="predict-label">口1〜5</div>
-        <div class="predict-nums"><div class="pnum">07</div><div class="pnum">14</div><div class="pnum hit">18</div><div class="pnum hit">21</div><div class="pnum">24</div><div class="pnum">37</div></div>
-        <div class="predict-score"><div class="hit-count count-2">2</div><div class="hit-label">MATCH</div></div>
-      </div>
-    </div>
-    <div class="summary-bar">
-      <div class="summary-text">BEST: 2 MATCH / BONUS MISS</div>
-      <div class="summary-best">18・21 → 全5口的中</div>
-    </div>
-  </div>
-
-  <!-- 過去ログ -->
-  <div class="log-section">
-    <div class="log-title">ARCHIVE LOG — 過去の記録</div>
-
-    <!-- 第2103回 -->
-    <div class="log-item">
-      <div class="log-header">
-        <div class="log-num">#2103</div>
-        <div class="log-date">2026.05.18</div>
-        <div class="log-model">予測なし</div>
-      </div>
-      <div class="log-winning">当選: 01-02-04-05-08-38 <span>BONUS: 39</span></div>
-      <ul class="log-list">
-        <li><span>・合計58 → 超低域集中・連番多数</span><span class="match">購入なし</span></li>
-        <li><span>・1〜8が5個という歴史的低出目</span></li>
-        <li><span>・この回の分析が合計値フィルター撤廃につながった</span></li>
-      </ul>
-      <div class="log-note">⚠ 旧フィルター（合計110〜150）では100%排除されるパターン → v4.1で80〜160に拡張</div>
-    </div>
-
-    <!-- 第2102回 -->
-    <div class="log-item">
-      <div class="log-header">
-        <div class="log-num">#2102</div>
-        <div class="log-date">2026.05.14</div>
-        <div class="log-model">Claude × ORBIT 共同予測</div>
-      </div>
-      <div class="log-winning">当選: 18-21-25-28-30-43 <span>BONUS: 08</span></div>
-      <ul class="log-list">
-        <li><span>・A: [6,10,18,24,26,37]</span><span class="match">24一致 1個</span></li>
-        <li><span>・B: [8,14,29,30,36,42]</span><span class="match">0個</span></li>
-        <li><span>・C: [5,17,24,33,39,43]</span><span class="match-hit">43一致 1個</span></li>
-        <li><span>・D: [6,13,27,30,34,40]</span><span class="match">30一致 1個</span></li>
-        <li><span>・E: [1,19,22,31,38,41]</span><span class="match">0個</span></li>
-      </ul>
-      <div class="log-note">最高1個一致 / ボーナス08 → 全口外れ</div>
-    </div>
-
-    <!-- 第2101回 -->
-    <div class="log-item">
-      <div class="log-header">
-        <div class="log-num">#2101</div>
-        <div class="log-date">2026.05.11</div>
-        <div class="log-model">Gemini v4.0</div>
-      </div>
-      <div class="log-winning">当選: 01-17-29-33-40-42 <span>BONUS: 21</span></div>
-      <ul class="log-list">
-        <li><span>・口1: [8,14,17,24,29,37]</span><span class="match-hit">17,29一致 2個</span></li>
-        <li><span>・口2: [8,14,17,21,24,37]</span><span class="match">17一致 1個 ⭐BONUS21</span></li>
-        <li><span>・口3: [8,14,17,24,27,37]</span><span class="match">17一致 1個</span></li>
-        <li><span>・口4: [8,14,21,24,29,37]</span><span class="match">29一致 1個 ⭐BONUS21</span></li>
-        <li><span>・口5: [8,14,17,24,29,35]</span><span class="match-hit">17,29一致 2個</span></li>
-      </ul>
-      <div class="log-note">最高2個一致 / 軸数字8・14・24が全滅 → 固定軸の危険性が発覚</div>
-    </div>
-
-  </div>
-
-  <div class="footer">
-    DATA NEVER LIES · AI HUNTER · @onikumar029
-  </div>
-
 </div>
+
+<footer class="footer">© 2026 AI-HUNTER.JP · DATA NEVER LIES</footer>
+
 <script>
+// パーティクル背景
 const canvas = document.getElementById('canvas-bg');
 const ctx = canvas.getContext('2d');
-function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
 resize();
 window.addEventListener('resize', resize);
+
 const particles = [];
-for (let i = 0; i < 80; i++) {
+const NUM = 80;
+
+for (let i = 0; i < NUM; i++) {
   particles.push({
     x: Math.random() * window.innerWidth,
     y: Math.random() * window.innerHeight,
     r: Math.random() * 1.2 + 0.3,
     vx: (Math.random() - 0.5) * 0.3,
     vy: (Math.random() - 0.5) * 0.3,
-    alpha: Math.random() * 0.4 + 0.1
+    alpha: Math.random() * 0.5 + 0.1
   });
 }
+
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = 'rgba(0,212,255,0.025)';
+
+  // グリッドライン
+  ctx.strokeStyle = 'rgba(0,212,255,0.03)';
   ctx.lineWidth = 1;
   for (let x = 0; x < canvas.width; x += 40) {
     ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
@@ -344,17 +433,23 @@ function draw() {
   for (let y = 0; y < canvas.height; y += 40) {
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
   }
+
+  // パーティクル
   particles.forEach(p => {
-    p.x += p.vx; p.y += p.vy;
+    p.x += p.vx;
+    p.y += p.vy;
     if (p.x < 0) p.x = canvas.width;
     if (p.x > canvas.width) p.x = 0;
     if (p.y < 0) p.y = canvas.height;
     if (p.y > canvas.height) p.y = 0;
+
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
     ctx.fillStyle = `rgba(0,212,255,${p.alpha})`;
     ctx.fill();
   });
+
+  // 接続ライン
   for (let i = 0; i < particles.length; i++) {
     for (let j = i + 1; j < particles.length; j++) {
       const dx = particles[i].x - particles[j].x;
@@ -364,12 +459,13 @@ function draw() {
         ctx.beginPath();
         ctx.moveTo(particles[i].x, particles[i].y);
         ctx.lineTo(particles[j].x, particles[j].y);
-        ctx.strokeStyle = `rgba(0,212,255,${0.05 * (1 - dist/120)})`;
+        ctx.strokeStyle = `rgba(0,212,255,${0.06 * (1 - dist/120)})`;
         ctx.lineWidth = 0.5;
         ctx.stroke();
       }
     }
   }
+
   requestAnimationFrame(draw);
 }
 draw();
