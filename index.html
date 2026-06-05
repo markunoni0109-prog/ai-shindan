@@ -27,7 +27,6 @@
     overflow-x: hidden;
   }
 
-  /* ===== キャンバス背景 ===== */
   #canvas-bg {
     position: fixed;
     inset: 0;
@@ -35,7 +34,6 @@
     pointer-events: none;
   }
 
-  /* ===== メインコンテナ ===== */
   .hero {
     position: relative;
     z-index: 1;
@@ -48,7 +46,6 @@
     text-align: center;
   }
 
-  /* ===== トップバッジ ===== */
   .top-badge {
     font-family: 'Orbitron', monospace;
     font-size: 10px;
@@ -61,7 +58,6 @@
     animation: fadeDown 1s ease 0.2s forwards;
   }
 
-  /* ===== ロゴ ===== */
   .logo {
     font-family: 'Orbitron', monospace;
     font-size: clamp(36px, 10vw, 80px);
@@ -79,7 +75,6 @@
 
   .logo span { color: var(--accent); }
 
-  /* ===== サブタイトル ===== */
   .sub {
     font-family: 'Orbitron', monospace;
     font-size: clamp(9px, 2vw, 11px);
@@ -90,7 +85,6 @@
     animation: fadeDown 1s ease 0.6s forwards;
   }
 
-  /* ===== コンパス ===== */
   .compass-wrap {
     position: relative;
     width: clamp(160px, 40vw, 220px);
@@ -116,7 +110,6 @@
     border-radius: 2px;
   }
 
-  /* 目盛り */
   .compass-ring::before {
     width: 1px;
     height: 12px;
@@ -143,7 +136,6 @@
     animation: rotateSlow 30s linear infinite reverse;
   }
 
-  /* 矢印（北） */
   .compass-arrow {
     position: absolute;
     inset: 0;
@@ -178,7 +170,6 @@
     border-top: 48px solid rgba(168,184,204,0.4);
   }
 
-  /* コア */
   .compass-core {
     position: absolute;
     inset: 38%;
@@ -191,7 +182,6 @@
     animation: corePulse 3s ease-in-out infinite;
   }
 
-  /* グロー */
   .compass-glow {
     position: absolute;
     inset: -20%;
@@ -200,7 +190,6 @@
     pointer-events: none;
   }
 
-  /* ===== キャッチコピー ===== */
   .catch {
     font-size: clamp(18px, 4vw, 24px);
     font-weight: 700;
@@ -220,7 +209,6 @@
     animation: fadeUp 1s ease 1.4s forwards;
   }
 
-  /* ===== ボタン ===== */
   .btn-group {
     display: flex;
     gap: 16px;
@@ -269,9 +257,7 @@
   .btn-keiba:hover { border-color: var(--gold); box-shadow: 0 0 20px rgba(255,215,0,0.2); }
   .btn-keiba:hover::before { background: linear-gradient(135deg, rgba(255,215,0,0.05), transparent); }
 
-  .btn-icon {
-    font-size: 28px;
-  }
+  .btn-icon { font-size: 28px; }
 
   .btn-name {
     font-family: 'Orbitron', monospace;
@@ -299,7 +285,6 @@
 
   .btn:hover .btn-arrow { opacity: 1; }
 
-  /* ===== フッター ===== */
   .footer {
     position: relative;
     z-index: 1;
@@ -311,7 +296,6 @@
     color: var(--muted);
   }
 
-  /* ===== アニメーション ===== */
   @keyframes fadeDown {
     from { opacity: 0; transform: translateY(-20px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -337,7 +321,6 @@
     50%       { box-shadow: 0 0 40px rgba(0,212,255,0.7), inset 0 0 30px rgba(0,212,255,0.2); }
   }
 
-  /* ===== レスポンシブ ===== */
   @media (max-width: 480px) {
     .btn-group { flex-direction: column; max-width: 320px; }
     .btn { flex-direction: row; padding: 18px 20px; gap: 16px; text-align: left; align-items: center; }
@@ -348,7 +331,6 @@
 </head>
 <body>
 
-<!-- 背景パーティクル -->
 <canvas id="canvas-bg"></canvas>
 
 <div class="hero">
@@ -357,7 +339,6 @@
   <h1 class="logo">AI <span>HUNTER</span></h1>
   <p class="sub">SANCTUARY OF DATA ANALYSIS</p>
 
-  <!-- コンパス -->
   <div class="compass-wrap">
     <div class="compass-glow"></div>
     <div class="compass-ring"></div>
@@ -372,9 +353,8 @@
   <p class="catch">運じゃない。パターンだ。</p>
   <p class="catch-sub">データは嘘をつかない</p>
 
-  <!-- ボタン2つ -->
   <div class="btn-group">
-    <a href="./keiba.html" class="btn btn-keiba">
+    <a href="./keiba_hunter.html" class="btn btn-keiba">
       <span class="btn-icon">🏇</span>
       <div>
         <div class="btn-name">競馬ハンター</div>
@@ -396,7 +376,6 @@
 <footer class="footer">© 2026 AI-HUNTER.JP · DATA NEVER LIES</footer>
 
 <script>
-// パーティクル背景
 const canvas = document.getElementById('canvas-bg');
 const ctx = canvas.getContext('2d');
 
@@ -424,7 +403,6 @@ for (let i = 0; i < NUM; i++) {
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // グリッドライン
   ctx.strokeStyle = 'rgba(0,212,255,0.03)';
   ctx.lineWidth = 1;
   for (let x = 0; x < canvas.width; x += 40) {
@@ -434,7 +412,6 @@ function draw() {
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
   }
 
-  // パーティクル
   particles.forEach(p => {
     p.x += p.vx;
     p.y += p.vy;
@@ -449,7 +426,6 @@ function draw() {
     ctx.fill();
   });
 
-  // 接続ライン
   for (let i = 0; i < particles.length; i++) {
     for (let j = i + 1; j < particles.length; j++) {
       const dx = particles[i].x - particles[j].x;
