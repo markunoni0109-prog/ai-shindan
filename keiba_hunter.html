@@ -10,15 +10,16 @@
             background-color: #ffffff;
             color: #000000;
             font-family: 'Zen Kurenaido', sans-serif;
-            margin: 40px;
+            margin: 20px;
             padding: 0;
             line-height: 1.8;
         }
-        h1 { font-size: 24px; font-weight: normal; margin-bottom: 4px; }
+        h1 { font-size: 20px; font-weight: normal; margin-bottom: 4px; }
         p { font-size: 13px; margin: 4px 0 20px 0; }
-        h2 { font-size: 17px; font-weight: normal; margin: 36px 0 8px 0; border-bottom: 1px solid #000; padding-bottom: 4px; max-width: 760px; }
-        table { width: 100%; max-width: 760px; border-collapse: collapse; margin-bottom: 8px; }
-        th, td { border: 1px solid #000; padding: 6px 12px; text-align: left; font-weight: normal; font-size: 14px; }
+        h2 { font-size: 16px; font-weight: normal; margin: 32px 0 8px 0; border-bottom: 1px solid #000; padding-bottom: 4px; }
+        .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 8px; }
+        table { border-collapse: collapse; white-space: nowrap; font-size: 13px; }
+        th, td { border: 1px solid #000; padding: 6px 10px; text-align: left; font-weight: normal; }
         th { background-color: #ffffff; }
         .note { font-size: 12px; margin-top: 48px; line-height: 2; }
     </style>
@@ -30,6 +31,7 @@
 本データは統計研究ログです。的中を保証するものではありません。</p>
 
 <h2>東京</h2>
+<div class="table-wrap">
 <table>
     <thead>
         <tr><th>R</th><th>レース名</th><th>予測馬</th><th>騎手</th><th>ZI指数</th><th>ZI差</th><th>1着馬</th><th>結果</th></tr>
@@ -49,8 +51,10 @@
         <tr><td>12R</td><td>2勝クラス</td><td>ザーフィル</td><td>レーン</td><td>1810</td><td>298</td><td></td><td></td></tr>
     </tbody>
 </table>
+</div>
 
 <h2>阪神</h2>
+<div class="table-wrap">
 <table>
     <thead>
         <tr><th>R</th><th>レース名</th><th>予測馬</th><th>騎手</th><th>ZI指数</th><th>ZI差</th><th>1着馬</th><th>結果</th></tr>
@@ -70,6 +74,7 @@
         <tr><td>12R</td><td>2勝クラス</td><td>シュテルンビルト</td><td>松山弘平</td><td>1962</td><td>187</td><td></td><td></td></tr>
     </tbody>
 </table>
+</div>
 
 <div class="note">
 ログで管理。嘘はない。<br>
