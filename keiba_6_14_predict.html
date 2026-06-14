@@ -7,75 +7,83 @@
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kurenaido&display=swap" rel="stylesheet">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Zen Kurenaido', sans-serif; background: #fff; color: #222; padding: 20px; }
-h1 { font-size: 1.2em; margin-bottom: 4px; }
-p.meta { font-size: 0.85em; color: #555; margin-bottom: 16px; }
-table { border-collapse: collapse; width: 100%; font-size: 0.88em; }
-th { background: #333; color: #fff; padding: 6px 8px; text-align: center; }
-td { padding: 5px 8px; border: 1px solid #ccc; text-align: center; }
+body { font-family: 'Zen Kurenaido', sans-serif; background: #fff; color: #222; padding: 12px; font-size: 13px; }
+h1 { font-size: 15px; margin-bottom: 4px; }
+p.meta { font-size: 11px; color: #555; margin-bottom: 12px; line-height: 1.6; }
+table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+th, td { border: 1px solid #ccc; padding: 5px 3px; text-align: center; word-break: keep-all; white-space: nowrap; overflow: hidden; }
+th { background: #333; color: #fff; font-size: 12px; }
+td { font-size: 12px; }
 tr:nth-child(even) { background: #f9f9f9; }
-.venue { font-weight: bold; }
+col.c-ba { width: 5%; }
+col.c-r  { width: 5%; }
+col.c-horse { width: 22%; }
+col.c-jockey { width: 14%; }
+col.c-zi { width: 13%; }
+col.c-diff { width: 12%; }
+col.c-rank { width: 8%; }
+col.c-odds { width: 10%; }
+col.c-note { width: 11%; }
 .rank-s { color: #c00; font-weight: bold; }
 .rank-a { color: #b8860b; font-weight: bold; }
-.warn { color: #c00; }
-.note { font-size: 0.82em; color: #555; margin-top: 16px; }
+.note { font-size: 11px; color: #555; margin-top: 14px; }
 </style>
 </head>
 <body>
 <h1>AI HUNTER 競馬研究所 - 6月14日(日) ZI予測</h1>
 <p class="meta">
-出力日時: 2026-06-14 &nbsp;|&nbsp;
-対象: 函館・東京・阪神 &nbsp;|&nbsp;
+出力日時: 2026-06-14　対象: 函館・東京・阪神<br>
 取消: ヒーローインチーフ(阪神3R)反映済<br>
 GitHubコミット履歴により改ざんは不可能です。
 </p>
 
 <table>
+<colgroup>
+<col class="c-ba"><col class="c-r"><col class="c-horse"><col class="c-jockey">
+<col class="c-zi"><col class="c-diff"><col class="c-rank"><col class="c-odds"><col class="c-note">
+</colgroup>
 <thead>
-<tr>
-<th>場</th><th>R</th><th>予測馬</th><th>騎手</th><th>ZI</th><th>ZI差</th><th>ランク</th><th>オッズ</th><th>備考</th>
-</tr>
+<tr><th>場</th><th>R</th><th>予測馬</th><th>騎手</th><th>ZI</th><th>ZI差</th><th>ランク</th><th>odds</th><th>備考</th></tr>
 </thead>
 <tbody>
-<tr><td class="venue">函館</td><td>1</td><td>ヴェンデボヌール</td><td>佐々木大</td><td>410</td><td>95</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">函館</td><td>2</td><td>ストロングボーイ</td><td>荻野琢真</td><td>599</td><td>142</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">函館</td><td>3</td><td>エコロセレナ</td><td>斎藤新</td><td>714</td><td>470</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">函館</td><td>4</td><td>アイムイン</td><td>鮫島克駿</td><td>1,059</td><td>494</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">函館</td><td>5</td><td>ガーシュウィン</td><td>舟山瑠泉</td><td>0</td><td>0</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">函館</td><td>6</td><td>ブライトエアリー</td><td>今村聖奈</td><td>939</td><td>49</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">函館</td><td>7</td><td>キャリーグレイス</td><td>今村聖奈</td><td>2,325</td><td>50</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">函館</td><td>8</td><td>プリンセスモコ</td><td>佐々木大</td><td>2,030</td><td>182</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">函館</td><td>9</td><td>ハミルトン</td><td>鮫島克駿</td><td>1,780</td><td>52</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">函館</td><td>10</td><td>ジュンラトゥール</td><td>富田暁</td><td>4,651</td><td>502</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">函館</td><td>11</td><td>リリーフィールド</td><td>佐々木大</td><td>4,745</td><td>539</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">函館</td><td>12</td><td>ベイビールビオ</td><td>小崎綾也</td><td>2,219</td><td>789</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">東京</td><td>1</td><td>ツクバヴァンガード</td><td>佐藤翔馬</td><td>1,149</td><td>329</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">東京</td><td>2</td><td>モデレートゲイル</td><td>吉田豊</td><td>625</td><td>230</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">東京</td><td>3</td><td>ヤマニンアレシス</td><td>大野拓弥</td><td>1,057</td><td>71</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">東京</td><td>4</td><td>ユイノキャッツアイ</td><td>木幡初也</td><td>0</td><td>0</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">東京</td><td>5</td><td>レッドインサイト</td><td>津村明秀</td><td>0</td><td>0</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">東京</td><td>6</td><td>ローズマイスター</td><td>荻野極</td><td>3,130</td><td>668</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">東京</td><td>7</td><td>シンドリームシン</td><td>津村明秀</td><td>2,860</td><td>953</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">東京</td><td>8</td><td>レッドロスタム</td><td>ディー</td><td>3,838</td><td>1,548</td><td>B</td><td>28.6</td><td></td></tr>
-<tr><td class="venue">東京</td><td>9</td><td>ロゼル</td><td>杉原誠人</td><td>4,641</td><td>536</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">東京</td><td>10</td><td>エコロレイズ</td><td>菊沢一樹</td><td>7,381</td><td>28</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">東京</td><td>11</td><td>グレイイングリーン</td><td>丸山元気</td><td>17,830</td><td>4,636</td><td class="rank-a">A</td><td>52.0</td><td></td></tr>
-<tr><td class="venue">東京</td><td>12</td><td>サンカルミア</td><td>三浦皇成</td><td>4,219</td><td>63</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">阪神</td><td>1</td><td>フィデリス</td><td>川田将雅</td><td>329</td><td>116</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">阪神</td><td>2</td><td>ウイルソン</td><td>松山弘平</td><td>560</td><td>47</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">阪神</td><td>3</td><td>キープシャイニング</td><td>岩田望来</td><td>1,109</td><td>739</td><td>B</td><td>-</td><td>取消反映済</td></tr>
-<tr><td class="venue">阪神</td><td>4</td><td>ミエノクラウン</td><td>レーン</td><td>720</td><td>150</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">阪神</td><td>5</td><td>ジュンヴァグネル</td><td>岩田望来</td><td>0</td><td>0</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">阪神</td><td>6</td><td>グランデスフィーダ</td><td>戸崎圭太</td><td>2,712</td><td>893</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">阪神</td><td>7</td><td>ピカキウイ</td><td>西村淳也</td><td>1,540</td><td>24</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">阪神</td><td>8</td><td>ハギノコラソン</td><td>岩田望来</td><td>4,596</td><td>1,505</td><td>B</td><td>5.3</td><td></td></tr>
-<tr><td class="venue">阪神</td><td>9</td><td>カリーシ</td><td>丹内祐次</td><td>4,683</td><td>952</td><td>B</td><td>-</td><td></td></tr>
-<tr><td class="venue">阪神</td><td>10</td><td>セブンマジシャン</td><td>西村淳也</td><td>11,494</td><td>2,260</td><td>B</td><td>12.7</td><td></td></tr>
-<tr><td class="venue">阪神</td><td>11</td><td>クロワデュノール</td><td>北村友一</td><td>117,020</td><td>8,816</td><td class="rank-s">S</td><td>1.5</td><td>G1</td></tr>
-<tr><td class="venue">阪神</td><td>12</td><td>ノボリショウリュウ</td><td>高杉吏麒</td><td>6,570</td><td>315</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>函館</td><td>1</td><td>ヴェンデボヌール</td><td>佐々木大</td><td>410</td><td>95</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>函館</td><td>2</td><td>ストロングボーイ</td><td>荻野琢真</td><td>599</td><td>142</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>函館</td><td>3</td><td>エコロセレナ</td><td>斎藤新</td><td>714</td><td>470</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>函館</td><td>4</td><td>アイムイン</td><td>鮫島克駿</td><td>1059</td><td>494</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>函館</td><td>5</td><td>ガーシュウィン</td><td>舟山瑠泉</td><td>0</td><td>0</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>函館</td><td>6</td><td>ブライトエアリー</td><td>今村聖奈</td><td>939</td><td>49</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>函館</td><td>7</td><td>キャリーグレイス</td><td>今村聖奈</td><td>2325</td><td>50</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>函館</td><td>8</td><td>プリンセスモコ</td><td>佐々木大</td><td>2030</td><td>182</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>函館</td><td>9</td><td>ハミルトン</td><td>鮫島克駿</td><td>1780</td><td>52</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>函館</td><td>10</td><td>ジュンラトゥール</td><td>富田暁</td><td>4651</td><td>502</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>函館</td><td>11</td><td>リリーフィールド</td><td>佐々木大</td><td>4745</td><td>539</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>函館</td><td>12</td><td>ベイビールビオ</td><td>小崎綾也</td><td>2219</td><td>789</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>東京</td><td>1</td><td>ツクバヴァンガード</td><td>佐藤翔馬</td><td>1149</td><td>329</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>東京</td><td>2</td><td>モデレートゲイル</td><td>吉田豊</td><td>625</td><td>230</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>東京</td><td>3</td><td>ヤマニンアレシス</td><td>大野拓弥</td><td>1057</td><td>71</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>東京</td><td>4</td><td>ユイノキャッツアイ</td><td>木幡初也</td><td>0</td><td>0</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>東京</td><td>5</td><td>レッドインサイト</td><td>津村明秀</td><td>0</td><td>0</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>東京</td><td>6</td><td>ローズマイスター</td><td>荻野極</td><td>3130</td><td>668</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>東京</td><td>7</td><td>シンドリームシン</td><td>津村明秀</td><td>2860</td><td>953</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>東京</td><td>8</td><td>レッドロスタム</td><td>ディー</td><td>3838</td><td>1548</td><td>B</td><td>28.6</td><td></td></tr>
+<tr><td>東京</td><td>9</td><td>ロゼル</td><td>杉原誠人</td><td>4641</td><td>536</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>東京</td><td>10</td><td>エコロレイズ</td><td>菊沢一樹</td><td>7381</td><td>28</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>東京</td><td>11</td><td>グレイイングリーン</td><td>丸山元気</td><td>17830</td><td>4636</td><td class="rank-a">A</td><td>52.0</td><td></td></tr>
+<tr><td>東京</td><td>12</td><td>サンカルミア</td><td>三浦皇成</td><td>4219</td><td>63</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>阪神</td><td>1</td><td>フィデリス</td><td>川田将雅</td><td>329</td><td>116</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>阪神</td><td>2</td><td>ウイルソン</td><td>松山弘平</td><td>560</td><td>47</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>阪神</td><td>3</td><td>キープシャイニング</td><td>岩田望来</td><td>1109</td><td>739</td><td>B</td><td>-</td><td>取消反映済</td></tr>
+<tr><td>阪神</td><td>4</td><td>ミエノクラウン</td><td>レーン</td><td>720</td><td>150</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>阪神</td><td>5</td><td>ジュンヴァグネル</td><td>岩田望来</td><td>0</td><td>0</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>阪神</td><td>6</td><td>グランデスフィーダ</td><td>戸崎圭太</td><td>2712</td><td>893</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>阪神</td><td>7</td><td>ピカキウイ</td><td>西村淳也</td><td>1540</td><td>24</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>阪神</td><td>8</td><td>ハギノコラソン</td><td>岩田望来</td><td>4596</td><td>1505</td><td>B</td><td>5.3</td><td></td></tr>
+<tr><td>阪神</td><td>9</td><td>カリーシ</td><td>丹内祐次</td><td>4683</td><td>952</td><td>B</td><td>-</td><td></td></tr>
+<tr><td>阪神</td><td>10</td><td>セブンマジシャン</td><td>西村淳也</td><td>11494</td><td>2260</td><td>B</td><td>12.7</td><td></td></tr>
+<tr><td>阪神</td><td>11</td><td>クロワデュノール</td><td>北村友一</td><td>117020</td><td>8816</td><td class="rank-s">S</td><td>1.5</td><td>G1</td></tr>
+<tr><td>阪神</td><td>12</td><td>ノボリショウリュウ</td><td>高杉吏麒</td><td>6570</td><td>315</td><td>B</td><td>-</td><td></td></tr>
 </tbody>
 </table>
-
 <p class="note">ログで管理。嘘はない。</p>
 </body>
 </html>
