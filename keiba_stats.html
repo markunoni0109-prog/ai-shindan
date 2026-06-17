@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI HUNTER 競馬研究所 — 精度検証ログ</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kurenaido&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --border: #222222;
+    --accent: #c8a96e;
+    --accent2: #4a7c59;
+    --text: #e8e4dc;
+    --muted: #666666;
+    --hit: #4a7c59;
+    --miss: #333333;
+    --mono: 'Share Tech Mono', monospace;
+    --serif: 'Zen Kurenaido', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--serif);
+    line-height: 1.7;
+    padding: 0 16px;
+  }
+
+  /* HERO */
+  .hero {
+    border-bottom: 1px solid var(--border);
+    padding: 48px 0 40px;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .hero-stat {
+    font-family: var(--mono);
+    font-size: clamp(56px, 14vw, 96px);
+    font-weight: normal;
+    color: var(--accent);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .hero-stat span {
+    font-size: 0.35em;
+    color: var(--muted);
+    vertical-align: middle;
+    margin-left: 8px;
+    letter-spacing: 0.05em;
+  }
+  .hero-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 12px;
+    font-family: var(--mono);
+  }
+
+  /* SECTIONS */
+  .section {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  /* WEEKLY BAR CHART */
+  .week-rows { display: flex; flex-direction: column; gap: 14px; }
+  .week-row { display: grid; grid-template-columns: 80px 1fr 60px; align-items: center; gap: 12px; }
+  .week-label { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .bar-track { background: var(--border); height: 6px; border-radius: 1px; overflow: hidden; }
+  .bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 1px;
+    transition: width 1s ease;
+  }
+  .bar-fill.low { background: var(--muted); }
+  .week-pct { font-family: var(--mono); font-size: 13px; text-align: right; }
+  .week-pct.high { color: var(--accent); }
+
+  /* ZI TABLE */
+  .zi-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  @media (min-width: 480px) {
+    .zi-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+  .zi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 16px 12px;
+    text-align: center;
+  }
+  .zi-range {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+  .zi-pct {
+    font-family: var(--mono);
+    font-size: 28px;
+    color: var(--text);
+    line-height: 1;
+  }
+  .zi-pct.standout { color: var(--accent); font-size: 36px; }
+  .zi-sample {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+  .zi-rank {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 9px;
+    padding: 2px 6px;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    margin-top: 8px;
+    letter-spacing: 0.1em;
+  }
+
+  /* INSIGHT */
+  .insight-box {
+    border-left: 2px solid var(--accent);
+    padding: 16px 20px;
+    background: var(--surface);
+  }
+  .insight-box p {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.8;
+  }
+  .insight-box .tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  /* FOOTER */
+  .footer {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 32px 0 48px;
+  }
+  .footer-text {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <p class="hero-eyebrow">AI HUNTER 競馬研究所 — 精度検証ログ</p>
+  <div class="hero-stat">18.7%<span>的中率</span></div>
+  <p class="hero-sub">65 / 348R &nbsp;|&nbsp; 2026.05.02 — 2026.06.14 &nbsp;|&nbsp; ランダム期待値の約2.3倍</p>
+</div>
+
+<div class="section">
+  <p class="section-label">週次推移</p>
+  <div class="week-rows">
+    <div class="week-row">
+      <span class="week-label">5/2</span>
+      <div class="bar-track"><div class="bar-fill low" style="width:13.9%"></div></div>
+      <span class="week-pct">13.9%</span>
+    </div>
+    <div class="week-row">
+      <span class="week-label">5/16–17</span>
+      <div class="bar-track"><div class="bar-fill" style="width:20.8%"></div></div>
+      <span class="week-pct high">20.8%</span>
+    </div>
+    <div class="week-row">
+      <span class="week-label">5/23–24</span>
+      <div class="bar-track"><div class="bar-fill" style="width:30.6%"></div></div>
+      <span class="week-pct high">30.6%</span>
+    </div>
+    <div class="week-row">
+      <span class="week-label">5/30–31</span>
+      <div class="bar-track"><div class="bar-fill low" style="width:12.5%"></div></div>
+      <span class="week-pct">12.5%</span>
+    </div>
+    <div class="week-row">
+      <span class="week-label">6/6–7</span>
+      <div class="bar-track"><div class="bar-fill" style="width:16.7%"></div></div>
+      <span class="week-pct high">16.7%</span>
+    </div>
+    <div class="week-row">
+      <span class="week-label">6/13–14</span>
+      <div class="bar-track"><div class="bar-fill low" style="width:12.5%"></div></div>
+      <span class="week-pct">12.5%</span>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <p class="section-label">ZI差別的中率（5/16–17 実績）</p>
+  <div class="zi-grid">
+    <div class="zi-card">
+      <p class="zi-range">〜 300</p>
+      <p class="zi-pct">—</p>
+      <p class="zi-sample">サンプル少</p>
+    </div>
+    <div class="zi-card">
+      <p class="zi-range">300 〜 3,000</p>
+      <p class="zi-pct">—</p>
+      <p class="zi-sample">サンプル少</p>
+    </div>
+    <div class="zi-card">
+      <p class="zi-range">3,000 〜 7,000</p>
+      <p class="zi-pct">14.3%</p>
+      <p class="zi-sample">1 / 7R</p>
+      <span class="zi-rank">A RANK</span>
+    </div>
+    <div class="zi-card">
+      <p class="zi-range">7,000 〜</p>
+      <p class="zi-pct standout">50.0%</p>
+      <p class="zi-sample">8 / 16R</p>
+      <span class="zi-rank">S / S+ RANK</span>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <p class="section-label">現在の考察</p>
+  <div class="insight-box">
+    <span class="tag">OBSERVATION</span>
+    <p>ZI差7,000以上（S・S+ランク）の的中率は50%。ランダム期待値の約6倍に相当する。ただしサンプルは16Rと少なく、継続検証が必要。ZI差が大きいほど的中率が上昇する傾向は、ZI指数の有効性を示唆している。</p>
+  </div>
+</div>
+
+<div class="footer">
+  <p class="footer-text">ログで管理。嘘はない。&nbsp;&nbsp;ai-hunter.jp</p>
+</div>
+
+</body>
+</html>
