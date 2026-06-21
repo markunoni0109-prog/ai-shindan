@@ -7,175 +7,61 @@
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kurenaido&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --bg: #0a0a0a;
-    --surface: #111111;
-    --border: #222222;
-    --accent: #c8a96e;
-    --accent2: #4a7c59;
-    --text: #e8e4dc;
-    --muted: #666666;
-    --hit: #4a7c59;
-    --miss: #333333;
-    --mono: 'Share Tech Mono', monospace;
+    --bg: #0a0a0a; --surface: #111111; --border: #222222;
+    --accent: #c8a96e; --accent2: #4a7c59; --text: #e8e4dc;
+    --muted: #666666; --mono: 'Share Tech Mono', monospace;
     --serif: 'Zen Kurenaido', sans-serif;
   }
+  body { background: var(--bg); color: var(--text); font-family: var(--serif); line-height: 1.7; padding: 0 16px; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--serif);
-    line-height: 1.7;
-    padding: 0 16px;
-  }
+  .hero { border-bottom: 1px solid var(--border); padding: 48px 0 40px; max-width: 720px; margin: 0 auto; }
+  .hero-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 16px; }
+  .hero-stat { font-family: var(--mono); font-size: clamp(56px, 14vw, 96px); font-weight: normal; color: var(--accent); line-height: 1; letter-spacing: -0.02em; }
+  .hero-stat span { font-size: 0.35em; color: var(--muted); vertical-align: middle; margin-left: 8px; letter-spacing: 0.05em; }
+  .hero-sub { font-size: 13px; color: var(--muted); margin-top: 12px; font-family: var(--mono); }
 
-  /* HERO */
-  .hero {
-    border-bottom: 1px solid var(--border);
-    padding: 48px 0 40px;
-    max-width: 720px;
-    margin: 0 auto;
-  }
-  .hero-eyebrow {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 16px;
-  }
-  .hero-stat {
-    font-family: var(--mono);
-    font-size: clamp(56px, 14vw, 96px);
-    font-weight: normal;
-    color: var(--accent);
-    line-height: 1;
-    letter-spacing: -0.02em;
-  }
-  .hero-stat span {
-    font-size: 0.35em;
-    color: var(--muted);
-    vertical-align: middle;
-    margin-left: 8px;
-    letter-spacing: 0.05em;
-  }
-  .hero-sub {
-    font-size: 13px;
-    color: var(--muted);
-    margin-top: 12px;
-    font-family: var(--mono);
-  }
+  .section { max-width: 720px; margin: 0 auto; padding: 40px 0; border-bottom: 1px solid var(--border); }
+  .section-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.25em; color: var(--muted); text-transform: uppercase; margin-bottom: 24px; }
 
-  /* SECTIONS */
-  .section {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 40px 0;
-    border-bottom: 1px solid var(--border);
-  }
-  .section-label {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.25em;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 24px;
-  }
-
-  /* WEEKLY BAR CHART */
   .week-rows { display: flex; flex-direction: column; gap: 14px; }
   .week-row { display: grid; grid-template-columns: 80px 1fr 60px; align-items: center; gap: 12px; }
   .week-label { font-family: var(--mono); font-size: 12px; color: var(--muted); }
   .bar-track { background: var(--border); height: 6px; border-radius: 1px; overflow: hidden; }
-  .bar-fill {
-    height: 100%;
-    background: var(--accent);
-    border-radius: 1px;
-    transition: width 1s ease;
-  }
+  .bar-fill { height: 100%; background: var(--accent); border-radius: 1px; }
   .bar-fill.low { background: var(--muted); }
   .week-pct { font-family: var(--mono); font-size: 13px; text-align: right; }
   .week-pct.high { color: var(--accent); }
 
-  /* ZI TABLE */
-  .zi-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-  @media (min-width: 480px) {
-    .zi-grid { grid-template-columns: repeat(4, 1fr); }
-  }
-  .zi-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 16px 12px;
-    text-align: center;
-  }
-  .zi-range {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 0.1em;
-    margin-bottom: 8px;
-  }
-  .zi-pct {
-    font-family: var(--mono);
-    font-size: 28px;
-    color: var(--text);
-    line-height: 1;
-  }
+  .zi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  @media (min-width: 480px) { .zi-grid { grid-template-columns: repeat(4, 1fr); } }
+  .zi-card { background: var(--surface); border: 1px solid var(--border); padding: 16px 12px; text-align: center; }
+  .zi-range { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 8px; }
+  .zi-pct { font-family: var(--mono); font-size: 28px; color: var(--text); line-height: 1; }
   .zi-pct.standout { color: var(--accent); font-size: 36px; }
-  .zi-sample {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-    margin-top: 6px;
-  }
-  .zi-rank {
-    display: inline-block;
-    font-family: var(--mono);
-    font-size: 9px;
-    padding: 2px 6px;
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    margin-top: 8px;
-    letter-spacing: 0.1em;
-  }
+  .zi-sample { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 6px; }
+  .zi-rank { display: inline-block; font-family: var(--mono); font-size: 9px; padding: 2px 6px; border: 1px solid var(--accent); color: var(--accent); margin-top: 8px; letter-spacing: 0.1em; }
 
-  /* INSIGHT */
-  .insight-box {
-    border-left: 2px solid var(--accent);
-    padding: 16px 20px;
-    background: var(--surface);
-  }
-  .insight-box p {
-    font-size: 14px;
-    color: var(--text);
-    line-height: 1.8;
-  }
-  .insight-box .tag {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--accent);
-    letter-spacing: 0.15em;
-    display: block;
-    margin-bottom: 10px;
-  }
+  /* バックテスト表 */
+  .bt-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px; margin-top: 16px; }
+  .bt-table th { border-bottom: 1px solid var(--border); padding: 8px 6px; text-align: left; color: var(--muted); font-size: 10px; letter-spacing: 0.1em; font-weight: normal; }
+  .bt-table td { border-bottom: 1px solid var(--border); padding: 8px 6px; color: var(--text); }
+  .bt-table td.num { text-align: right; }
+  .bt-table td.accent { color: var(--accent); }
+  .bt-table tr:last-child td { border-bottom: none; }
 
-  /* FOOTER */
-  .footer {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 32px 0 48px;
-  }
-  .footer-text {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 0.1em;
-  }
+  .insight-box { border-left: 2px solid var(--accent); padding: 16px 20px; background: var(--surface); margin-bottom: 12px; }
+  .insight-box p { font-size: 13px; color: var(--text); line-height: 1.8; }
+  .insight-box .tag { font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: 0.15em; display: block; margin-bottom: 10px; }
+
+  .hypothesis-box { border: 1px solid var(--border); padding: 16px 20px; background: var(--surface); margin-bottom: 12px; }
+  .hypothesis-box .h-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.15em; display: block; margin-bottom: 8px; }
+  .hypothesis-box p { font-size: 13px; color: var(--text); line-height: 1.8; }
+  .status { display: inline-block; font-family: var(--mono); font-size: 9px; padding: 2px 8px; border: 1px solid var(--muted); color: var(--muted); margin-left: 8px; vertical-align: middle; letter-spacing: 0.1em; }
+  .status.active { border-color: var(--accent); color: var(--accent); }
+
+  .footer { max-width: 720px; margin: 0 auto; padding: 32px 0 48px; }
+  .footer-text { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.1em; }
 </style>
 </head>
 <body>
@@ -189,72 +75,112 @@
 <div class="section">
   <p class="section-label">週次推移</p>
   <div class="week-rows">
-    <div class="week-row">
-      <span class="week-label">5/2</span>
-      <div class="bar-track"><div class="bar-fill low" style="width:13.9%"></div></div>
-      <span class="week-pct">13.9%</span>
-    </div>
-    <div class="week-row">
-      <span class="week-label">5/16–17</span>
-      <div class="bar-track"><div class="bar-fill" style="width:20.8%"></div></div>
-      <span class="week-pct high">20.8%</span>
-    </div>
-    <div class="week-row">
-      <span class="week-label">5/23–24</span>
-      <div class="bar-track"><div class="bar-fill" style="width:30.6%"></div></div>
-      <span class="week-pct high">30.6%</span>
-    </div>
-    <div class="week-row">
-      <span class="week-label">5/30–31</span>
-      <div class="bar-track"><div class="bar-fill low" style="width:12.5%"></div></div>
-      <span class="week-pct">12.5%</span>
-    </div>
-    <div class="week-row">
-      <span class="week-label">6/6–7</span>
-      <div class="bar-track"><div class="bar-fill" style="width:16.7%"></div></div>
-      <span class="week-pct high">16.7%</span>
-    </div>
-    <div class="week-row">
-      <span class="week-label">6/13–14</span>
-      <div class="bar-track"><div class="bar-fill low" style="width:12.5%"></div></div>
-      <span class="week-pct">12.5%</span>
-    </div>
+    <div class="week-row"><span class="week-label">5/2</span><div class="bar-track"><div class="bar-fill low" style="width:13.9%"></div></div><span class="week-pct">13.9%</span></div>
+    <div class="week-row"><span class="week-label">5/16–17</span><div class="bar-track"><div class="bar-fill" style="width:20.8%"></div></div><span class="week-pct high">20.8%</span></div>
+    <div class="week-row"><span class="week-label">5/23–24</span><div class="bar-track"><div class="bar-fill" style="width:30.6%"></div></div><span class="week-pct high">30.6%</span></div>
+    <div class="week-row"><span class="week-label">5/30–31</span><div class="bar-track"><div class="bar-fill low" style="width:12.5%"></div></div><span class="week-pct">12.5%</span></div>
+    <div class="week-row"><span class="week-label">6/6–7</span><div class="bar-track"><div class="bar-fill" style="width:16.7%"></div></div><span class="week-pct high">16.7%</span></div>
+    <div class="week-row"><span class="week-label">6/13–14</span><div class="bar-track"><div class="bar-fill low" style="width:12.5%"></div></div><span class="week-pct">12.5%</span></div>
+    <div class="week-row"><span class="week-label">6/20–21</span><div class="bar-track"><div class="bar-fill low" style="width:8.3%"></div></div><span class="week-pct">8.3%</span></div>
   </div>
 </div>
 
 <div class="section">
   <p class="section-label">ZI差別的中率（5/16–17 実績）</p>
   <div class="zi-grid">
-    <div class="zi-card">
-      <p class="zi-range">〜 300</p>
-      <p class="zi-pct">—</p>
-      <p class="zi-sample">サンプル少</p>
-    </div>
-    <div class="zi-card">
-      <p class="zi-range">300 〜 3,000</p>
-      <p class="zi-pct">—</p>
-      <p class="zi-sample">サンプル少</p>
-    </div>
-    <div class="zi-card">
-      <p class="zi-range">3,000 〜 7,000</p>
-      <p class="zi-pct">14.3%</p>
-      <p class="zi-sample">1 / 7R</p>
-      <span class="zi-rank">A RANK</span>
-    </div>
-    <div class="zi-card">
-      <p class="zi-range">7,000 〜</p>
-      <p class="zi-pct standout">50.0%</p>
-      <p class="zi-sample">8 / 16R</p>
-      <span class="zi-rank">S / S+ RANK</span>
-    </div>
+    <div class="zi-card"><p class="zi-range">〜 300</p><p class="zi-pct">—</p><p class="zi-sample">サンプル少</p></div>
+    <div class="zi-card"><p class="zi-range">300 〜 3,000</p><p class="zi-pct">—</p><p class="zi-sample">サンプル少</p></div>
+    <div class="zi-card"><p class="zi-range">3,000 〜 7,000</p><p class="zi-pct">14.3%</p><p class="zi-sample">1 / 7R</p><span class="zi-rank">A RANK</span></div>
+    <div class="zi-card"><p class="zi-range">7,000 〜</p><p class="zi-pct standout">50.0%</p><p class="zi-sample">8 / 16R</p><span class="zi-rank">S / S+ RANK</span></div>
   </div>
 </div>
 
 <div class="section">
-  <p class="section-label">現在の考察</p>
+  <p class="section-label">市場データ分析（2020–2026年 / 約20,000R）</p>
+  <p style="font-size:12px; color:var(--muted); font-family:var(--mono); margin-bottom:16px;">
+    SOURCE: JRA全成績データ（TARGET社出力）&nbsp;|&nbsp; N=282,093頭分のレコード
+  </p>
+
+  <p style="font-size:11px; color:var(--muted); font-family:var(--mono); margin-bottom:20px; letter-spacing:0.05em;">
+    ── 単勝オッズ帯別 1着率
+  </p>
+  <table class="bt-table">
+    <thead>
+      <tr><th>オッズ帯</th><th class="num">1着数</th><th class="num">総頭数</th><th class="num">1着率</th><th>備考</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1〜2倍</td><td class="num">2,320</td><td class="num">4,629</td><td class="num accent">50.1%</td><td></td></tr>
+      <tr><td>2〜3倍</td><td class="num">3,397</td><td class="num">10,351</td><td class="num accent">32.8%</td><td></td></tr>
+      <tr><td>3〜5倍</td><td class="num">5,182</td><td class="num">24,778</td><td class="num">20.9%</td><td></td></tr>
+      <tr><td>5〜10倍</td><td class="num">4,911</td><td class="num">43,195</td><td class="num">11.4%</td><td></td></tr>
+      <tr><td>10〜20倍</td><td class="num">2,701</td><td class="num">44,473</td><td class="num">6.1%</td><td></td></tr>
+      <tr><td>20〜50倍</td><td class="num">1,444</td><td class="num">56,633</td><td class="num">2.5%</td><td></td></tr>
+      <tr><td>50〜100倍</td><td class="num">407</td><td class="num">38,119</td><td class="num">1.1%</td><td></td></tr>
+      <tr><td>100倍超</td><td class="num">185</td><td class="num">59,915</td><td class="num">0.3%</td><td></td></tr>
+    </tbody>
+  </table>
+
+  <p style="font-size:11px; color:var(--muted); font-family:var(--mono); margin:28px 0 20px; letter-spacing:0.05em;">
+    ── 1番人気馬 場所別1着率
+  </p>
+  <table class="bt-table">
+    <thead>
+      <tr><th>場所</th><th class="num">的中</th><th class="num">総R</th><th class="num">1着率</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>東京</td><td class="num">1,144</td><td class="num">3,168</td><td class="num accent">36.1%</td></tr>
+      <tr><td>阪神</td><td class="num">1,089</td><td class="num">3,145</td><td class="num">34.6%</td></tr>
+      <tr><td>京都</td><td class="num">694</td><td class="num">2,042</td><td class="num">34.0%</td></tr>
+      <tr><td>中山</td><td class="num">1,079</td><td class="num">3,208</td><td class="num">33.6%</td></tr>
+      <tr><td>函館</td><td class="num">234</td><td class="num">740</td><td class="num">31.6%</td></tr>
+      <tr><td>福島</td><td class="num">373</td><td class="num">1,308</td><td class="num">28.5%</td></tr>
+    </tbody>
+  </table>
+
+  <p style="font-size:11px; color:var(--muted); font-family:var(--mono); margin:28px 0 20px; letter-spacing:0.05em;">
+    ── 条件重複による絞り込み効果（1番人気 × 複合条件）
+  </p>
+  <table class="bt-table">
+    <thead>
+      <tr><th>条件</th><th class="num">的中</th><th class="num">総R</th><th class="num">1着率</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1番人気のみ（ベースライン）</td><td class="num">6,829</td><td class="num">20,442</td><td class="num">33.4%</td></tr>
+      <tr><td>＋ 補正騎手</td><td class="num">2,547</td><td class="num">7,218</td><td class="num accent">35.3%</td></tr>
+      <tr><td>＋ オッズ2〜5倍</td><td class="num">4,495</td><td class="num">15,688</td><td class="num">28.7%</td></tr>
+      <tr><td>＋ オッズ2〜5倍 ＋ 補正騎手</td><td class="num">1,442</td><td class="num">5,028</td><td class="num">28.7%</td></tr>
+      <tr><td>＋ オッズ2〜5倍 ＋ 補正騎手 ＋ 良馬場 ＋ 12頭以下</td><td class="num">312</td><td class="num">930</td><td class="num accent">33.5%</td></tr>
+    </tbody>
+  </table>
+  <p style="font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:10px;">
+    ※ 上記は1番人気をZI1位の代理指標として使用した疑似検証。ZI指数との相関は未検証。
+  </p>
+</div>
+
+<div class="section">
+  <p class="section-label">現在の検証仮説</p>
+
+  <div class="hypothesis-box">
+    <span class="h-label">HYPOTHESIS 01 <span class="status active">検証中</span></span>
+    <p>ZI差が小さい（300未満）場合でも、ZI1位という順位自体に予測力が存在する可能性がある。2026年6月20日の的中5Rはすべて低ZI差レースであった。ZI差の絶対値と予測精度の関係は継続して集計する。</p>
+  </div>
+
+  <div class="hypothesis-box">
+    <span class="h-label">HYPOTHESIS 02 <span class="status active">検証中</span></span>
+    <p>単勝オッズ50倍超の馬はZI1位であっても1着率が著しく低い（市場全体で1.1%）。ZI1位馬に限定した場合の同オッズ帯の回収率を検証し、高オッズ除外ルールの統計的根拠を確立する。ZIデータ取得後に実施予定。</p>
+  </div>
+
+  <div class="hypothesis-box">
+    <span class="h-label">HYPOTHESIS 03 <span class="status">保留</span></span>
+    <p>騎手補正係数（斎藤新・津村明秀・酒井学 ×1.05）は市場データでの1番人気1着率が24〜29%と他の補正騎手より低い。ZI1位限定データでの再検証が必要。</p>
+  </div>
+</div>
+
+<div class="section">
+  <p class="section-label">次の検証課題</p>
   <div class="insight-box">
-    <span class="tag">OBSERVATION</span>
-    <p>ZI差7,000以上（S・S+ランク）の的中率は50%。ランダム期待値の約6倍に相当する。ただしサンプルは16Rと少なく、継続検証が必要。ZI差が大きいほど的中率が上昇する傾向は、ZI指数の有効性を示唆している。</p>
+    <span class="tag">NEXT STEP</span>
+    <p>JRA-VANからZI指数データ（ZI*.DAT）を取得し、全期間のZI1位馬に限定したバックテストを実施する。検証項目はオッズ帯別的中率・回収率・場所別・馬場状態別・頭数別の多変量分析とする。現時点では1番人気を代理指標として疑似検証を行っており、ZI指数との相関は未確認である。</p>
   </div>
 </div>
 
