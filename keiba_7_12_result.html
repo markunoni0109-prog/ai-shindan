@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7/12 競馬ハンター答え合わせ</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Zen+Kurenaido&display=swap');
+  body {
+    font-family: 'Zen Kurenaido', sans-serif;
+    background: #ffffff;
+    color: #222;
+    margin: 16px;
+    font-size: 15px;
+  }
+  h1 { font-size: 1.15em; margin-bottom: 4px; }
+  .timestamp { font-size: 0.75em; color: #666; margin-bottom: 8px; line-height: 1.5; }
+  .summary { font-size: 1em; font-weight: bold; margin-bottom: 4px; }
+  .summary2 { font-size: 0.85em; color: #444; margin-bottom: 20px; }
+  .race-block {
+    border-top: 1px solid #ccc;
+    padding: 10px 0;
+  }
+  .race-head {
+    font-weight: bold;
+    font-size: 1.05em;
+    margin-bottom: 6px;
+  }
+  .horse-line {
+    display: block;
+    padding: 4px 0 4px 8px;
+    font-size: 0.92em;
+    white-space: nowrap;
+    overflow-x: auto;
+  }
+  .horse-line.hit-win {
+    background-color: #c6efce;
+  }
+  .horse-line.hit-top3 {
+    background-color: #ffeeba;
+  }
+  .horse-line span { margin-right: 8px; }
+  .pos { color: #666; }
+  .umaban { font-weight: bold; }
+  .shinba { color: #999; padding: 4px 0; }
+  .rank-s { color: #c00000; font-weight: bold; }
+  .rank-a { color: #b8860b; font-weight: bold; }
+  .rank-b { color: #666; }
+  .zidiff { color: #666; font-weight: normal; font-size: 0.85em; }
+  .note { color: #999; font-size: 0.85em; }
+  .result { font-weight: bold; }
+  .footer { margin-top: 24px; font-size: 0.75em; color: #999; }
+</style>
+</head>
+<body>
+<h1>競馬ハンター答え合わせ 7/12（日）函館・福島・小倉 全36R</h1>
+<div class="timestamp">出力日時: 2026-07-12（本結果はGitHubコミット履歴により後から改ざんされていないことを証明できます）</div>
+<div class="summary">ZI1位 単勝的中：9 / 36R的中</div>
+<div class="summary2">ZI1〜3位 複勝内(3着以内)合計：39 / 93頭（31R×3頭）</div>
+
+        <div class="race-block">
+          <div class="race-head">函館 1R
+            <span class="rank-a">A(暫定)</span>
+            <span class="zidiff">ZI差13.5</span>
+          </div>
+          
+          <div class="horse-line ">
+            <span class="pos">1位</span>
+            <span class="umaban">7</span>
+            <span class="name">マーゴットオネイロ</span>
+            <span class="jockey">(横山武史)</span>
+            <span class="chaku">4着</span>
+            <span class="odds">7.2倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-win">
+            <span class="pos">2位</span>
+            <span class="umaban">4</span>
+            <span class="name">ビタミンドロップ</span>
+            <span class="jockey">(丹内祐次)</span>
+            <span class="chaku">1着</span>
+            <span class="odds">4.8倍</span>
+            <span class="result">単勝的中</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-top3">
+            <span class="pos">3位</span>
+            <span class="umaban">6</span>
+            <span class="name">スイーヴル</span>
+            <span class="jockey">(武豊)</span>
+            <span class="chaku">2着</span>
+            <span class="odds">1.7倍</span>
+            <span class="result">複勝内</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">函館 2R
+            <span class="rank-a">A(暫定)</span>
+            <span class="zidiff">ZI差17.5</span>
+          </div>
+          
+          <div class="horse-line hit-win">
+            <span class="pos">1位</span>
+            <span class="umaban">7</span>
+            <span class="name">ベネディクション</span>
+            <span class="jockey">(横山武史)</span>
+            <span class="chaku">1着</span>
+            <span class="odds">4.9倍</span>
+            <span class="result">単勝的中</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">2位</span>
+            <span class="umaban">9</span>
+            <span class="name">エアヴァイブス</span>
+            <span class="jockey">(武豊)</span>
+            <span class="chaku">5着</span>
+            <span class="odds">1.9倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">3位</span>
+            <span class="umaban">2</span>
+            <span class="name">ボーントゥラブユー</span>
+            <span class="jockey">(鮫島克駿)</span>
+            <span class="chaku">12着</span>
+            <span class="odds">8.7倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">函館 3R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差3.9</span>
+          </div>
+          
+          <div class="horse-line hit-top3">
+            <span class="pos">1位</span>
+            <span class="umaban">8</span>
+            <span class="name">ハイテイラオユエ</span>
+            <span class="jockey">(横山武史)</span>
+            <span class="chaku">2着</span>
+            <span class="odds">14.8倍</span>
+            <span class="result">複勝内</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-win">
+            <span class="pos">2位</span>
+            <span class="umaban">12</span>
+            <span class="name">ビンバラ</span>
+            <span class="jockey">(佐々木大)</span>
+            <span class="chaku">1着</span>
+            <span class="odds">1.7倍</span>
+            <span class="result">単勝的中</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">3位</span>
+            <span class="umaban">10</span>
+            <span class="name">ホウオウロレンシア</span>
+            <span class="jockey">(舟山瑠泉)</span>
+            <span class="chaku">12着</span>
+            <span class="odds">6.0倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">函館 4R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差3.0</span>
+          </div>
+          
+          <div class="horse-line ">
+            <span class="pos">1位</span>
+            <span class="umaban">13</span>
+            <span class="name">ヴィラジョヴィス</span>
+            <span class="jockey">(丹内祐次)</span>
+            <span class="chaku">14着</span>
+            <span class="odds">3.5倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">2位</span>
+            <span class="umaban">15</span>
+            <span class="name">ハルノアメ</span>
+            <span class="jockey">(河原田菜)</span>
+            <span class="chaku">9着</span>
+            <span class="odds">9.4倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-win">
+            <span class="pos">3位</span>
+            <span class="umaban">4</span>
+            <span class="name">タケルフォーカス</span>
+            <span class="jockey">(古川吉洋)</span>
+            <span class="chaku">1着</span>
+            <span class="odds">7.5倍</span>
+            <span class="result">単勝的中</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">函館 5R</div>
+          <div class="shinba">新馬戦のためZI対象外</div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">函館 6R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差9.0</span>
+          </div>
+          
+          <div class="horse-line ">
+            <span class="pos">1位</span>
+            <span class="umaban">14</span>
+            <span class="name">ルージュフィーリア</span>
+            <span class="jockey">(佐々木大)</span>
+            <span class="chaku">4着</span>
+            <span class="odds">2.2倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-win">
+            <span class="pos">2位</span>
+            <span class="umaban">1</span>
+            <span class="name">ミルトメロディー</span>
+            <span class="jockey">(河原田菜)</span>
+            <span class="chaku">1着</span>
+            <span class="odds">19.0倍</span>
+            <span class="result">単勝的中</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-top3">
+            <span class="pos">3位</span>
+            <span class="umaban">2</span>
+            <span class="name">サトノフレイ</span>
+            <span class="jockey">(北村友一)</span>
+            <span class="chaku">2着</span>
+            <span class="odds">7.1倍</span>
+            <span class="result">複勝内</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">函館 7R
+            <span class="rank-a">A(暫定)</span>
+            <span class="zidiff">ZI差10.8</span>
+          </div>
+          
+          <div class="horse-line ">
+            <span class="pos">1位</span>
+            <span class="umaban">8</span>
+            <span class="name">コイタマチャン</span>
+            <span class="jockey">(横山武史)</span>
+            <span class="chaku">9着</span>
+            <span class="odds">6.0倍</span>
+            <span class="result"></span>
+            <span class="note">ZI推定 </span>
+          </div>
+          <div class="horse-line hit-win">
+            <span class="pos">2位</span>
+            <span class="umaban">9</span>
+            <span class="name">ヒミノエトワール</span>
+            <span class="jockey">(武豊)</span>
+            <span class="chaku">1着</span>
+            <span class="odds">2.3倍</span>
+            <span class="result">単勝的中</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">3位</span>
+            <span class="umaban">7</span>
+            <span class="name">アリストクラシア</span>
+            <span class="jockey">(北村友一)</span>
+            <span class="chaku">7着</span>
+            <span class="odds">8.6倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">函館 8R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差8.7</span>
+          </div>
+          
+          <div class="horse-line hit-top3">
+            <span class="pos">1位</span>
+            <span class="umaban">9</span>
+            <span class="name">ダイシンレアレア</span>
+            <span class="jockey">(丹内祐次)</span>
+            <span class="chaku">2着</span>
+            <span class="odds">5.6倍</span>
+            <span class="result">複勝内</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">2位</span>
+            <span class="umaban">3</span>
+            <span class="name">シドニーホバート</span>
+            <span class="jockey">(斎藤新)</span>
+            <span class="chaku">9着</span>
+            <span class="odds">18.1倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-win">
+            <span class="pos">3位</span>
+            <span class="umaban">2</span>
+            <span class="name">シャローファースト</span>
+            <span class="jockey">(横山和生)</span>
+            <span class="chaku">1着</span>
+            <span class="odds">1.8倍</span>
+            <span class="result">単勝的中</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">函館 9R
+            <span class="rank-s">S(暫定)</span>
+            <span class="zidiff">ZI差20.7</span>
+          </div>
+          
+          <div class="horse-line ">
+            <span class="pos">1位</span>
+            <span class="umaban">4</span>
+            <span class="name">ウィルサヴァイブ</span>
+            <span class="jockey">(横山武史)</span>
+            <span class="chaku">12着</span>
+            <span class="odds">9.8倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-top3">
+            <span class="pos">2位</span>
+            <span class="umaban">5</span>
+            <span class="name">テルヒコウ</span>
+            <span class="jockey">(武豊)</span>
+            <span class="chaku">2着</span>
+            <span class="odds">1.8倍</span>
+            <span class="result">複勝内</span>
+            <span class="note">ZI推定 </span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">3位</span>
+            <span class="umaban">10</span>
+            <span class="name">コッツォリーノ</span>
+            <span class="jockey">(佐々木大)</span>
+            <span class="chaku">14着</span>
+            <span class="odds">3.4倍</span>
+            <span class="result"></span>
+            <span class="note">ZI推定 </span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">函館 10R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差4.2</span>
+          </div>
+          
+          <div class="horse-line ">
+            <span class="pos">1位</span>
+            <span class="umaban">3</span>
+            <span class="name">デアプリームス</span>
+            <span class="jockey">(横山武史)</span>
+            <span class="chaku">4着</span>
+            <span class="odds">5.2倍</span>
+            <span class="result"></span>
+            <span class="note">ZI推定 </span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">2位</span>
+            <span class="umaban">11</span>
+            <span class="name">ルイステソーロ</span>
+            <span class="jockey">(丹内祐次)</span>
+            <span class="chaku">7着</span>
+            <span class="odds">7.7倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">3位</span>
+            <span class="umaban">9</span>
+            <span class="name">マメタンク</span>
+            <span class="jockey">(斎藤新)</span>
+            <span class="chaku">5着</span>
+            <span class="odds">4.4倍</span>
+            <span class="result"></span>
+            <span class="note">ZI推定 </span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">函館 11R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差6.3</span>
+          </div>
+          
+          <div class="horse-line ">
+            <span class="pos">1位</span>
+            <span class="umaban">8</span>
+            <span class="name">ストレイトトーカー</span>
+            <span class="jockey">(横山武史)</span>
+            <span class="chaku">14着</span>
+            <span class="odds">8.5倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-top3">
+            <span class="pos">2位</span>
+            <span class="umaban">4</span>
+            <span class="name">シルトホルン</span>
+            <span class="jockey">(丹内祐次)</span>
+            <span class="chaku">3着</span>
+            <span class="odds">4.5倍</span>
+            <span class="result">複勝内</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">3位</span>
+            <span class="umaban">3</span>
+            <span class="name">タシット</span>
+            <span class="jockey">(横山琉人)</span>
+            <span class="chaku">7着</span>
+            <span class="odds">21.6倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">函館 12R
+            <span class="rank-a">A(暫定)</span>
+            <span class="zidiff">ZI差10.0</span>
+          </div>
+          
+          <div class="horse-line ">
+            <span class="pos">1位</span>
+            <span class="umaban">7</span>
+            <span class="name">ハッピーラッキー</span>
+            <span class="jockey">(横山和生)</span>
+            <span class="chaku">6着</span>
+            <span class="odds">1.7倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-win">
+            <span class="pos">2位</span>
+            <span class="umaban">5</span>
+            <span class="name">サンポーニャ</span>
+            <span class="jockey">(鷲頭虎太)</span>
+            <span class="chaku">1着</span>
+            <span class="odds">8.0倍</span>
+            <span class="result">単勝的中</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">3位</span>
+            <span class="umaban">3</span>
+            <span class="name">シャルトル</span>
+            <span class="jockey">(北村友一)</span>
+            <span class="chaku">7着</span>
+            <span class="odds">5.5倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 1R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差5.0</span>
+          </div>
+          
+          <div class="horse-line hit-win">
+            <span class="pos">1位</span>
+            <span class="umaban">3</span>
+            <span class="name">トーアマリシテン</span>
+            <span class="jockey">(五十嵐雄)</span>
+            <span class="chaku">1着</span>
+            <span class="odds">3.0倍</span>
+            <span class="result">単勝的中</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-top3">
+            <span class="pos">2位</span>
+            <span class="umaban">6</span>
+            <span class="name">モスクロッサー</span>
+            <span class="jockey">(坂口智康)</span>
+            <span class="chaku">3着</span>
+            <span class="odds">5.3倍</span>
+            <span class="result">複勝内</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">3位</span>
+            <span class="umaban">2</span>
+            <span class="name">シグムンド</span>
+            <span class="jockey">(伴啓太)</span>
+            <span class="chaku">14着</span>
+            <span class="odds">13.5倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 2R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差6.5</span>
+          </div>
+          
+          <div class="horse-line ">
+            <span class="pos">1位</span>
+            <span class="umaban">14</span>
+            <span class="name">サングラント</span>
+            <span class="jockey">(戸崎圭太)</span>
+            <span class="chaku">5着</span>
+            <span class="odds">11.2倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-top3">
+            <span class="pos">2位</span>
+            <span class="umaban">15</span>
+            <span class="name">クリムゾンリーフ</span>
+            <span class="jockey">(坂井瑠星)</span>
+            <span class="chaku">2着</span>
+            <span class="odds">1.6倍</span>
+            <span class="result">複勝内</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">3位</span>
+            <span class="umaban">6</span>
+            <span class="name">アーティキュレート</span>
+            <span class="jockey">(菊沢一樹)</span>
+            <span class="chaku">6着</span>
+            <span class="odds">8.4倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 3R
+            <span class="rank-s">S(暫定)</span>
+            <span class="zidiff">ZI差42.9</span>
+          </div>
+          
+          <div class="horse-line hit-win">
+            <span class="pos">1位</span>
+            <span class="umaban">9</span>
+            <span class="name">ヴァルカンテソーロ</span>
+            <span class="jockey">(戸崎圭太)</span>
+            <span class="chaku">1着</span>
+            <span class="odds">2.1倍</span>
+            <span class="result">単勝的中</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">2位</span>
+            <span class="umaban">11</span>
+            <span class="name">ギリーカラム</span>
+            <span class="jockey">(岩田康誠)</span>
+            <span class="chaku">7着</span>
+            <span class="odds">15.0倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">3位</span>
+            <span class="umaban">2</span>
+            <span class="name">エコロゼット</span>
+            <span class="jockey">(菊沢一樹)</span>
+            <span class="chaku">6着</span>
+            <span class="odds">19.6倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 4R</div>
+          <div class="shinba">新馬戦のためZI対象外</div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 5R</div>
+          <div class="shinba">新馬戦のためZI対象外</div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 6R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差5.0</span>
+          </div>
+          
+          <div class="horse-line ">
+            <span class="pos">1位</span>
+            <span class="umaban">11</span>
+            <span class="name">ツクバヴァンガード</span>
+            <span class="jockey">(佐藤翔馬)</span>
+            <span class="chaku">6着</span>
+            <span class="odds">4.5倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-top3">
+            <span class="pos">2位</span>
+            <span class="umaban">6</span>
+            <span class="name">ミスタートントン</span>
+            <span class="jockey">(石神深道)</span>
+            <span class="chaku">2着</span>
+            <span class="odds">10.5倍</span>
+            <span class="result">複勝内</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">3位</span>
+            <span class="umaban">7</span>
+            <span class="name">イイクニパッション</span>
+            <span class="jockey">(三浦皇成)</span>
+            <span class="chaku">5着</span>
+            <span class="odds">8.8倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 7R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差5.4</span>
+          </div>
+          
+          <div class="horse-line ">
+            <span class="pos">1位</span>
+            <span class="umaban">11</span>
+            <span class="name">キッショウダラニ</span>
+            <span class="jockey">(木幡巧也)</span>
+            <span class="chaku">11着</span>
+            <span class="odds">4.5倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-top3">
+            <span class="pos">2位</span>
+            <span class="umaban">12</span>
+            <span class="name">ラルルジェンヌ</span>
+            <span class="jockey">(戸崎圭太)</span>
+            <span class="chaku">2着</span>
+            <span class="odds">7.9倍</span>
+            <span class="result">複勝内</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">3位</span>
+            <span class="umaban">9</span>
+            <span class="name">ウインディナナコ</span>
+            <span class="jockey">(佐藤翔馬)</span>
+            <span class="chaku">8着</span>
+            <span class="odds">5.8倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 8R
+            <span class="rank-s">S(暫定)</span>
+            <span class="zidiff">ZI差23.0</span>
+          </div>
+          
+          <div class="horse-line hit-win">
+            <span class="pos">1位</span>
+            <span class="umaban">12</span>
+            <span class="name">デンプシー</span>
+            <span class="jockey">(戸崎圭太)</span>
+            <span class="chaku">1着</span>
+            <span class="odds">2.1倍</span>
+            <span class="result">単勝的中</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">2位</span>
+            <span class="umaban">8</span>
+            <span class="name">ミスターマーボー</span>
+            <span class="jockey">(菊沢一樹)</span>
+            <span class="chaku">4着</span>
+            <span class="odds">5.6倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-top3">
+            <span class="pos">3位</span>
+            <span class="umaban">6</span>
+            <span class="name">アイアンパイク</span>
+            <span class="jockey">(横山典弘)</span>
+            <span class="chaku">2着</span>
+            <span class="odds">6.6倍</span>
+            <span class="result">複勝内</span>
+            <span class="note">ZI推定 </span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 9R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差0.0</span>
+          </div>
+          
+          <div class="horse-line hit-win">
+            <span class="pos">1位</span>
+            <span class="umaban">7</span>
+            <span class="name">ブルスカメンテ</span>
+            <span class="jockey">(石川裕紀)</span>
+            <span class="chaku">1着</span>
+            <span class="odds">6.9倍</span>
+            <span class="result">単勝的中</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">2位</span>
+            <span class="umaban">12</span>
+            <span class="name">ルージュリリック</span>
+            <span class="jockey">(荻野極)</span>
+            <span class="chaku">9着</span>
+            <span class="odds">2.9倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">3位</span>
+            <span class="umaban">6</span>
+            <span class="name">キューティリップ</span>
+            <span class="jockey">(武藤雅)</span>
+            <span class="chaku">4着</span>
+            <span class="odds">8.0倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 10R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差0.5</span>
+          </div>
+          
+          <div class="horse-line hit-win">
+            <span class="pos">1位</span>
+            <span class="umaban">11</span>
+            <span class="name">ドバイブルース</span>
+            <span class="jockey">(坂井瑠星)</span>
+            <span class="chaku">1着</span>
+            <span class="odds">6.3倍</span>
+            <span class="result">単勝的中</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">2位</span>
+            <span class="umaban">2</span>
+            <span class="name">ジェイエルマスター</span>
+            <span class="jockey">(田辺裕信)</span>
+            <span class="chaku">6着</span>
+            <span class="odds">4.3倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">3位</span>
+            <span class="umaban">1</span>
+            <span class="name">ダカラフェスティヴ</span>
+            <span class="jockey">(戸崎圭太)</span>
+            <span class="chaku">7着</span>
+            <span class="odds">6.3倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 11R
+            <span class="rank-a">A(暫定)</span>
+            <span class="zidiff">ZI差13.2</span>
+          </div>
+          
+          <div class="horse-line ">
+            <span class="pos">1位</span>
+            <span class="umaban">13</span>
+            <span class="name">バトルボーン</span>
+            <span class="jockey">(戸崎圭太)</span>
+            <span class="chaku">12着</span>
+            <span class="odds">7.0倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">2位</span>
+            <span class="umaban">4</span>
+            <span class="name">カラマティアノス</span>
+            <span class="jockey">(岩田康誠)</span>
+            <span class="chaku">7着</span>
+            <span class="odds">4.6倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-win">
+            <span class="pos">3位</span>
+            <span class="umaban">11</span>
+            <span class="name">アスクナイスショー</span>
+            <span class="jockey">(田辺裕信)</span>
+            <span class="chaku">1着</span>
+            <span class="odds">5.4倍</span>
+            <span class="result">単勝的中</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 12R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差1.0</span>
+          </div>
+          
+          <div class="horse-line ">
+            <span class="pos">1位</span>
+            <span class="umaban">8</span>
+            <span class="name">サンマルノヴェル</span>
+            <span class="jockey">(坂井瑠星)</span>
+            <span class="chaku">4着</span>
+            <span class="odds">4.7倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-top3">
+            <span class="pos">2位</span>
+            <span class="umaban">1</span>
+            <span class="name">ピコテンダー</span>
+            <span class="jockey">(荻野極)</span>
+            <span class="chaku">2着</span>
+            <span class="odds">6.3倍</span>
+            <span class="result">複勝内</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-win">
+            <span class="pos">3位</span>
+            <span class="umaban">15</span>
+            <span class="name">クリノオリーブ</span>
+            <span class="jockey">(三浦皇成)</span>
+            <span class="chaku">1着</span>
+            <span class="odds">18.5倍</span>
+            <span class="result">単勝的中</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 1R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差9.0</span>
+          </div>
+          
+          <div class="horse-line hit-win">
+            <span class="pos">1位</span>
+            <span class="umaban">10</span>
+            <span class="name">ホーリーステップ</span>
+            <span class="jockey">(森田誠也)</span>
+            <span class="chaku">1着</span>
+            <span class="odds">5.2倍</span>
+            <span class="result">単勝的中</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">2位</span>
+            <span class="umaban">6</span>
+            <span class="name">シャンデリュイーズ</span>
+            <span class="jockey">(松若風馬)</span>
+            <span class="chaku">10着</span>
+            <span class="odds">7.7倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">3位</span>
+            <span class="umaban">16</span>
+            <span class="name">ティグリス</span>
+            <span class="jockey">(コレット)</span>
+            <span class="chaku">5着</span>
+            <span class="odds">5.2倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 2R
+            <span class="rank-a">A(暫定)</span>
+            <span class="zidiff">ZI差12.1</span>
+          </div>
+          
+          <div class="horse-line ">
+            <span class="pos">1位</span>
+            <span class="umaban">3</span>
+            <span class="name">タガノプディング</span>
+            <span class="jockey">(松山弘平)</span>
+            <span class="chaku">4着</span>
+            <span class="odds">2.5倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-win">
+            <span class="pos">2位</span>
+            <span class="umaban">9</span>
+            <span class="name">キャッチアシーフ</span>
+            <span class="jockey">(高杉吏麒)</span>
+            <span class="chaku">1着</span>
+            <span class="odds">6.4倍</span>
+            <span class="result">単勝的中</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-top3">
+            <span class="pos">3位</span>
+            <span class="umaban">6</span>
+            <span class="name">クロカミジョウ</span>
+            <span class="jockey">(菱田裕二)</span>
+            <span class="chaku">2着</span>
+            <span class="odds">7.3倍</span>
+            <span class="result">複勝内</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 3R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差6.8</span>
+          </div>
+          
+          <div class="horse-line hit-win">
+            <span class="pos">1位</span>
+            <span class="umaban">2</span>
+            <span class="name">ラルヴァンダード</span>
+            <span class="jockey">(松山弘平)</span>
+            <span class="chaku">1着</span>
+            <span class="odds">3.6倍</span>
+            <span class="result">単勝的中</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-top3">
+            <span class="pos">2位</span>
+            <span class="umaban">5</span>
+            <span class="name">チェファルー</span>
+            <span class="jockey">(団野大成)</span>
+            <span class="chaku">2着</span>
+            <span class="odds">3.5倍</span>
+            <span class="result">複勝内</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-top3">
+            <span class="pos">3位</span>
+            <span class="umaban">7</span>
+            <span class="name">ブルーザー</span>
+            <span class="jockey">(田山旺佑)</span>
+            <span class="chaku">3着</span>
+            <span class="odds">5.7倍</span>
+            <span class="result">複勝内</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 4R
+            <span class="rank-a">A(暫定)</span>
+            <span class="zidiff">ZI差16.6</span>
+          </div>
+          
+          <div class="horse-line hit-win">
+            <span class="pos">1位</span>
+            <span class="umaban">7</span>
+            <span class="name">レッドパラジウム</span>
+            <span class="jockey">(川田将雅)</span>
+            <span class="chaku">1着</span>
+            <span class="odds">3.2倍</span>
+            <span class="result">単勝的中</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">2位</span>
+            <span class="umaban">11</span>
+            <span class="name">タイムレスフレアー</span>
+            <span class="jockey">(松山弘平)</span>
+            <span class="chaku">7着</span>
+            <span class="odds">4.8倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-top3">
+            <span class="pos">3位</span>
+            <span class="umaban">6</span>
+            <span class="name">ブランチアウト</span>
+            <span class="jockey">(太宰啓介)</span>
+            <span class="chaku">3着</span>
+            <span class="odds">5.1倍</span>
+            <span class="result">複勝内</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 5R</div>
+          <div class="shinba">新馬戦のためZI対象外</div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 6R</div>
+          <div class="shinba">新馬戦のためZI対象外</div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 7R
+            <span class="rank-a">A(暫定)</span>
+            <span class="zidiff">ZI差14.3</span>
+          </div>
+          
+          <div class="horse-line hit-top3">
+            <span class="pos">1位</span>
+            <span class="umaban">12</span>
+            <span class="name">コルヴァス</span>
+            <span class="jockey">(川田将雅)</span>
+            <span class="chaku">3着</span>
+            <span class="odds">6.5倍</span>
+            <span class="result">複勝内</span>
+            <span class="note">ZI推定 </span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">2位</span>
+            <span class="umaban">7</span>
+            <span class="name">キリオス</span>
+            <span class="jockey">(松山弘平)</span>
+            <span class="chaku">5着</span>
+            <span class="odds">9.6倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">3位</span>
+            <span class="umaban">15</span>
+            <span class="name">エアフォースワン</span>
+            <span class="jockey">(川須栄彦)</span>
+            <span class="chaku">10着</span>
+            <span class="odds">9.3倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 8R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差4.3</span>
+          </div>
+          
+          <div class="horse-line ">
+            <span class="pos">1位</span>
+            <span class="umaban">9</span>
+            <span class="name">ミッキーマーメイド</span>
+            <span class="jockey">(川田将雅)</span>
+            <span class="chaku">5着</span>
+            <span class="odds">5.2倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">2位</span>
+            <span class="umaban">5</span>
+            <span class="name">メイショウピリカ</span>
+            <span class="jockey">(松山弘平)</span>
+            <span class="chaku">4着</span>
+            <span class="odds">6.9倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-win">
+            <span class="pos">3位</span>
+            <span class="umaban">1</span>
+            <span class="name">ミリタリータトゥー</span>
+            <span class="jockey">(西塚洸二)</span>
+            <span class="chaku">1着</span>
+            <span class="odds">3.4倍</span>
+            <span class="result">単勝的中</span>
+            <span class="note">ZI推定 </span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 9R
+            <span class="rank-a">A(暫定)</span>
+            <span class="zidiff">ZI差11.1</span>
+          </div>
+          
+          <div class="horse-line ">
+            <span class="pos">1位</span>
+            <span class="umaban">3</span>
+            <span class="name">ケイアイアルタイル</span>
+            <span class="jockey">(松山弘平)</span>
+            <span class="chaku">10着</span>
+            <span class="odds">11.8倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">2位</span>
+            <span class="umaban">2</span>
+            <span class="name">タガノアニマシオン</span>
+            <span class="jockey">(吉村誠之)</span>
+            <span class="chaku">7着</span>
+            <span class="odds">35.9倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">3位</span>
+            <span class="umaban">5</span>
+            <span class="name">ブルックリンダンス</span>
+            <span class="jockey">(亀田温心)</span>
+            <span class="chaku">6着</span>
+            <span class="odds">7.2倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 10R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差9.0</span>
+          </div>
+          
+          <div class="horse-line ">
+            <span class="pos">1位</span>
+            <span class="umaban">5</span>
+            <span class="name">フォーチュンライド</span>
+            <span class="jockey">(藤懸貴志)</span>
+            <span class="chaku">8着</span>
+            <span class="odds">4.5倍</span>
+            <span class="result"></span>
+            <span class="note">ZI推定 </span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">2位</span>
+            <span class="umaban">11</span>
+            <span class="name">オウケンボルト</span>
+            <span class="jockey">(菱田裕二)</span>
+            <span class="chaku">9着</span>
+            <span class="odds">18.6倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">3位</span>
+            <span class="umaban">7</span>
+            <span class="name">レイピカケ</span>
+            <span class="jockey">(団野大成)</span>
+            <span class="chaku">10着</span>
+            <span class="odds">11.9倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 11R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差1.3</span>
+          </div>
+          
+          <div class="horse-line ">
+            <span class="pos">1位</span>
+            <span class="umaban">11</span>
+            <span class="name">モックモック</span>
+            <span class="jockey">(川田将雅)</span>
+            <span class="chaku">8着</span>
+            <span class="odds">3.2倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">2位</span>
+            <span class="umaban">7</span>
+            <span class="name">モンブランミノル</span>
+            <span class="jockey">(松山弘平)</span>
+            <span class="chaku">9着</span>
+            <span class="odds">5.3倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-win">
+            <span class="pos">3位</span>
+            <span class="umaban">6</span>
+            <span class="name">レイナデアルシーラ</span>
+            <span class="jockey">(田口貫太)</span>
+            <span class="chaku">1着</span>
+            <span class="odds">8.0倍</span>
+            <span class="result">単勝的中</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 12R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差0.2</span>
+          </div>
+          
+          <div class="horse-line ">
+            <span class="pos">1位</span>
+            <span class="umaban">5</span>
+            <span class="name">ウインマスカレード</span>
+            <span class="jockey">(松山弘平)</span>
+            <span class="chaku">10着</span>
+            <span class="odds">7.9倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line hit-top3">
+            <span class="pos">2位</span>
+            <span class="umaban">15</span>
+            <span class="name">ベルファスト</span>
+            <span class="jockey">(松若風馬)</span>
+            <span class="chaku">2着</span>
+            <span class="odds">5.9倍</span>
+            <span class="result">複勝内</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line ">
+            <span class="pos">3位</span>
+            <span class="umaban">1</span>
+            <span class="name">ドルチェミスト</span>
+            <span class="jockey">(森田誠也)</span>
+            <span class="chaku">15着</span>
+            <span class="odds">20.1倍</span>
+            <span class="result"></span>
+            <span class="note"></span>
+          </div>
+        </div>
+<div class="footer">緑背景＝単勝的中（1着）／ 黄背景＝複勝内（2〜3着）。ランク基準は本日データ(31R)による暫定値です。</div>
+</body>
+</html>
