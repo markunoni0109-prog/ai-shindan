@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7/19 競馬ハンター予測</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Zen+Kurenaido&display=swap');
+  body { font-family: 'Zen Kurenaido', sans-serif; background: #ffffff; color: #222; margin: 16px; font-size: 15px; }
+  h1 { font-size: 1.15em; margin-bottom: 4px; }
+  .timestamp { font-size: 0.75em; color: #666; margin-bottom: 20px; line-height: 1.5; }
+  .race-block { border-top: 1px solid #ccc; padding: 10px 0; }
+  .race-head { font-weight: bold; font-size: 1.05em; margin-bottom: 6px; }
+  .horse-line { display: block; padding: 4px 0 4px 8px; font-size: 0.92em; white-space: nowrap; overflow-x: auto; }
+  .horse-line span { margin-right: 8px; }
+  .pos { color: #666; }
+  .umaban { font-weight: bold; }
+  .shinba { color: #999; padding: 4px 0; }
+  .rank-s { color: #c00000; font-weight: bold; }
+  .rank-a { color: #b8860b; font-weight: bold; }
+  .rank-b { color: #666; }
+  .zidiff { color: #666; font-weight: normal; font-size: 0.85em; }
+  .note { color: #999; font-size: 0.85em; }
+  .footer { margin-top: 24px; font-size: 0.75em; color: #999; }
+</style>
+</head>
+<body>
+<h1>競馬ハンター予測 7/19（日）函館・福島・小倉 全36R</h1>
+<div class="timestamp">出力日時: 2026-07-19（本予測はGitHubコミット履歴により後から改ざんされていないことを証明できます）</div>
+
+        <div class="race-block">
+          <div class="race-head">函館 1R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差3.0</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">1</span>
+            <span class="name">ステラトップガン</span>
+            <span class="jockey">(鮫島克駿)</span>
+            <span class="zi">ZI120.0</span>
+            <span class="odds">1.9倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">8</span>
+            <span class="name">キチロクタワー</span>
+            <span class="jockey">(長浜鴻緒)</span>
+            <span class="zi">ZI117.0</span>
+            <span class="odds">6.2倍</span>
+            <span class="ninki">4人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">2</span>
+            <span class="name">リーゼントエース</span>
+            <span class="jockey">(池添謙一)</span>
+            <span class="zi">ZI112.0</span>
+            <span class="odds">12.9倍</span>
+            <span class="ninki">5人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">函館 2R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差1.6</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">8</span>
+            <span class="name">エコロセレナ</span>
+            <span class="jockey">(斎藤新)</span>
+            <span class="zi">ZI117.6</span>
+            <span class="odds">2.4倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">4</span>
+            <span class="name">ジャーナーリア</span>
+            <span class="jockey">(池添謙一)</span>
+            <span class="zi">ZI116.0</span>
+            <span class="odds">3.4倍</span>
+            <span class="ninki">2人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">10</span>
+            <span class="name">トルークマクト</span>
+            <span class="jockey">(鷲頭虎太)</span>
+            <span class="zi">ZI104.0</span>
+            <span class="odds">6.1倍</span>
+            <span class="ninki">3人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">函館 3R
+            <span class="rank-s">S(暫定)</span>
+            <span class="zidiff">ZI差25.4</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">13</span>
+            <span class="name">ニシノモリミチ</span>
+            <span class="jockey">(横山武史)</span>
+            <span class="zi">ZI141.4</span>
+            <span class="odds">7.2倍</span>
+            <span class="ninki">2人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">9</span>
+            <span class="name">ブレイズランナー</span>
+            <span class="jockey">(長浜鴻緒)</span>
+            <span class="zi">ZI116.0</span>
+            <span class="odds">7.4倍</span>
+            <span class="ninki">3人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">11</span>
+            <span class="name">ホウオウファラオ</span>
+            <span class="jockey">(岩田康誠)</span>
+            <span class="zi">ZI112.0</span>
+            <span class="odds">7.9倍</span>
+            <span class="ninki">4人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">函館 4R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差3.2</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">3</span>
+            <span class="name">ウインカトリーヌ</span>
+            <span class="jockey">(横山武史)</span>
+            <span class="zi">ZI124.2</span>
+            <span class="odds">10.3倍</span>
+            <span class="ninki">5人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">7</span>
+            <span class="name">ギオンバヤシ</span>
+            <span class="jockey">(武豊)</span>
+            <span class="zi">ZI121.0</span>
+            <span class="odds">2.9倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">12</span>
+            <span class="name">フローレンスフーガ</span>
+            <span class="jockey">(横山和生)</span>
+            <span class="zi">ZI115.0</span>
+            <span class="odds">7.5倍</span>
+            <span class="ninki">4人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">函館 5R</div>
+          <div class="shinba">新馬戦のためZI対象外</div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">函館 6R
+            <span class="rank-a">A(暫定)</span>
+            <span class="zidiff">ZI差15.1</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">1</span>
+            <span class="name">コスモファーブロス</span>
+            <span class="jockey">(横山武史)</span>
+            <span class="zi">ZI131.1</span>
+            <span class="odds">8.8倍</span>
+            <span class="ninki">4人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">10</span>
+            <span class="name">マメーアップル</span>
+            <span class="jockey">(横山琉人)</span>
+            <span class="zi">ZI116.0</span>
+            <span class="odds">6.8倍</span>
+            <span class="ninki">2人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">5</span>
+            <span class="name">ソワンドヴィクター</span>
+            <span class="jockey">(長浜鴻緒)</span>
+            <span class="zi">ZI108.0</span>
+            <span class="odds">20.5倍</span>
+            <span class="ninki">9人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">函館 7R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差4.0</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">6</span>
+            <span class="name">ビーチイン</span>
+            <span class="jockey">(横山和生)</span>
+            <span class="zi">ZI119.0</span>
+            <span class="odds">12.4倍</span>
+            <span class="ninki">4人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">10</span>
+            <span class="name">ゴールドドレッサ</span>
+            <span class="jockey">(横山武史)</span>
+            <span class="zi">ZI115.0</span>
+            <span class="odds">18.3倍</span>
+            <span class="ninki">6人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">4</span>
+            <span class="name">プリンセスアツコ</span>
+            <span class="jockey">(鮫島克駿)</span>
+            <span class="zi">ZI114.0</span>
+            <span class="odds">6.8倍</span>
+            <span class="ninki">2人気</span>
+            <span class="note">ZI推定 </span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">函館 8R
+            <span class="rank-s">S(暫定)</span>
+            <span class="zidiff">ZI差22.0</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">4</span>
+            <span class="name">ワイドデコラシオン</span>
+            <span class="jockey">(横山武史)</span>
+            <span class="zi">ZI138.0</span>
+            <span class="odds">14.8倍</span>
+            <span class="ninki">7人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">5</span>
+            <span class="name">グレイトソン</span>
+            <span class="jockey">(和田陽希)</span>
+            <span class="zi">ZI116.0</span>
+            <span class="odds">7.4倍</span>
+            <span class="ninki">4人気</span>
+            <span class="note">ZI推定 </span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">6</span>
+            <span class="name">キャンドルマス</span>
+            <span class="jockey">(武豊)</span>
+            <span class="zi">ZI116.0</span>
+            <span class="odds">3.7倍</span>
+            <span class="ninki">2人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">函館 9R
+            <span class="rank-a">A(暫定)</span>
+            <span class="zidiff">ZI差17.5</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">2</span>
+            <span class="name">マイスターヴェルク</span>
+            <span class="jockey">(横山武史)</span>
+            <span class="zi">ZI134.5</span>
+            <span class="odds">14.2倍</span>
+            <span class="ninki">4人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">1</span>
+            <span class="name">レーヴドロペラ</span>
+            <span class="jockey">(鮫島克駿)</span>
+            <span class="zi">ZI117.0</span>
+            <span class="odds">19.1倍</span>
+            <span class="ninki">7人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">9</span>
+            <span class="name">モンローウォーク</span>
+            <span class="jockey">(横山和生)</span>
+            <span class="zi">ZI112.0</span>
+            <span class="odds">1.9倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note">ZI推定 </span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">函館 10R
+            <span class="rank-a">A(暫定)</span>
+            <span class="zidiff">ZI差10.5</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">14</span>
+            <span class="name">プライベートアイズ</span>
+            <span class="jockey">(横山武史)</span>
+            <span class="zi">ZI134.5</span>
+            <span class="odds">11.3倍</span>
+            <span class="ninki">5人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">1</span>
+            <span class="name">ウインシャーガス</span>
+            <span class="jockey">(鮫島克駿)</span>
+            <span class="zi">ZI124.0</span>
+            <span class="odds">8.6倍</span>
+            <span class="ninki">4人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">12</span>
+            <span class="name">タガノエルー</span>
+            <span class="jockey">(古川吉洋)</span>
+            <span class="zi">ZI116.0</span>
+            <span class="odds">1.9倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note">ZI推定 </span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">函館 11R
+            <span class="rank-a">A(暫定)</span>
+            <span class="zidiff">ZI差16.3</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">12</span>
+            <span class="name">ダイメイビッグボス</span>
+            <span class="jockey">(横山武史)</span>
+            <span class="zi">ZI125.3</span>
+            <span class="odds">11.0倍</span>
+            <span class="ninki">4人気</span>
+            <span class="note">ZI推定 </span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">4</span>
+            <span class="name">アルテクィーン</span>
+            <span class="jockey">(鮫島克駿)</span>
+            <span class="zi">ZI109.0</span>
+            <span class="odds">26.5倍</span>
+            <span class="ninki">9人気</span>
+            <span class="note">ZI推定 </span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">11</span>
+            <span class="name">シグレ</span>
+            <span class="jockey">(武豊)</span>
+            <span class="zi">ZI109.0</span>
+            <span class="odds">2.9倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note">ZI推定 </span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">函館 12R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差8.4</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">4</span>
+            <span class="name">ホウオウヘッセン</span>
+            <span class="jockey">(横山武史)</span>
+            <span class="zi">ZI120.7</span>
+            <span class="odds">1.5倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">1</span>
+            <span class="name">ザカリナン</span>
+            <span class="jockey">(斎藤新)</span>
+            <span class="zi">ZI112.4</span>
+            <span class="odds">15.3倍</span>
+            <span class="ninki">5人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">3</span>
+            <span class="name">マグネシアブリック</span>
+            <span class="jockey">(北村友一)</span>
+            <span class="zi">ZI112.0</span>
+            <span class="odds">9.8倍</span>
+            <span class="ninki">3人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 1R
+            <span class="rank-a">A(暫定)</span>
+            <span class="zidiff">ZI差11.0</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">1</span>
+            <span class="name">ムーンベリル</span>
+            <span class="jockey">(坂井瑠星)</span>
+            <span class="zi">ZI121.0</span>
+            <span class="odds">1.1倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">10</span>
+            <span class="name">ユイノキャッツアイ</span>
+            <span class="jockey">(木幡初也)</span>
+            <span class="zi">ZI110.0</span>
+            <span class="odds">11.2倍</span>
+            <span class="ninki">2人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">6</span>
+            <span class="name">ドナビッグベン</span>
+            <span class="jockey">(荻野極)</span>
+            <span class="zi">ZI109.0</span>
+            <span class="odds">19.8倍</span>
+            <span class="ninki">5人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 2R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差7.2</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">16</span>
+            <span class="name">クレアノア</span>
+            <span class="jockey">(戸崎圭太)</span>
+            <span class="zi">ZI124.2</span>
+            <span class="odds">6.6倍</span>
+            <span class="ninki">4人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">2</span>
+            <span class="name">ジャストビコーズ</span>
+            <span class="jockey">(三浦皇成)</span>
+            <span class="zi">ZI117.0</span>
+            <span class="odds">2.9倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">15</span>
+            <span class="name">クリスタルドレス</span>
+            <span class="jockey">(江田照男)</span>
+            <span class="zi">ZI116.0</span>
+            <span class="odds">8.2倍</span>
+            <span class="ninki">5人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 3R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差7.0</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">6</span>
+            <span class="name">グランマエストロ</span>
+            <span class="jockey">(戸崎圭太)</span>
+            <span class="zi">ZI128.8</span>
+            <span class="odds">3.4倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">14</span>
+            <span class="name">シャルムグリーン</span>
+            <span class="jockey">(津村明秀)</span>
+            <span class="zi">ZI121.8</span>
+            <span class="odds">5.7倍</span>
+            <span class="ninki">3人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">9</span>
+            <span class="name">シルバーゴールド</span>
+            <span class="jockey">(吉田豊)</span>
+            <span class="zi">ZI117.0</span>
+            <span class="odds">33.8倍</span>
+            <span class="ninki">9人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 4R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差3.0</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">3</span>
+            <span class="name">フェスティヴハート</span>
+            <span class="jockey">(柴田大知)</span>
+            <span class="zi">ZI111.0</span>
+            <span class="odds">4.3倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">5</span>
+            <span class="name">デルマザオウ</span>
+            <span class="jockey">(小崎綾也)</span>
+            <span class="zi">ZI108.0</span>
+            <span class="odds">8.8倍</span>
+            <span class="ninki">4人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">4</span>
+            <span class="name">トラストレガート</span>
+            <span class="jockey">(吉田豊)</span>
+            <span class="zi">ZI104.0</span>
+            <span class="odds">19.0倍</span>
+            <span class="ninki">9人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 5R</div>
+          <div class="shinba">新馬戦のためZI対象外</div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 6R</div>
+          <div class="shinba">新馬戦のためZI対象外</div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 7R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差1.0</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">4</span>
+            <span class="name">イントゥザウインド</span>
+            <span class="jockey">(坂井瑠星)</span>
+            <span class="zi">ZI119.0</span>
+            <span class="odds">3.1倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">3</span>
+            <span class="name">チェイサー</span>
+            <span class="jockey">(佐藤翔馬)</span>
+            <span class="zi">ZI118.0</span>
+            <span class="odds">4.8倍</span>
+            <span class="ninki">2人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">5</span>
+            <span class="name">キタノドンカルロ</span>
+            <span class="jockey">(柴田大知)</span>
+            <span class="zi">ZI113.0</span>
+            <span class="odds">7.5倍</span>
+            <span class="ninki">4人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 8R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差3.9</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">8</span>
+            <span class="name">アメテュストス</span>
+            <span class="jockey">(戸崎圭太)</span>
+            <span class="zi">ZI129.9</span>
+            <span class="odds">5.0倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">15</span>
+            <span class="name">トーセンブリラーレ</span>
+            <span class="jockey">(津村明秀)</span>
+            <span class="zi">ZI126.0</span>
+            <span class="odds">11.5倍</span>
+            <span class="ninki">7人気</span>
+            <span class="note">ZI推定 </span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">12</span>
+            <span class="name">ミエノストロング</span>
+            <span class="jockey">(石川裕紀)</span>
+            <span class="zi">ZI125.0</span>
+            <span class="odds">7.5倍</span>
+            <span class="ninki">4人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 9R
+            <span class="rank-a">A(暫定)</span>
+            <span class="zidiff">ZI差19.0</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">3</span>
+            <span class="name">ヴァンヴィーヴ</span>
+            <span class="jockey">(戸崎圭太)</span>
+            <span class="zi">ZI146.0</span>
+            <span class="odds">7.5倍</span>
+            <span class="ninki">4人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">6</span>
+            <span class="name">ヴェントゥーラ</span>
+            <span class="jockey">(田辺裕信)</span>
+            <span class="zi">ZI127.1</span>
+            <span class="odds">5.5倍</span>
+            <span class="ninki">3人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">15</span>
+            <span class="name">ロードトレゾール</span>
+            <span class="jockey">(団野大成)</span>
+            <span class="zi">ZI125.0</span>
+            <span class="odds">22.0倍</span>
+            <span class="ninki">8人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 10R
+            <span class="rank-s">S(暫定)</span>
+            <span class="zidiff">ZI差28.8</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">4</span>
+            <span class="name">アロンズロッド</span>
+            <span class="jockey">(戸崎圭太)</span>
+            <span class="zi">ZI143.8</span>
+            <span class="odds">2.2倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">6</span>
+            <span class="name">コスモイシュタル</span>
+            <span class="jockey">(松岡正海)</span>
+            <span class="zi">ZI115.0</span>
+            <span class="odds">6.7倍</span>
+            <span class="ninki">3人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">7</span>
+            <span class="name">ルールーリマ</span>
+            <span class="jockey">(荻野極)</span>
+            <span class="zi">ZI112.0</span>
+            <span class="odds">4.4倍</span>
+            <span class="ninki">2人気</span>
+            <span class="note">ZI推定 </span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 11R
+            <span class="rank-a">A(暫定)</span>
+            <span class="zidiff">ZI差14.5</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">7</span>
+            <span class="name">ガビーズシスター</span>
+            <span class="jockey">(戸崎圭太)</span>
+            <span class="zi">ZI142.6</span>
+            <span class="odds">7.8倍</span>
+            <span class="ninki">3人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">13</span>
+            <span class="name">ユキマル</span>
+            <span class="jockey">(田辺裕信)</span>
+            <span class="zi">ZI128.1</span>
+            <span class="odds">5.5倍</span>
+            <span class="ninki">2人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">5</span>
+            <span class="name">エコロアゼル</span>
+            <span class="jockey">(団野大成)</span>
+            <span class="zi">ZI124.0</span>
+            <span class="odds">4.7倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">福島 12R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差0.8</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">3</span>
+            <span class="name">ソナタン</span>
+            <span class="jockey">(津村明秀)</span>
+            <span class="zi">ZI120.8</span>
+            <span class="odds">10.0倍</span>
+            <span class="ninki">7人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">11</span>
+            <span class="name">エアトベーレ</span>
+            <span class="jockey">(嶋田純次)</span>
+            <span class="zi">ZI120.0</span>
+            <span class="odds">6.8倍</span>
+            <span class="ninki">2人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">6</span>
+            <span class="name">サムシングニュー</span>
+            <span class="jockey">(石神深道)</span>
+            <span class="zi">ZI116.0</span>
+            <span class="odds">14.4倍</span>
+            <span class="ninki">9人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 1R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差1.0</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">9</span>
+            <span class="name">アウスヴァール</span>
+            <span class="jockey">(森一馬)</span>
+            <span class="zi">ZI124.0</span>
+            <span class="odds">2.2倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">8</span>
+            <span class="name">メイショウソウセキ</span>
+            <span class="jockey">(難波剛健)</span>
+            <span class="zi">ZI123.0</span>
+            <span class="odds">3.7倍</span>
+            <span class="ninki">2人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">2</span>
+            <span class="name">スティルシャイニン</span>
+            <span class="jockey">(上野翔)</span>
+            <span class="zi">ZI98.0</span>
+            <span class="odds">18.0倍</span>
+            <span class="ninki">7人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 2R
+            <span class="rank-a">A(暫定)</span>
+            <span class="zidiff">ZI差17.4</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">6</span>
+            <span class="name">カルロット</span>
+            <span class="jockey">(松山弘平)</span>
+            <span class="zi">ZI136.4</span>
+            <span class="odds">2.5倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">5</span>
+            <span class="name">ルナフィオーレ</span>
+            <span class="jockey">(西村淳也)</span>
+            <span class="zi">ZI119.0</span>
+            <span class="odds">11.6倍</span>
+            <span class="ninki">4人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">2</span>
+            <span class="name">ハクサンテドリガワ</span>
+            <span class="jockey">(松若風馬)</span>
+            <span class="zi">ZI116.0</span>
+            <span class="odds">13.2倍</span>
+            <span class="ninki">6人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 3R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差2.0</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">6</span>
+            <span class="name">メイショウメゴヒメ</span>
+            <span class="jockey">(田口貫太)</span>
+            <span class="zi">ZI111.0</span>
+            <span class="odds">9.9倍</span>
+            <span class="ninki">5人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">7</span>
+            <span class="name">ヤマニンエルファバ</span>
+            <span class="jockey">(高杉吏麒)</span>
+            <span class="zi">ZI109.0</span>
+            <span class="odds">4.4倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">16</span>
+            <span class="name">エイシンキタールン</span>
+            <span class="jockey">(吉村誠之)</span>
+            <span class="zi">ZI104.0</span>
+            <span class="odds">19.5倍</span>
+            <span class="ninki">11人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 4R
+            <span class="rank-s">S(暫定)</span>
+            <span class="zidiff">ZI差32.9</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">11</span>
+            <span class="name">アラムシャピラス</span>
+            <span class="jockey">(川田将雅)</span>
+            <span class="zi">ZI157.2</span>
+            <span class="odds">3.2倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">3</span>
+            <span class="name">ホウオウモチーヴ</span>
+            <span class="jockey">(松山弘平)</span>
+            <span class="zi">ZI124.3</span>
+            <span class="odds">3.6倍</span>
+            <span class="ninki">2人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">13</span>
+            <span class="name">ルクスディグニティ</span>
+            <span class="jockey">(幸英明)</span>
+            <span class="zi">ZI115.0</span>
+            <span class="odds">16.3倍</span>
+            <span class="ninki">6人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 5R</div>
+          <div class="shinba">新馬戦のためZI対象外</div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 6R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差1.0</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">8</span>
+            <span class="name">ウルトラハート</span>
+            <span class="jockey">(角田大和)</span>
+            <span class="zi">ZI120.0</span>
+            <span class="odds">3.8倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">4</span>
+            <span class="name">フレアオブセンス</span>
+            <span class="jockey">(西村淳也)</span>
+            <span class="zi">ZI119.0</span>
+            <span class="odds">4.0倍</span>
+            <span class="ninki">2人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">11</span>
+            <span class="name">レッドフレーザー</span>
+            <span class="jockey">(松若風馬)</span>
+            <span class="zi">ZI105.0</span>
+            <span class="odds">19.4倍</span>
+            <span class="ninki">10人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 7R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差2.2</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">5</span>
+            <span class="name">アーリントンロウ</span>
+            <span class="jockey">(西村淳也)</span>
+            <span class="zi">ZI123.0</span>
+            <span class="odds">16.8倍</span>
+            <span class="ninki">5人気</span>
+            <span class="note">ZI推定 </span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">10</span>
+            <span class="name">ダイアナクイーン</span>
+            <span class="jockey">(酒井学)</span>
+            <span class="zi">ZI120.8</span>
+            <span class="odds">27.0倍</span>
+            <span class="ninki">10人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">11</span>
+            <span class="name">ミライハーモニー</span>
+            <span class="jockey">(今村聖奈)</span>
+            <span class="zi">ZI119.0</span>
+            <span class="odds">7.6倍</span>
+            <span class="ninki">2人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 8R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差6.1</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">1</span>
+            <span class="name">アイカンアズーラ</span>
+            <span class="jockey">(酒井学)</span>
+            <span class="zi">ZI125.0</span>
+            <span class="odds">6.5倍</span>
+            <span class="ninki">3人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">9</span>
+            <span class="name">ドラムメジャー</span>
+            <span class="jockey">(松山弘平)</span>
+            <span class="zi">ZI118.8</span>
+            <span class="odds">5.0倍</span>
+            <span class="ninki">2人気</span>
+            <span class="note">ZI推定 </span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">3</span>
+            <span class="name">スマッシング</span>
+            <span class="jockey">(田山旺佑)</span>
+            <span class="zi">ZI112.0</span>
+            <span class="odds">4.7倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note">ZI推定 </span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 9R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差6.8</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">8</span>
+            <span class="name">ユメハハテシナク</span>
+            <span class="jockey">(松若風馬)</span>
+            <span class="zi">ZI117.0</span>
+            <span class="odds">11.8倍</span>
+            <span class="ninki">4人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">7</span>
+            <span class="name">クスクス</span>
+            <span class="jockey">(酒井学)</span>
+            <span class="zi">ZI110.2</span>
+            <span class="odds">12.9倍</span>
+            <span class="ninki">6人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">2</span>
+            <span class="name">ヤマニンループ</span>
+            <span class="jockey">(藤懸貴志)</span>
+            <span class="zi">ZI108.0</span>
+            <span class="odds">12.5倍</span>
+            <span class="ninki">5人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 10R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差9.4</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">13</span>
+            <span class="name">レヴァンテシチー</span>
+            <span class="jockey">(松山弘平)</span>
+            <span class="zi">ZI125.4</span>
+            <span class="odds">5.4倍</span>
+            <span class="ninki">2人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">1</span>
+            <span class="name">ジューンエオス</span>
+            <span class="jockey">(西村淳也)</span>
+            <span class="zi">ZI116.0</span>
+            <span class="odds">5.4倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">16</span>
+            <span class="name">アレナパラシオ</span>
+            <span class="jockey">(富田暁)</span>
+            <span class="zi">ZI114.0</span>
+            <span class="odds">5.9倍</span>
+            <span class="ninki">4人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 11R
+            <span class="rank-a">A(暫定)</span>
+            <span class="zidiff">ZI差12.2</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">6</span>
+            <span class="name">ガイアメンテ</span>
+            <span class="jockey">(川田将雅)</span>
+            <span class="zi">ZI139.2</span>
+            <span class="odds">6.1倍</span>
+            <span class="ninki">3人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">17</span>
+            <span class="name">ジョバンニ</span>
+            <span class="jockey">(コレット)</span>
+            <span class="zi">ZI127.0</span>
+            <span class="odds">3.3倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">9</span>
+            <span class="name">ジーティーアダマン</span>
+            <span class="jockey">(松山弘平)</span>
+            <span class="zi">ZI122.1</span>
+            <span class="odds">5.7倍</span>
+            <span class="ninki">2人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+        <div class="race-block">
+          <div class="race-head">小倉 12R
+            <span class="rank-b">B(暫定)</span>
+            <span class="zidiff">ZI差7.0</span>
+          </div>
+          
+          <div class="horse-line">
+            <span class="pos">1位</span>
+            <span class="umaban">7</span>
+            <span class="name">ミッキージャンプ</span>
+            <span class="jockey">(高杉吏麒)</span>
+            <span class="zi">ZI119.0</span>
+            <span class="odds">2.8倍</span>
+            <span class="ninki">2人気</span>
+            <span class="note"></span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">2位</span>
+            <span class="umaban">4</span>
+            <span class="name">ロングトールサリー</span>
+            <span class="jockey">(西村淳也)</span>
+            <span class="zi">ZI112.0</span>
+            <span class="odds">2.8倍</span>
+            <span class="ninki">1人気</span>
+            <span class="note">ZI推定 </span>
+          </div>
+          <div class="horse-line">
+            <span class="pos">3位</span>
+            <span class="umaban">5</span>
+            <span class="name">フレイムスター</span>
+            <span class="jockey">(吉村誠之)</span>
+            <span class="zi">ZI104.0</span>
+            <span class="odds">9.7倍</span>
+            <span class="ninki">5人気</span>
+            <span class="note"></span>
+          </div>
+        </div>
+<div class="footer">ランク基準は暫定値です。今後のデータ蓄積により見直されます。</div>
+</body>
+</html>
