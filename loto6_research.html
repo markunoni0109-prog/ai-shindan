@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>研究日誌 | LOTO HUNTER</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050810;
+    --surface: #0a0f1e;
+    --card: #0d1428;
+    --border: #1a2744;
+    --accent: #00d4ff;
+    --text: #e0e8ff;
+    --muted: #4a5580;
+    --gold: #ffd700;
+    --hit: #00ff88;
+    --warn: #ff6600;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ヘッダー */
+  .header {
+    text-align: center;
+    padding: 40px 0 30px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+
+  .header-brand {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    letter-spacing: 6px;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .header-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(22px, 4vw, 36px);
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+  }
+
+  .header-sub {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  /* ナビ */
+  .nav {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+
+  .nav a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    transition: all 0.2s;
+  }
+
+  .nav a:hover, .nav a.active {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* セクションタイトル */
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* 日誌エントリー */
+  .entry {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    margin-bottom: 24px;
+    padding: 20px 24px;
+  }
+
+  .entry-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .entry-date {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+  }
+
+  .entry-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    padding: 3px 10px;
+    border: 1px solid;
+    letter-spacing: 1px;
+  }
+
+  .tag-start { color: var(--hit); border-color: var(--hit); }
+  .tag-fail { color: var(--warn); border-color: var(--warn); }
+  .tag-improve { color: var(--accent); border-color: var(--accent); }
+  .tag-discover { color: var(--gold); border-color: var(--gold); }
+  .tag-version { color: #a78fff; border-color: #a78fff; }
+
+  .entry-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+  }
+
+  .entry-body {
+    font-size: 13px;
+    line-height: 2;
+    color: #b0bcd8;
+  }
+
+  .entry-body p { margin-bottom: 10px; }
+
+  .entry-body .highlight {
+    color: var(--accent);
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .entry-body .bad {
+    color: var(--warn);
+  }
+
+  .entry-body .good {
+    color: var(--hit);
+  }
+
+  /* バージョン履歴 */
+  .version-list {
+    margin-top: 10px;
+  }
+
+  .version-item {
+    display: flex;
+    gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    font-size: 12px;
+  }
+
+  .version-num {
+    font-family: 'Orbitron', monospace;
+    color: var(--accent);
+    min-width: 60px;
+  }
+
+  .version-desc { color: #b0bcd8; line-height: 1.8; }
+
+  /* データテーブル */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    margin-top: 12px;
+  }
+
+  .data-table th {
+    background: rgba(0,212,255,0.05);
+    color: var(--accent);
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 1px;
+  }
+
+  .data-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    color: #b0bcd8;
+  }
+
+  .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* フッター */
+  .footer {
+    text-align: center;
+    padding: 40px 0;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+  }
+
+  .scanline {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    animation: scan 4s linear infinite;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  @keyframes scan { 0%{top:0} 100%{top:100vh} }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+
+<div class="container">
+
+  <div class="header">
+    <div class="header-brand">AI HUNTER</div>
+    <div class="header-title">研究日誌</div>
+    <div class="header-sub">LOTO HUNTER RESEARCH LOG</div>
+  </div>
+
+  <div class="nav">
+    <a href="./loto6_results.html">← 予測・結果</a>
+    <a href="#diary" class="active">開発日誌</a>
+    <a href="#version">バージョン履歴</a>
+    <a href="#backtest">バックテスト</a>
+    <a href="#hypothesis">仮説研究</a>
+  </div>
+
+  <!-- 開発日誌 -->
+  <div id="diary">
+    <div class="section-title">DEVELOPMENT LOG — 開発日誌</div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <div class="entry-date">2026.07.21</div>
+        <div class="entry-tag tag-discover">新発見</div>
+      </div>
+      <div class="entry-title">連番が4回連続で出ている</div>
+      <div class="entry-body">
+        <p>第2116回：<span class="highlight">13-14</span>、第2118回：<span class="highlight">35-36-37</span>、第2120回：<span class="highlight">13-14</span>、第2121回：<span class="highlight">25-26</span></p>
+        <p>4回中4回で連番が出た。偶然か法則か。ORBITはバックテストで確認してから判断しろと言った。まだ「4回」ではサンプルが少なすぎる。でも気になる。</p>
+        <p>次回以降も連番が続くなら、Z(Consecutive)という指標を追加する予定。</p>
+      </div>
+    </div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <div class="entry-date">2026.07.16</div>
+        <div class="entry-tag tag-fail">反省</div>
+      </div>
+      <div class="entry-title">第2120回：低め97で全滅。合計値フィルターの呪い</div>
+      <div class="entry-body">
+        <p>当選：<span class="highlight">03-08-13-14-16-43</span>（合計97）</p>
+        <p><span class="bad">合計値97は過去2120回で最低水準。</span>正直、こんな低い合計値が来るとは思っていなかった。</p>
+        <p>8と43は取れていた。13-14の連番がまた出た。でも予測には13も14も入っていなかった。</p>
+        <p>以前、合計値フィルター（80〜160）を撤廃したはずなのに、実質的に低め帯の候補が少なかった。構造を見直す必要がある。</p>
+      </div>
+    </div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <div class="entry-date">2026.07.09</div>
+        <div class="entry-tag tag-improve">改善</div>
+      </div>
+      <div class="entry-title">第2118回：3個一致・5等当選！構造変更が効いた</div>
+      <div class="entry-body">
+        <p>当選：<span class="highlight">01-05-08-35-36-37</span>（合計122）</p>
+        <p>口4（3-1-2構造）で<span class="good">1・8・36の3個一致。5等1000円当選。</span></p>
+        <p>5口の構造を固定の2-3-1から可変（2-3-1・3-2-1・2-2-2・3-1-2・1-3-2）に変えた効果が出た。35-36-37の3連番が出たのに、予測には連番として入れていなかったのが悔しい。</p>
+        <p>「数字は合ってるのに口の組み合わせでバラける」これが今の最大の課題。</p>
+      </div>
+    </div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <div class="entry-date">2026.06.19</div>
+        <div class="entry-tag tag-discover">バックテスト</div>
+      </div>
+      <div class="entry-title">113回分バックテスト実施。ROI6.2%という現実</div>
+      <div class="entry-body">
+        <p>第2000〜2112回（113回分）をウォークフォワード方式で検証した。未来データは一切使わない厳格な方法。</p>
+        <p>結果：<span class="bad">ROI 6.2%。5等（3個一致）が5回。4等以上はゼロ。</span></p>
+        <p>ただし3個一致時の「取り逃し数字」を分析すると、LOW域（1〜15）の数字が57%を占めていた。LOW域の選定が弱いという明確な課題が見つかった。これはクイックピックでは絶対に分からない。</p>
+        <p>外れたことよりも「なぜ外れたか」が分かったことの方が大きい。</p>
+      </div>
+    </div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <div class="entry-date">2026.05.22</div>
+        <div class="entry-tag tag-start">スタート</div>
+      </div>
+      <div class="entry-title">最初はひどかった。3指標・固定軸・全部外れ</div>
+      <div class="entry-body">
+        <p>最初のバージョン（Gemini v4.0）は3指標だけ。Z(Freq)・Z(Gap)・Z(Pair)。軸数字を固定して全5口に同じ数字を入れていた。</p>
+        <p><span class="bad">結果：8・14・24が全5口に固定。当選番号にこの数字が入らなければ全滅。</span></p>
+        <p>「分析してる感」はあったが、実際は特定の数字に賭けているだけだった。今から見ると恥ずかしいレベル。でもここから始めないと改善できなかった。</p>
+        <p>今は16指標まで増えた。あの頃の3倍以上。</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- バージョン履歴 -->
+  <div id="version" style="margin-top:50px;">
+    <div class="section-title">VERSION HISTORY — バージョン履歴</div>
+
+    <div class="entry">
+      <div class="version-list">
+        <div class="version-item">
+          <div class="version-num">v4.0</div>
+          <div class="version-desc">Gemini設計。3指標。軸数字固定。合計値フィルター110〜150。<span style="color:var(--warn)">全5口に同じ数字が固定される問題。</span></div>
+        </div>
+        <div class="version-item">
+          <div class="version-num">v4.1</div>
+          <div class="version-desc">合計値フィルターを80〜160に拡大。低域必須化。連番チェック追加。<span style="color:var(--warn)">偶奇3:3固定フィルターが邪魔をしていた。</span></div>
+        </div>
+        <div class="version-item">
+          <div class="version-num">v5.0</div>
+          <div class="version-desc">Claude完全引き継ぎ。6指標に拡張（Trend・OddEven・ZoneLink追加）。探索空間3318通り。</div>
+        </div>
+        <div class="version-item">
+          <div class="version-num">v5.1</div>
+          <div class="version-desc">同一数字最大4口ルール追加。差し替えTOP20内。分散改善。</div>
+        </div>
+        <div class="version-item">
+          <div class="version-num">v5.2</div>
+          <div class="version-desc"><span style="color:var(--hit)">偶奇フィルター完全撤廃。</span>合計値フィルター撤廃済み継続。探索空間14000通り超に拡大。</div>
+        </div>
+        <div class="version-item">
+          <div class="version-num">v7.0</div>
+          <div class="version-desc">11指標に拡張。マルコフ連鎖・エントロピー・トリプル共起追加。ORBIT設計。</div>
+        </div>
+        <div class="version-item">
+          <div class="version-num">v8.0</div>
+          <div class="version-desc">5口の構造を固定2-3-1から可変（5パターン）に変更。LOW10・EDGE8・MAIN5のプール拡張。</div>
+        </div>
+        <div class="version-item">
+          <div class="version-num">v8.1</div>
+          <div class="version-desc">引力・反発マトリクス追加。2-18反発・5-42反発フィルター実装。</div>
+        </div>
+        <div class="version-item">
+          <div class="version-num">v8.2</div>
+          <div class="version-desc">Z(Attraction)×1.20追加。引力マトリクスをスコアに組み込み。</div>
+        </div>
+        <div class="version-item">
+          <div class="version-num" style="color:var(--gold)">v8.3</div>
+          <div class="version-desc"><span style="color:var(--gold)">現行。</span>16指標。Z(Bonus_Link)・Z(Critical_Gap)・Z(Day_Bias)追加。ボーナス逆襲スライド実装。曜日バイアス追加。</div>
+        </div>
+        <div class="version-item">
+          <div class="version-num" style="color:var(--muted)">v8.4</div>
+          <div class="version-desc" style="color:var(--muted)">開発中。連番トリガー・引力マトリクスCSV自動学習・曜日バイアス自動計算を予定。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- バックテスト -->
+  <div id="backtest" style="margin-top:50px;">
+    <div class="section-title">BACKTEST — バックテスト結果</div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <div class="entry-date">2026.06.19実施</div>
+        <div class="entry-tag tag-fail">ROI 6.2%</div>
+      </div>
+      <div class="entry-title">ウォークフォワードバックテスト（第2000〜2112回）</div>
+      <div class="entry-body">
+        <table class="data-table">
+          <tr><th>項目</th><th>結果</th></tr>
+          <tr><td>対象回数</td><td>113回</td></tr>
+          <tr><td>総購入金額</td><td>113,000円</td></tr>
+          <tr><td>総払戻金額</td><td>7,000円</td></tr>
+          <tr><td>収支</td><td style="color:var(--warn)">-106,000円</td></tr>
+          <tr><td>ROI</td><td style="color:var(--warn)">6.2%</td></tr>
+          <tr><td>5等当選</td><td>5回</td></tr>
+          <tr><td>4等以上</td><td>0回</td></tr>
+          <tr><td>最高一致</td><td>3個</td></tr>
+        </table>
+        <p style="margin-top:14px;">3個一致時の取り逃し分析：LOW域が57%を占めていた。この発見がv8.0のLOWプール拡大につながった。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 仮説研究 -->
+  <div id="hypothesis" style="margin-top:50px;">
+    <div class="section-title">HYPOTHESIS — 仮説研究</div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <div class="entry-date">研究中</div>
+        <div class="entry-tag tag-discover">連番研究</div>
+      </div>
+      <div class="entry-title">連番は偶然か？法則か？</div>
+      <div class="entry-body">
+        <p>直近4回で連番が4回出た。段階別の連番傾向：</p>
+        <p>低め → 1-2・3-4・4-5が強い<br>
+        中間 → 22-23・21-22・24-25が強い<br>
+        高め → 42-43・41-42・36-37が強い</p>
+        <p><span style="color:var(--muted)">検証状況：バックテスト待ち。前回連番→翌回連番率を全期間で確認予定。</span></p>
+      </div>
+    </div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <div class="entry-date">研究中</div>
+        <div class="entry-tag tag-discover">引力研究</div>
+      </div>
+      <div class="entry-title">18番と25番は引き合っている</div>
+      <div class="entry-body">
+        <p>全2119回のデータで引力マトリクスを計算した結果：</p>
+        <p><span class="highlight">18→25の引力: 1.07</span>（期待値より7%多く一緒に出る）<br>
+        <span class="highlight">8→25の引力: 1.07</span><br>
+        <span class="bad">2→18の反発: 0.49</span>（期待値の半分しか一緒に出ない）</p>
+        <p>これを予測コードに組み込んでいる（v8.1〜）。</p>
+      </div>
+    </div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <div class="entry-date">研究中</div>
+        <div class="entry-tag tag-discover">ボーナス逆襲研究</div>
+      </div>
+      <div class="entry-title">ボーナス数字は次回本数字として出やすいのか？</div>
+      <div class="entry-body">
+        <p>仮説：ボーナス数字として選ばれたボールは、次回以降に本数字として出やすくなる。</p>
+        <p>直近の検証例：第2119回ボーナス42→第2120回本数字43（隣）<br>
+        第2121回ボーナス候補26→第2121回本数字26 <span class="good">✅的中</span></p>
+        <p><span style="color:var(--muted)">検証状況：直近3回のボーナス数字をv8.3で優遇中。効果は継続観察中。</span></p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    DATA NEVER LIES · AI HUNTER · @onikumar029
+  </div>
+
+</div>
+</body>
+</html>
