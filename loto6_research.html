@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>研究日誌 | LOTO HUNTER</title>
+<title>LOTO HUNTER | AI HUNTER</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -12,15 +12,14 @@
     --card: #0d1428;
     --border: #1a2744;
     --accent: #00d4ff;
-    --text: #e0e8ff;
-    --muted: #4a5580;
+    --accent2: #0066ff;
     --gold: #ffd700;
     --hit: #00ff88;
-    --warn: #ff6600;
+    --miss: #ff3366;
+    --text: #e0e8ff;
+    --muted: #4a5580;
   }
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
   body {
     background: var(--bg);
     color: var(--text);
@@ -28,7 +27,12 @@
     min-height: 100vh;
     overflow-x: hidden;
   }
-
+  #canvas-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
   body::before {
     content: '';
     position: fixed;
@@ -40,441 +44,1001 @@
     pointer-events: none;
     z-index: 0;
   }
+  .container { max-width: 900px; margin: 0 auto; padding: 20px; position: relative; z-index: 1; }
+  .header { text-align: center; padding: 40px 0 30px; border-bottom: 1px solid var(--border); margin-bottom: 40px; }
+  .header-brand { font-family: 'Orbitron', monospace; font-size: 11px; letter-spacing: 6px; color: var(--accent); margin-bottom: 8px; }
+  .header-title { font-family: 'Orbitron', monospace; font-size: clamp(28px, 5vw, 48px); font-weight: 900; color: #fff; letter-spacing: 4px; text-shadow: 0 0 30px rgba(0,212,255,0.4); }
+  .header-title span { color: var(--accent); }
+  .header-sub { font-size: 12px; color: var(--muted); letter-spacing: 3px; margin-top: 10px; font-family: 'Share Tech Mono', monospace; }
+  .algo-bar { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); padding: 12px 20px; margin-bottom: 40px; font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 1px; }
+  .algo-label { color: var(--muted); font-size: 10px; letter-spacing: 2px; margin-bottom: 4px; }
 
-  .container {
-    max-width: 860px;
-    margin: 0 auto;
-    padding: 20px;
-    position: relative;
-    z-index: 1;
-  }
+  /* 最新3回カード */
+  .round-card { background: var(--card); border: 1px solid var(--border); margin-bottom: 30px; position: relative; overflow: hidden; opacity: 0; transform: translateY(20px); animation: fadeUp 0.6s ease forwards; }
+  .round-card:nth-child(1) { animation-delay: 0.1s; }
+  .round-card:nth-child(2) { animation-delay: 0.3s; }
+  .round-card:nth-child(3) { animation-delay: 0.5s; }
+  @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+  .round-card.latest { border-color: var(--accent); box-shadow: 0 0 30px rgba(0,212,255,0.1); }
+  .round-card.latest::before { content: 'LATEST'; position: absolute; top: 12px; right: 12px; font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 2px; color: var(--accent); background: rgba(0,212,255,0.1); border: 1px solid var(--accent); padding: 3px 8px; }
+  .round-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; background: rgba(255,255,255,0.02); }
+  .round-num { font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 900; color: var(--accent); }
+  .round-date { font-size: 12px; color: var(--muted); font-family: 'Share Tech Mono', monospace; }
+  .round-stage { margin-left: auto; font-size: 11px; font-family: 'Share Tech Mono', monospace; padding: 4px 10px; border: 1px solid; }
+  .stage-low { color: #00ff88; border-color: #00ff88; background: rgba(0,255,136,0.05); }
+  .stage-mid { color: #00d4ff; border-color: #00d4ff; background: rgba(0,212,255,0.05); }
+  .stage-high { color: #ff6600; border-color: #ff6600; background: rgba(255,102,0,0.05); }
+  .winning-section { padding: 20px; border-bottom: 1px solid var(--border); }
+  .section-label { font-size: 10px; letter-spacing: 3px; color: var(--muted); margin-bottom: 12px; font-family: 'Share Tech Mono', monospace; }
+  .winning-numbers { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .num-ball { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', monospace; font-weight: 700; font-size: 15px; }
+  .num-ball.winning { background: linear-gradient(135deg, #1a2744, #0d1428); border: 2px solid var(--accent); color: var(--accent); box-shadow: 0 0 12px rgba(0,212,255,0.3); }
+  .num-ball.bonus { background: linear-gradient(135deg, #2a1a00, #1a1000); border: 2px solid var(--gold); color: var(--gold); box-shadow: 0 0 12px rgba(255,215,0,0.3); }
+  .bonus-label { font-size: 10px; color: var(--gold); font-family: 'Share Tech Mono', monospace; margin-left: 4px; }
+  .predict-section { padding: 20px; }
+  .predict-row { display: grid; grid-template-columns: 80px 1fr auto; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+  .predict-row:last-child { border-bottom: none; }
+  .predict-label { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); }
+  .predict-nums { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pnum { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 700; border: 1px solid var(--border); background: var(--surface); color: var(--muted); }
+  .pnum.hit { border-color: var(--hit); color: var(--hit); background: rgba(0,255,136,0.1); box-shadow: 0 0 8px rgba(0,255,136,0.3); animation: hitPulse 1.5s ease-in-out infinite; }
+  @keyframes hitPulse { 0%,100%{box-shadow:0 0 8px rgba(0,255,136,0.3)} 50%{box-shadow:0 0 16px rgba(0,255,136,0.6)} }
+  .predict-score { text-align: right; }
+  .hit-count { font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 900; }
+  .hit-count.count-0 { color: var(--muted); }
+  .hit-count.count-1 { color: #6699ff; }
+  .hit-count.count-2 { color: var(--accent); }
+  .hit-count.count-3 { color: var(--hit); }
+  .hit-label { font-size: 9px; color: var(--muted); font-family: 'Share Tech Mono', monospace; letter-spacing: 1px; }
+  .summary-bar { padding: 12px 20px; background: rgba(0,212,255,0.03); border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .summary-text { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); }
+  .summary-best { font-family: 'Orbitron', monospace; font-size: 12px; color: var(--accent); }
 
-  /* ヘッダー */
-  .header {
-    text-align: center;
-    padding: 40px 0 30px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 40px;
-  }
+  /* 過去ログセクション */
+  .log-section { margin-top: 50px; }
+  .log-title { font-family: 'Orbitron', monospace; font-size: 14px; letter-spacing: 4px; color: var(--muted); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  .log-item { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--muted); margin-bottom: 16px; padding: 16px 20px; opacity: 0; animation: fadeUp 0.6s ease forwards; }
+  .log-item:nth-child(2) { animation-delay: 0.1s; border-left-color: #4a5580; }
+  .log-item:nth-child(3) { animation-delay: 0.2s; border-left-color: #4a5580; }
+  .log-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .log-num { font-family: 'Orbitron', monospace; font-size: 16px; font-weight: 700; color: var(--muted); }
+  .log-date { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); }
+  .log-model { margin-left: auto; font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--muted); background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 3px 8px; }
+  .log-winning { font-family: 'Orbitron', monospace; font-size: 13px; color: var(--accent); margin-bottom: 10px; letter-spacing: 2px; }
+  .log-winning span { color: var(--gold); }
+  .log-list { list-style: none; }
+  .log-list li { font-family: 'Share Tech Mono', monospace; font-size: 12px; color: var(--muted); padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.02); display: flex; justify-content: space-between; }
+  .log-list li:last-child { border-bottom: none; }
+  .log-list .match { color: var(--accent); }
+  .log-list .match-hit { color: var(--hit); }
+  .log-note { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #ff6600; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
 
-  .header-brand {
-    font-family: 'Orbitron', monospace;
-    font-size: 11px;
-    letter-spacing: 6px;
-    color: var(--accent);
-    margin-bottom: 8px;
-  }
-
-  .header-title {
-    font-family: 'Orbitron', monospace;
-    font-size: clamp(22px, 4vw, 36px);
-    font-weight: 900;
-    color: #fff;
-    letter-spacing: 3px;
-    margin-bottom: 10px;
-  }
-
-  .header-sub {
-    font-size: 12px;
-    color: var(--muted);
-    letter-spacing: 2px;
-    font-family: 'Share Tech Mono', monospace;
-  }
-
-  /* ナビ */
-  .nav {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 40px;
-  }
-
-  .nav a {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 2px;
-    color: var(--muted);
-    text-decoration: none;
-    border: 1px solid var(--border);
-    padding: 6px 14px;
-    transition: all 0.2s;
-  }
-
-  .nav a:hover, .nav a.active {
-    color: var(--accent);
-    border-color: var(--accent);
-  }
-
-  /* セクションタイトル */
-  .section-title {
-    font-family: 'Orbitron', monospace;
-    font-size: 12px;
-    letter-spacing: 4px;
-    color: var(--accent);
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  /* 日誌エントリー */
-  .entry {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--accent);
-    margin-bottom: 24px;
-    padding: 20px 24px;
-  }
-
-  .entry-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 14px;
-    flex-wrap: wrap;
-  }
-
-  .entry-date {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 11px;
-    color: var(--accent);
-  }
-
-  .entry-tag {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 10px;
-    padding: 3px 10px;
-    border: 1px solid;
-    letter-spacing: 1px;
-  }
-
-  .tag-start { color: var(--hit); border-color: var(--hit); }
-  .tag-fail { color: var(--warn); border-color: var(--warn); }
-  .tag-improve { color: var(--accent); border-color: var(--accent); }
-  .tag-discover { color: var(--gold); border-color: var(--gold); }
-  .tag-version { color: #a78fff; border-color: #a78fff; }
-
-  .entry-title {
-    font-size: 15px;
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: 12px;
-  }
-
-  .entry-body {
-    font-size: 13px;
-    line-height: 2;
-    color: #b0bcd8;
-  }
-
-  .entry-body p { margin-bottom: 10px; }
-
-  .entry-body .highlight {
-    color: var(--accent);
-    font-family: 'Share Tech Mono', monospace;
-  }
-
-  .entry-body .bad {
-    color: var(--warn);
-  }
-
-  .entry-body .good {
-    color: var(--hit);
-  }
-
-  /* バージョン履歴 */
-  .version-list {
-    margin-top: 10px;
-  }
-
-  .version-item {
-    display: flex;
-    gap: 16px;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
-    font-size: 12px;
-  }
-
-  .version-num {
-    font-family: 'Orbitron', monospace;
-    color: var(--accent);
-    min-width: 60px;
-  }
-
-  .version-desc { color: #b0bcd8; line-height: 1.8; }
-
-  /* データテーブル */
-  .data-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 12px;
-    margin-top: 12px;
-  }
-
-  .data-table th {
-    background: rgba(0,212,255,0.05);
-    color: var(--accent);
-    padding: 8px 12px;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-    letter-spacing: 1px;
-  }
-
-  .data-table td {
-    padding: 8px 12px;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
-    color: #b0bcd8;
-  }
-
-  .data-table tr:hover td { background: rgba(255,255,255,0.02); }
-
-  /* フッター */
-  .footer {
-    text-align: center;
-    padding: 40px 0;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 2px;
-    border-top: 1px solid var(--border);
-    margin-top: 40px;
-  }
-
-  .scanline {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    animation: scan 4s linear infinite;
-    opacity: 0.3;
-    pointer-events: none;
-    z-index: 999;
-  }
-
+  .scanline { position: fixed; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); animation: scan 4s linear infinite; opacity: 0.3; pointer-events: none; z-index: 999; }
   @keyframes scan { 0%{top:0} 100%{top:100vh} }
+  .footer { text-align: center; padding: 40px 0; font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 2px; border-top: 1px solid var(--border); margin-top: 20px; }
+
+  @media (max-width: 600px) {
+    .predict-row { grid-template-columns: 60px 1fr auto; gap: 8px; }
+    .pnum { width: 28px; height: 28px; font-size: 10px; }
+    .num-ball { width: 36px; height: 36px; font-size: 13px; }
+  }
 </style>
 </head>
 <body>
+<canvas id="canvas-bg"></canvas>
 <div class="scanline"></div>
-
 <div class="container">
 
   <div class="header">
     <div class="header-brand">AI HUNTER</div>
-    <div class="header-title">研究日誌</div>
-    <div class="header-sub">LOTO HUNTER RESEARCH LOG</div>
+    <div class="header-title">LOTO <span>HUNTER</span></div>
+    <div class="header-sub">SANCTUARY OF DATA ANALYSIS</div>
   </div>
 
-  <div class="nav">
-    <a href="./loto6_results.html">← 予測・結果</a>
-    <a href="#diary" class="active">開発日誌</a>
-    <a href="#version">バージョン履歴</a>
-    <a href="#backtest">バックテスト</a>
-    <a href="#hypothesis">仮説研究</a>
+  <div class="algo-bar">
+    <div class="algo-label">ALGORITHM v5.2 CLAUDE-MASTER（現行）</div>
+    Score = Z(Freq) + Z(Gap) + Z(Pair)×1.25 + Z(Trend)×1.50 + Z(ZoneLink)×1.00　※偶奇フィルター撤廃
   </div>
 
-  <!-- 開発日誌 -->
-  <div id="diary">
-    <div class="section-title">DEVELOPMENT LOG — 開発日誌</div>
 
-    <div class="entry">
-      <div class="entry-header">
-        <div class="entry-date">2026.07.21</div>
-        <div class="entry-tag tag-discover">新発見</div>
-      </div>
-      <div class="entry-title">連番が4回連続で出ている</div>
-      <div class="entry-body">
-        <p>第2116回：<span class="highlight">13-14</span>、第2118回：<span class="highlight">35-36-37</span>、第2120回：<span class="highlight">13-14</span>、第2121回：<span class="highlight">25-26</span></p>
-        <p>4回中4回で連番が出た。偶然か法則か。ORBITはバックテストで確認してから判断しろと言った。まだ「4回」ではサンプルが少なすぎる。でも気になる。</p>
-        <p>次回以降も連番が続くなら、Z(Consecutive)という指標を追加する予定。</p>
+  <!-- 第2122回 -->
+  <div class="round-card latest">
+    <div class="round-header">
+      <div><div class="round-num">#2122</div><div class="round-date">2026.07.23</div></div>
+      <div class="round-stage stage-mid">中間 / 124</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">12</div><div class="num-ball winning">15</div><div class="num-ball winning">18</div>
+        <div class="num-ball winning">21</div><div class="num-ball winning">26</div><div class="num-ball winning">32</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">41</div>
       </div>
     </div>
-
-    <div class="entry">
-      <div class="entry-header">
-        <div class="entry-date">2026.07.16</div>
-        <div class="entry-tag tag-fail">反省</div>
+    <div class="predict-section">
+      <div class="section-label">AI PREDICTION vs RESULT — Claude v8.3 SUPER-PHYSICAL</div>
+      <div class="predict-row">
+        <div class="predict-label">口1 [低め]</div>
+        <div class="predict-nums"><div class="pnum">05</div><div class="pnum">08</div><div class="pnum hit">18</div><div class="pnum">24</div><div class="pnum hit">26</div><div class="pnum">36</div></div>
+        <div class="predict-score"><div class="hit-count count-2">2</div><div class="hit-label">MATCH</div></div>
       </div>
-      <div class="entry-title">第2120回：低め97で全滅。合計値フィルターの呪い</div>
-      <div class="entry-body">
-        <p>当選：<span class="highlight">03-08-13-14-16-43</span>（合計97）</p>
-        <p><span class="bad">合計値97は過去2120回で最低水準。</span>正直、こんな低い合計値が来るとは思っていなかった。</p>
-        <p>8と43は取れていた。13-14の連番がまた出た。でも予測には13も14も入っていなかった。</p>
-        <p>以前、合計値フィルター（80〜160）を撤廃したはずなのに、実質的に低め帯の候補が少なかった。構造を見直す必要がある。</p>
+      <div class="predict-row">
+        <div class="predict-label">口2 [中間1]</div>
+        <div class="predict-nums"><div class="pnum">02</div><div class="pnum">06</div><div class="pnum">08</div><div class="pnum">24</div><div class="pnum">28</div><div class="pnum">36</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
       </div>
-    </div>
-
-    <div class="entry">
-      <div class="entry-header">
-        <div class="entry-date">2026.07.09</div>
-        <div class="entry-tag tag-improve">改善</div>
+      <div class="predict-row">
+        <div class="predict-label">口3 [中間2]</div>
+        <div class="predict-nums"><div class="pnum">01</div><div class="pnum">03</div><div class="pnum">27</div><div class="pnum">29</div><div class="pnum">42</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
       </div>
-      <div class="entry-title">第2118回：3個一致・5等当選！構造変更が効いた</div>
-      <div class="entry-body">
-        <p>当選：<span class="highlight">01-05-08-35-36-37</span>（合計122）</p>
-        <p>口4（3-1-2構造）で<span class="good">1・8・36の3個一致。5等1000円当選。</span></p>
-        <p>5口の構造を固定の2-3-1から可変（2-3-1・3-2-1・2-2-2・3-1-2・1-3-2）に変えた効果が出た。35-36-37の3連番が出たのに、予測には連番として入れていなかったのが悔しい。</p>
-        <p>「数字は合ってるのに口の組み合わせでバラける」これが今の最大の課題。</p>
+      <div class="predict-row">
+        <div class="predict-label">口4 [中間3]</div>
+        <div class="predict-nums"><div class="pnum">03</div><div class="pnum">13</div><div class="pnum hit">15</div><div class="pnum">16</div><div class="pnum">35</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
       </div>
-    </div>
-
-    <div class="entry">
-      <div class="entry-header">
-        <div class="entry-date">2026.06.19</div>
-        <div class="entry-tag tag-discover">バックテスト</div>
-      </div>
-      <div class="entry-title">113回分バックテスト実施。ROI6.2%という現実</div>
-      <div class="entry-body">
-        <p>第2000〜2112回（113回分）をウォークフォワード方式で検証した。未来データは一切使わない厳格な方法。</p>
-        <p>結果：<span class="bad">ROI 6.2%。5等（3個一致）が5回。4等以上はゼロ。</span></p>
-        <p>ただし3個一致時の「取り逃し数字」を分析すると、LOW域（1〜15）の数字が57%を占めていた。LOW域の選定が弱いという明確な課題が見つかった。これはクイックピックでは絶対に分からない。</p>
-        <p>外れたことよりも「なぜ外れたか」が分かったことの方が大きい。</p>
+      <div class="predict-row">
+        <div class="predict-label">口5 [高め]</div>
+        <div class="predict-nums"><div class="pnum">07</div><div class="pnum">19</div><div class="pnum">27</div><div class="pnum">29</div><div class="pnum">37</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
       </div>
     </div>
-
-    <div class="entry">
-      <div class="entry-header">
-        <div class="entry-date">2026.05.22</div>
-        <div class="entry-tag tag-start">スタート</div>
-      </div>
-      <div class="entry-title">最初はひどかった。3指標・固定軸・全部外れ</div>
-      <div class="entry-body">
-        <p>最初のバージョン（Gemini v4.0）は3指標だけ。Z(Freq)・Z(Gap)・Z(Pair)。軸数字を固定して全5口に同じ数字を入れていた。</p>
-        <p><span class="bad">結果：8・14・24が全5口に固定。当選番号にこの数字が入らなければ全滅。</span></p>
-        <p>「分析してる感」はあったが、実際は特定の数字に賭けているだけだった。今から見ると恥ずかしいレベル。でもここから始めないと改善できなかった。</p>
-        <p>今は16指標まで増えた。あの頃の3倍以上。</p>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- バージョン履歴 -->
-  <div id="version" style="margin-top:50px;">
-    <div class="section-title">VERSION HISTORY — バージョン履歴</div>
-
-    <div class="entry">
-      <div class="version-list">
-        <div class="version-item">
-          <div class="version-num">v4.0</div>
-          <div class="version-desc">Gemini設計。3指標。軸数字固定。合計値フィルター110〜150。<span style="color:var(--warn)">全5口に同じ数字が固定される問題。</span></div>
-        </div>
-        <div class="version-item">
-          <div class="version-num">v4.1</div>
-          <div class="version-desc">合計値フィルターを80〜160に拡大。低域必須化。連番チェック追加。<span style="color:var(--warn)">偶奇3:3固定フィルターが邪魔をしていた。</span></div>
-        </div>
-        <div class="version-item">
-          <div class="version-num">v5.0</div>
-          <div class="version-desc">Claude完全引き継ぎ。6指標に拡張（Trend・OddEven・ZoneLink追加）。探索空間3318通り。</div>
-        </div>
-        <div class="version-item">
-          <div class="version-num">v5.1</div>
-          <div class="version-desc">同一数字最大4口ルール追加。差し替えTOP20内。分散改善。</div>
-        </div>
-        <div class="version-item">
-          <div class="version-num">v5.2</div>
-          <div class="version-desc"><span style="color:var(--hit)">偶奇フィルター完全撤廃。</span>合計値フィルター撤廃済み継続。探索空間14000通り超に拡大。</div>
-        </div>
-        <div class="version-item">
-          <div class="version-num">v7.0</div>
-          <div class="version-desc">11指標に拡張。マルコフ連鎖・エントロピー・トリプル共起追加。ORBIT設計。</div>
-        </div>
-        <div class="version-item">
-          <div class="version-num">v8.0</div>
-          <div class="version-desc">5口の構造を固定2-3-1から可変（5パターン）に変更。LOW10・EDGE8・MAIN5のプール拡張。</div>
-        </div>
-        <div class="version-item">
-          <div class="version-num">v8.1</div>
-          <div class="version-desc">引力・反発マトリクス追加。2-18反発・5-42反発フィルター実装。</div>
-        </div>
-        <div class="version-item">
-          <div class="version-num">v8.2</div>
-          <div class="version-desc">Z(Attraction)×1.20追加。引力マトリクスをスコアに組み込み。</div>
-        </div>
-        <div class="version-item">
-          <div class="version-num" style="color:var(--gold)">v8.3</div>
-          <div class="version-desc"><span style="color:var(--gold)">現行。</span>16指標。Z(Bonus_Link)・Z(Critical_Gap)・Z(Day_Bias)追加。ボーナス逆襲スライド実装。曜日バイアス追加。</div>
-        </div>
-        <div class="version-item">
-          <div class="version-num" style="color:var(--muted)">v8.4</div>
-          <div class="version-desc" style="color:var(--muted)">開発中。連番トリガー・引力マトリクスCSV自動学習・曜日バイアス自動計算を予定。</div>
-        </div>
-      </div>
+    <div class="summary-bar">
+      <div class="summary-text">BEST: 2 MATCH / 18・26を取れた</div>
+      <div class="summary-best">12-15-18-21の連番帯・26が3回連続！</div>
     </div>
   </div>
 
-  <!-- バックテスト -->
-  <div id="backtest" style="margin-top:50px;">
-    <div class="section-title">BACKTEST — バックテスト結果</div>
-
-    <div class="entry">
-      <div class="entry-header">
-        <div class="entry-date">2026.06.19実施</div>
-        <div class="entry-tag tag-fail">ROI 6.2%</div>
+  <!-- 第2121回 -->
+  <div class="round-card">
+    <div class="round-header">
+      <div><div class="round-num">#2121</div><div class="round-date">2026.07.20</div></div>
+      <div class="round-stage stage-low">低め / 82</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">01</div><div class="num-ball winning">03</div><div class="num-ball winning">10</div>
+        <div class="num-ball winning">17</div><div class="num-ball winning">25</div><div class="num-ball winning">26</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">36</div>
       </div>
-      <div class="entry-title">ウォークフォワードバックテスト（第2000〜2112回）</div>
-      <div class="entry-body">
-        <table class="data-table">
-          <tr><th>項目</th><th>結果</th></tr>
-          <tr><td>対象回数</td><td>113回</td></tr>
-          <tr><td>総購入金額</td><td>113,000円</td></tr>
-          <tr><td>総払戻金額</td><td>7,000円</td></tr>
-          <tr><td>収支</td><td style="color:var(--warn)">-106,000円</td></tr>
-          <tr><td>ROI</td><td style="color:var(--warn)">6.2%</td></tr>
-          <tr><td>5等当選</td><td>5回</td></tr>
-          <tr><td>4等以上</td><td>0回</td></tr>
-          <tr><td>最高一致</td><td>3個</td></tr>
-        </table>
-        <p style="margin-top:14px;">3個一致時の取り逃し分析：LOW域が57%を占めていた。この発見がv8.0のLOWプール拡大につながった。</p>
+    </div>
+    <div class="predict-section">
+      <div class="section-label">AI PREDICTION vs RESULT — Claude v8.3 SUPER-PHYSICAL</div>
+      <div class="predict-row">
+        <div class="predict-label">口1 [低め]</div>
+        <div class="predict-nums"><div class="pnum hit">01</div><div class="pnum">08</div><div class="pnum">18</div><div class="pnum">24</div><div class="pnum hit">26</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-2">2</div><div class="hit-label">MATCH</div></div>
       </div>
+      <div class="predict-row">
+        <div class="predict-label">口2 [中間1]</div>
+        <div class="predict-nums"><div class="pnum">02</div><div class="pnum">05</div><div class="pnum">08</div><div class="pnum">24</div><div class="pnum hit">26</div><div class="pnum">36</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口3 [中間2]</div>
+        <div class="predict-nums"><div class="pnum">06</div><div class="pnum">15</div><div class="pnum">27</div><div class="pnum">28</div><div class="pnum">37</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口4 [中間3]</div>
+        <div class="predict-nums"><div class="pnum hit">03</div><div class="pnum">06</div><div class="pnum">07</div><div class="pnum">29</div><div class="pnum">35</div><div class="pnum">37</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口5 [高め]</div>
+        <div class="predict-nums"><div class="pnum hit">10</div><div class="pnum">20</div><div class="pnum hit">25</div><div class="pnum">28</div><div class="pnum">35</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-2">2</div><div class="hit-label">MATCH</div></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-text">BEST: 2 MATCH / ボーナス逆襲26が本数字で出た！</div>
+      <div class="summary-best">1・26・10・25を捉えた！あと4個</div>
     </div>
   </div>
 
-  <!-- 仮説研究 -->
-  <div id="hypothesis" style="margin-top:50px;">
-    <div class="section-title">HYPOTHESIS — 仮説研究</div>
-
-    <div class="entry">
-      <div class="entry-header">
-        <div class="entry-date">研究中</div>
-        <div class="entry-tag tag-discover">連番研究</div>
-      </div>
-      <div class="entry-title">連番は偶然か？法則か？</div>
-      <div class="entry-body">
-        <p>直近4回で連番が4回出た。段階別の連番傾向：</p>
-        <p>低め → 1-2・3-4・4-5が強い<br>
-        中間 → 22-23・21-22・24-25が強い<br>
-        高め → 42-43・41-42・36-37が強い</p>
-        <p><span style="color:var(--muted)">検証状況：バックテスト待ち。前回連番→翌回連番率を全期間で確認予定。</span></p>
+  <!-- 第2120回 -->
+  <div class="round-card">
+    <div class="round-header">
+      <div><div class="round-num">#2120</div><div class="round-date">2026.07.16</div></div>
+      <div class="round-stage stage-low">低め / 97</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">03</div><div class="num-ball winning">08</div><div class="num-ball winning">13</div>
+        <div class="num-ball winning">14</div><div class="num-ball winning">16</div><div class="num-ball winning">43</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">26</div>
       </div>
     </div>
-
-    <div class="entry">
-      <div class="entry-header">
-        <div class="entry-date">研究中</div>
-        <div class="entry-tag tag-discover">引力研究</div>
+    <div class="predict-section">
+      <div class="section-label">AI PREDICTION vs RESULT — Claude v8.3 SUPER-PHYSICAL</div>
+      <div class="predict-row">
+        <div class="predict-label">口1 [低め]</div>
+        <div class="predict-nums"><div class="pnum">05</div><div class="pnum hit">08</div><div class="pnum">18</div><div class="pnum">24</div><div class="pnum">25</div><div class="pnum">36</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
       </div>
-      <div class="entry-title">18番と25番は引き合っている</div>
-      <div class="entry-body">
-        <p>全2119回のデータで引力マトリクスを計算した結果：</p>
-        <p><span class="highlight">18→25の引力: 1.07</span>（期待値より7%多く一緒に出る）<br>
-        <span class="highlight">8→25の引力: 1.07</span><br>
-        <span class="bad">2→18の反発: 0.49</span>（期待値の半分しか一緒に出ない）</p>
-        <p>これを予測コードに組み込んでいる（v8.1〜）。</p>
+      <div class="predict-row">
+        <div class="predict-label">口2 [中間1]</div>
+        <div class="predict-nums"><div class="pnum">05</div><div class="pnum">06</div><div class="pnum hit">08</div><div class="pnum">24</div><div class="pnum">29</div><div class="pnum">36</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口3 [中間2]</div>
+        <div class="predict-nums"><div class="pnum">01</div><div class="pnum">02</div><div class="pnum">27</div><div class="pnum">28</div><div class="pnum">35</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口4 [中間3]</div>
+        <div class="predict-nums"><div class="pnum">01</div><div class="pnum">02</div><div class="pnum hit">03</div><div class="pnum">26</div><div class="pnum">37</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口5 [高め]</div>
+        <div class="predict-nums"><div class="pnum">10</div><div class="pnum">19</div><div class="pnum">27</div><div class="pnum">28</div><div class="pnum">35</div><div class="pnum hit">43</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
       </div>
     </div>
+    <div class="summary-bar">
+      <div class="summary-text">BEST: 1 MATCH / 8・43を捉えた</div>
+      <div class="summary-best">13-14連番がまた出た！次回必ず入れる</div>
+    </div>
+  </div>
 
-    <div class="entry">
-      <div class="entry-header">
-        <div class="entry-date">研究中</div>
-        <div class="entry-tag tag-discover">ボーナス逆襲研究</div>
+  <!-- 第2119回 -->
+  <div class="round-card">
+    <div class="round-header">
+      <div><div class="round-num">#2119</div><div class="round-date">2026.07.13</div></div>
+      <div class="round-stage stage-mid">中間 / 143</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">15</div><div class="num-ball winning">18</div><div class="num-ball winning">20</div>
+        <div class="num-ball winning">22</div><div class="num-ball winning">30</div><div class="num-ball winning">38</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">42</div>
       </div>
-      <div class="entry-title">ボーナス数字は次回本数字として出やすいのか？</div>
-      <div class="entry-body">
-        <p>仮説：ボーナス数字として選ばれたボールは、次回以降に本数字として出やすくなる。</p>
-        <p>直近の検証例：第2119回ボーナス42→第2120回本数字43（隣）<br>
-        第2121回ボーナス候補26→第2121回本数字26 <span class="good">✅的中</span></p>
-        <p><span style="color:var(--muted)">検証状況：直近3回のボーナス数字をv8.3で優遇中。効果は継続観察中。</span></p>
+    </div>
+    <div class="predict-section">
+      <div class="section-label">AI PREDICTION vs RESULT — Claude v8.2</div>
+      <div class="predict-row">
+        <div class="predict-label">口1 [2-3-1]</div>
+        <div class="predict-nums"><div class="pnum">02</div><div class="pnum">08</div><div class="pnum hit">18</div><div class="pnum">26</div><div class="pnum">27</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
       </div>
+      <div class="predict-row">
+        <div class="predict-label">口2 [3-2-1]</div>
+        <div class="predict-nums"><div class="pnum">01</div><div class="pnum">05</div><div class="pnum">06</div><div class="pnum">27</div><div class="pnum">28</div><div class="pnum">36</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口3 [2-2-2]</div>
+        <div class="predict-nums"><div class="pnum">03</div><div class="pnum">07</div><div class="pnum">24</div><div class="pnum hit">30</div><div class="pnum">35</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口4 [3-1-2]</div>
+        <div class="predict-nums"><div class="pnum">03</div><div class="pnum">04</div><div class="pnum">10</div><div class="pnum">21</div><div class="pnum">37</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口5 [1-3-2]</div>
+        <div class="predict-nums"><div class="pnum">07</div><div class="pnum">19</div><div class="pnum">24</div><div class="pnum hit">30</div><div class="pnum">35</div><div class="pnum">37</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-text">BEST: 1 MATCH / ボーナス42を口1で捉えた</div>
+      <div class="summary-best">EDGE爆発回・15-18-20-22の連番帯</div>
+    </div>
+  </div>
+
+  <!-- 第2118回 -->
+  <div class="round-card">
+    <div class="round-header">
+      <div><div class="round-num">#2118</div><div class="round-date">2026.07.09</div></div>
+      <div class="round-stage stage-mid">中間 / 122</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">01</div><div class="num-ball winning">05</div><div class="num-ball winning">08</div>
+        <div class="num-ball winning">35</div><div class="num-ball winning">36</div><div class="num-ball winning">37</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">24</div>
+      </div>
+    </div>
+    <div class="predict-section">
+      <div class="section-label">AI PREDICTION vs RESULT — Gemini v8.1 ORBIT-STRUCTURE</div>
+      <div class="predict-row">
+        <div class="predict-label">口1 [2-3-1]</div>
+        <div class="predict-nums"><div class="pnum">02</div><div class="pnum hit">05</div><div class="pnum">18</div><div class="pnum">19</div><div class="pnum">28</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口2 [3-2-1]</div>
+        <div class="predict-nums"><div class="pnum">02</div><div class="pnum hit">05</div><div class="pnum">06</div><div class="pnum">18</div><div class="pnum">28</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口3 [2-2-2]</div>
+        <div class="predict-nums"><div class="pnum">06</div><div class="pnum hit">08</div><div class="pnum">19</div><div class="pnum">21</div><div class="pnum hit">36</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-2">2</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口4 [3-1-2]</div>
+        <div class="predict-nums"><div class="pnum hit">01</div><div class="pnum">06</div><div class="pnum hit">08</div><div class="pnum">19</div><div class="pnum hit">36</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-3">3</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口5 [1-3-2]</div>
+        <div class="predict-nums"><div class="pnum">06</div><div class="pnum">19</div><div class="pnum">21</div><div class="pnum">27</div><div class="pnum hit">36</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-text">BEST: 3 MATCH 🎯 5等当選！</div>
+      <div class="summary-best">35-36-37連番が鍵だった</div>
+    </div>
+  </div>
+
+  <!-- 第2117回 -->
+  <div class="round-card">
+    <div class="round-header">
+      <div><div class="round-num">#2117</div><div class="round-date">2026.07.06</div></div>
+      <div class="round-stage stage-mid">中間 / 140</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">04</div><div class="num-ball winning">07</div><div class="num-ball winning">26</div>
+        <div class="num-ball winning">27</div><div class="num-ball winning">35</div><div class="num-ball winning">41</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">34</div>
+      </div>
+    </div>
+    <div class="predict-section">
+      <div class="section-label">AI PREDICTION vs RESULT — Claude v8.2 + SetBias(Iセット)</div>
+      <div class="predict-row">
+        <div class="predict-label">口1 [2-3-1]</div>
+        <div class="predict-nums"><div class="pnum">02</div><div class="pnum">05</div><div class="pnum">18</div><div class="pnum">24</div><div class="pnum">28</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口2 [3-2-1]</div>
+        <div class="predict-nums"><div class="pnum">01</div><div class="pnum">05</div><div class="pnum">08</div><div class="pnum">18</div><div class="pnum hit">27</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口3 [2-2-2]</div>
+        <div class="predict-nums"><div class="pnum">03</div><div class="pnum">10</div><div class="pnum">19</div><div class="pnum">30</div><div class="pnum hit">35</div><div class="pnum">36</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口4 [3-1-2]</div>
+        <div class="predict-nums"><div class="pnum">03</div><div class="pnum">06</div><div class="pnum">10</div><div class="pnum hit">26</div><div class="pnum">36</div><div class="pnum">37</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口5 [1-3-2]</div>
+        <div class="predict-nums"><div class="pnum">06</div><div class="pnum">19</div><div class="pnum">21</div><div class="pnum">30</div><div class="pnum hit">35</div><div class="pnum">37</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-text">BEST: 1 MATCH / Iセット予想04・34は的中せず</div>
+      <div class="summary-best">26・27・35を複数口で捉えた</div>
+    </div>
+  </div>
+
+  <!-- 第2115回 -->
+  <div class="round-card">
+    <div class="round-header">
+      <div><div class="round-num">#2115</div><div class="round-date">2026.06.29</div></div>
+      <div class="round-stage stage-mid">中間 / 126</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">01</div><div class="num-ball winning">03</div><div class="num-ball winning">11</div>
+        <div class="num-ball winning">34</div><div class="num-ball winning">35</div><div class="num-ball winning">42</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">23</div>
+      </div>
+    </div>
+    <div class="predict-section">
+      <div class="section-label">AI PREDICTION vs RESULT — Gemini v8.1 ORBIT-STRUCTURE</div>
+      <div class="predict-row">
+        <div class="predict-label">口1 [2-3-1]</div>
+        <div class="predict-nums"><div class="pnum">02</div><div class="pnum">05</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">28</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口2 [3-2-1]</div>
+        <div class="predict-nums"><div class="pnum">02</div><div class="pnum">05</div><div class="pnum">06</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口3 [2-2-2]</div>
+        <div class="predict-nums"><div class="pnum hit">01</div><div class="pnum">08</div><div class="pnum">27</div><div class="pnum">30</div><div class="pnum">36</div><div class="pnum hit">42</div></div>
+        <div class="predict-score"><div class="hit-count count-2">2</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口4 [3-1-2]</div>
+        <div class="predict-nums"><div class="pnum hit">01</div><div class="pnum">08</div><div class="pnum">15</div><div class="pnum">30</div><div class="pnum">36</div><div class="pnum hit">42</div></div>
+        <div class="predict-score"><div class="hit-count count-2">2</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口5 [1-3-2]</div>
+        <div class="predict-nums"><div class="pnum">08</div><div class="pnum">22</div><div class="pnum">27</div><div class="pnum">30</div><div class="pnum">36</div><div class="pnum hit">42</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-text">BEST: 2 MATCH / EDGE 0個の特殊回</div>
+      <div class="summary-best">1・42を複数口で捉えた！</div>
+    </div>
+  </div>
+
+  <!-- 第2114回 -->
+  <div class="round-card">
+    <div class="round-header">
+      <div><div class="round-num">#2114</div><div class="round-date">2026.06.25</div></div>
+      <div class="round-stage stage-mid">中間 / 115</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">02</div><div class="num-ball winning">16</div><div class="num-ball winning">20</div>
+        <div class="num-ball winning">21</div><div class="num-ball winning">23</div><div class="num-ball winning">33</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">43</div>
+      </div>
+    </div>
+    <div class="predict-section">
+      <div class="section-label">AI PREDICTION vs RESULT — Claude v8.1 ORBIT-STRUCTURE</div>
+      <div class="predict-row">
+        <div class="predict-label">口1 [2-3-1]</div>
+        <div class="predict-nums"><div class="pnum">05</div><div class="pnum">08</div><div class="pnum">18</div><div class="pnum">27</div><div class="pnum">28</div><div class="pnum">36</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口2 [3-2-1]</div>
+        <div class="predict-nums"><div class="pnum hit">02</div><div class="pnum">06</div><div class="pnum">08</div><div class="pnum">18</div><div class="pnum">30</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口3 [2-2-2]</div>
+        <div class="predict-nums"><div class="pnum">01</div><div class="pnum">03</div><div class="pnum hit">21</div><div class="pnum">24</div><div class="pnum">40</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口4 [3-1-2]</div>
+        <div class="predict-nums"><div class="pnum">07</div><div class="pnum">10</div><div class="pnum">13</div><div class="pnum">26</div><div class="pnum">37</div><div class="pnum">40</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口5 [1-3-2]</div>
+        <div class="predict-nums"><div class="pnum">03</div><div class="pnum">19</div><div class="pnum hit">21</div><div class="pnum">24</div><div class="pnum">37</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-text">BEST: 1 MATCH / ボーナス43を口2で捉えた</div>
+      <div class="summary-best">EDGE域強化が次の課題</div>
+    </div>
+  </div>
+
+  <!-- 第2113回 -->
+  <div class="round-card">
+    <div class="round-header">
+      <div><div class="round-num">#2113</div><div class="round-date">2026.06.22</div></div>
+      <div class="round-stage stage-mid">中間 / 155</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">02</div><div class="num-ball winning">05</div><div class="num-ball winning">32</div>
+        <div class="num-ball winning">36</div><div class="num-ball winning">38</div><div class="num-ball winning">42</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">14</div>
+      </div>
+    </div>
+    <div class="predict-section">
+      <div class="section-label">AI PREDICTION vs RESULT — Claude v8.0 ORBIT-STRUCTURE</div>
+      <div class="predict-row">
+        <div class="predict-label">口1 [2-3-1]</div>
+        <div class="predict-nums"><div class="pnum hit">05</div><div class="pnum">08</div><div class="pnum">18</div><div class="pnum">28</div><div class="pnum">30</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口2 [3-2-1]</div>
+        <div class="predict-nums"><div class="pnum hit">05</div><div class="pnum">06</div><div class="pnum">08</div><div class="pnum">18</div><div class="pnum">28</div><div class="pnum">37</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口3 [2-2-2]</div>
+        <div class="predict-nums"><div class="pnum">06</div><div class="pnum">08</div><div class="pnum">18</div><div class="pnum">24</div><div class="pnum hit">36</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口4 [3-1-2]</div>
+        <div class="predict-nums"><div class="pnum">01</div><div class="pnum hit">02</div><div class="pnum hit">05</div><div class="pnum">27</div><div class="pnum">37</div><div class="pnum hit">42</div></div>
+        <div class="predict-score"><div class="hit-count count-3">3</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口5 [1-3-2]</div>
+        <div class="predict-nums"><div class="pnum">10</div><div class="pnum">19</div><div class="pnum">21</div><div class="pnum">30</div><div class="pnum">40</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-text">口4: 3個一致 🎯 5等当選！</div>
+      <div class="summary-best">構造変更が初の5等を生んだ！</div>
+    </div>
+  </div>
+
+  <!-- 第2112回 -->
+  <div class="round-card">
+    <div class="round-header">
+      <div><div class="round-num">#2112</div><div class="round-date">2026.06.18</div></div>
+      <div class="round-stage stage-mid">中間 / 116</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">03</div><div class="num-ball winning">07</div><div class="num-ball winning">08</div>
+        <div class="num-ball winning">27</div><div class="num-ball winning">31</div><div class="num-ball winning">40</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">18</div>
+      </div>
+    </div>
+    <div class="predict-section">
+      <div class="section-label">AI PREDICTION vs RESULT — Gemini v7.0 MARKOV-MASTER</div>
+      <div class="predict-row">
+        <div class="predict-label">口1</div>
+        <div class="predict-nums"><div class="pnum">06</div><div class="pnum hit">08</div><div class="pnum">18</div><div class="pnum">28</div><div class="pnum">30</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口2</div>
+        <div class="predict-nums"><div class="pnum">01</div><div class="pnum">05</div><div class="pnum">17</div><div class="pnum">21</div><div class="pnum">36</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口3</div>
+        <div class="predict-nums"><div class="pnum">06</div><div class="pnum">12</div><div class="pnum">18</div><div class="pnum">24</div><div class="pnum">28</div><div class="pnum">37</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口4</div>
+        <div class="predict-nums"><div class="pnum">01</div><div class="pnum hit">08</div><div class="pnum">21</div><div class="pnum">30</div><div class="pnum">36</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口5</div>
+        <div class="predict-nums"><div class="pnum">05</div><div class="pnum">06</div><div class="pnum">18</div><div class="pnum">24</div><div class="pnum">28</div><div class="pnum">30</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-text">BEST: 1 MATCH / ボーナス18を3口で捉えた</div>
+      <div class="summary-best">本数字があと1個！</div>
+    </div>
+  </div>
+
+  <!-- 研究ログ -->
+  <div style="background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); margin-bottom: 30px; padding: 20px;">
+    <div style="font-family: Orbitron, monospace; font-size: 10px; letter-spacing: 3px; color: var(--muted); margin-bottom: 12px;">RESEARCH LOG</div>
+    <div style="font-family: Share Tech Mono, monospace; font-size: 12px; color: var(--accent); margin-bottom: 8px;">2026.06.19 — バックテスト実施（第2000〜2112回 / 113回分）</div>
+    <div style="font-family: Noto Sans JP, sans-serif; font-size: 13px; color: var(--text); line-height: 2;">
+      5等（3個一致）: 5回 / ROI: 6.2% / 最高一致: 3個<br>
+      LOW域の選定不足を確認 → アルゴリズムv8.0へ改善中
+    </div>
+  </div>
+
+  <!-- 第2111回 -->
+  <div class="round-card">
+    <div class="round-header">
+      <div><div class="round-num">#2111</div><div class="round-date">2026.06.15</div></div>
+      <div class="round-stage stage-mid">中間 / 106</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">01</div><div class="num-ball winning">05</div><div class="num-ball winning">08</div>
+        <div class="num-ball winning">12</div><div class="num-ball winning">37</div><div class="num-ball winning">43</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">36</div>
+      </div>
+    </div>
+    <div class="predict-section">
+      <div class="section-label">AI PREDICTION vs RESULT — Gemini v6.1</div>
+      <div class="predict-row">
+        <div class="predict-label">口1</div>
+        <div class="predict-nums"><div class="pnum">06</div><div class="pnum hit">08</div><div class="pnum">18</div><div class="pnum">24</div><div class="pnum">28</div><div class="pnum hit">43</div></div>
+        <div class="predict-score"><div class="hit-count count-2">2</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口2</div>
+        <div class="predict-nums"><div class="pnum">06</div><div class="pnum hit">08</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">28</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口3</div>
+        <div class="predict-nums"><div class="pnum">06</div><div class="pnum hit">08</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">24</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口4</div>
+        <div class="predict-nums"><div class="pnum">06</div><div class="pnum hit">08</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">24</div><div class="pnum hit">37</div></div>
+        <div class="predict-score"><div class="hit-count count-2">2</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口5</div>
+        <div class="predict-nums"><div class="pnum hit">05</div><div class="pnum">15</div><div class="pnum">21</div><div class="pnum">24</div><div class="pnum">28</div><div class="pnum hit">43</div></div>
+        <div class="predict-score"><div class="hit-count count-2">2</div><div class="hit-label">MATCH</div></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-text">BEST: 2 MATCH / BONUS MISS</div>
+      <div class="summary-best">8・43を複数口で捉えた！あと4個</div>
+    </div>
+  </div>
+
+  <!-- 第2110回 -->
+  <div class="round-card">
+    <div class="round-header">
+      <div><div class="round-num">#2110</div><div class="round-date">2026.06.11</div></div>
+      <div class="round-stage stage-mid">中間 / 141</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">03</div><div class="num-ball winning">09</div><div class="num-ball winning">18</div>
+        <div class="num-ball winning">35</div><div class="num-ball winning">36</div><div class="num-ball winning">40</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">29</div>
+      </div>
+    </div>
+    <div class="predict-section">
+      <div class="section-label">AI PREDICTION vs RESULT — Gemini v5.3</div>
+      <div class="predict-row">
+        <div class="predict-label">口1 低め</div>
+        <div class="predict-nums"><div class="pnum">01</div><div class="pnum">05</div><div class="pnum hit">18</div><div class="pnum">21</div><div class="pnum">24</div><div class="pnum hit">36</div></div>
+        <div class="predict-score"><div class="hit-count count-2">2</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口2 中間1</div>
+        <div class="predict-nums"><div class="pnum">06</div><div class="pnum">08</div><div class="pnum hit">18</div><div class="pnum">21</div><div class="pnum">28</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口3 中間2</div>
+        <div class="predict-nums"><div class="pnum">06</div><div class="pnum">08</div><div class="pnum">24</div><div class="pnum">28</div><div class="pnum">30</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口4 中間3</div>
+        <div class="predict-nums"><div class="pnum">08</div><div class="pnum">15</div><div class="pnum hit">18</div><div class="pnum">28</div><div class="pnum hit">29</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-2">2</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口5 高め</div>
+        <div class="predict-nums"><div class="pnum">10</div><div class="pnum">15</div><div class="pnum">26</div><div class="pnum">28</div><div class="pnum">30</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-text">BEST: 2 MATCH / 口4ボーナス一致</div>
+      <div class="summary-best">18・36・29を捉えた！あと4個</div>
+    </div>
+  </div>
+
+  <!-- 第2109回 -->
+  <div class="round-card">
+    <div class="round-header">
+      <div><div class="round-num">#2109</div><div class="round-date">2026.06.05</div></div>
+      <div class="round-stage stage-mid">中間 / 146</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">06</div><div class="num-ball winning">11</div><div class="num-ball winning">19</div>
+        <div class="num-ball winning">31</div><div class="num-ball winning">38</div><div class="num-ball winning">41</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">03</div>
+      </div>
+    </div>
+    <div class="predict-section">
+      <div class="section-label">AI PREDICTION — Gemini v5.2（偶奇フィルター撤廃・分散強化）</div>
+      <div class="predict-row">
+        <div class="predict-label">口1 低め</div>
+        <div class="predict-nums"><div class="pnum">01</div><div class="pnum">05</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">24</div><div class="pnum">36</div></div>
+        <div class="predict-score"><div class="hit-count count-0">-</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口2 中間1</div>
+        <div class="predict-nums"><div class="pnum">05</div><div class="pnum">08</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">28</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-0">-</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口3 中間2</div>
+        <div class="predict-nums"><div class="pnum">05</div><div class="pnum">08</div><div class="pnum">18</div><div class="pnum">24</div><div class="pnum">28</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-0">-</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口4 中間3</div>
+        <div class="predict-nums"><div class="pnum">08</div><div class="pnum">15</div><div class="pnum">21</div><div class="pnum">28</div><div class="pnum">30</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-0">-</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口5 高め</div>
+        <div class="predict-nums"><div class="pnum">14</div><div class="pnum">15</div><div class="pnum">24</div><div class="pnum">26</div><div class="pnum">30</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-0">-</div><div class="hit-label">MATCH</div></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-text">BEST: 0 MATCH / BONUS MISS</div>
+      <div class="summary-best">全口外れ・次回改善</div>
+    </div>
+  </div>
+
+  <!-- 第2108回 -->
+  <div class="round-card">
+    <div class="round-header">
+      <div><div class="round-num">#2108</div><div class="round-date">2026.06.04</div></div>
+      <div class="round-stage stage-low">低め / 103</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">02</div><div class="num-ball winning">05</div><div class="num-ball winning">10</div>
+        <div class="num-ball winning">15</div><div class="num-ball winning">28</div><div class="num-ball winning">43</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">27</div>
+      </div>
+    </div>
+    <div class="predict-section">
+      <div class="section-label">AI PREDICTION vs RESULT — Claude v5.2</div>
+      <div class="predict-row">
+        <div class="predict-label">口1 低め</div>
+        <div class="predict-nums"><div class="pnum">01</div><div class="pnum">08</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">24</div><div class="pnum">36</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口2 中間1</div>
+        <div class="predict-nums"><div class="pnum">06</div><div class="pnum">08</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">24</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口3 中間2</div>
+        <div class="predict-nums"><div class="pnum">06</div><div class="pnum">08</div><div class="pnum">18</div><div class="pnum hit">28</div><div class="pnum">30</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口4 高め</div>
+        <div class="predict-nums"><div class="pnum">14</div><div class="pnum hit">15</div><div class="pnum">24</div><div class="pnum hit">28</div><div class="pnum">30</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-2">2</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口5 補填</div>
+        <div class="predict-nums"><div class="pnum">06</div><div class="pnum">08</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum hit">28</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-text">BEST: 2 MATCH / BONUS MISS</div>
+      <div class="summary-best">低め合計103 → 低域選定が課題</div>
+    </div>
+  </div>
+
+  <!-- 第2107回 -->
+  <div class="round-card">
+    <div class="round-header">
+      <div><div class="round-num">#2107</div><div class="round-date">2026.06.01</div></div>
+      <div class="round-stage stage-mid">中間 / 147</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">05</div><div class="num-ball winning">08</div><div class="num-ball winning">27</div>
+        <div class="num-ball winning">32</div><div class="num-ball winning">36</div><div class="num-ball winning">39</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">38</div>
+      </div>
+    </div>
+    <div class="predict-section">
+      <div class="section-label">AI PREDICTION vs RESULT — Claude v5.1</div>
+      <div class="predict-row">
+        <div class="predict-label">口1 低め</div>
+        <div class="predict-nums"><div class="pnum">01</div><div class="pnum hit">08</div><div class="pnum">17</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口2 中間1</div>
+        <div class="predict-nums"><div class="pnum">01</div><div class="pnum hit">08</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">24</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口3 中間2</div>
+        <div class="predict-nums"><div class="pnum hit">08</div><div class="pnum">15</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">30</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口4 高め</div>
+        <div class="predict-nums"><div class="pnum">14</div><div class="pnum">15</div><div class="pnum">21</div><div class="pnum">28</div><div class="pnum">30</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口5 補填</div>
+        <div class="predict-nums"><div class="pnum">01</div><div class="pnum hit">08</div><div class="pnum">18</div><div class="pnum">24</div><div class="pnum">37</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-text">BEST: 1 MATCH / BONUS MISS</div>
+      <div class="summary-best">8 → 4口的中！あと5個！</div>
+    </div>
+  </div>
+
+  <!-- 第2106回 -->
+  <div class="round-card">
+    <div class="round-header">
+      <div><div class="round-num">#2106</div><div class="round-date">2026.05.28</div></div>
+      <div class="round-stage stage-mid">中間 / 128</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">01</div><div class="num-ball winning">06</div><div class="num-ball winning">17</div>
+        <div class="num-ball winning">27</div><div class="num-ball winning">34</div><div class="num-ball winning">43</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">24</div>
+      </div>
+    </div>
+    <div class="predict-section">
+      <div class="section-label">AI PREDICTION vs RESULT — Claude v5.1</div>
+      <div class="predict-row">
+        <div class="predict-label">口1 低め</div>
+        <div class="predict-nums"><div class="pnum hit">01</div><div class="pnum">08</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">24</div><div class="pnum">37</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口2 中間1</div>
+        <div class="predict-nums"><div class="pnum">08</div><div class="pnum">15</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">24</div><div class="pnum hit">43</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口3 中間2</div>
+        <div class="predict-nums"><div class="pnum">08</div><div class="pnum">15</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">28</div><div class="pnum hit">43</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口4 高め</div>
+        <div class="predict-nums"><div class="pnum">14</div><div class="pnum">15</div><div class="pnum">21</div><div class="pnum">28</div><div class="pnum">30</div><div class="pnum hit">43</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口5 補填</div>
+        <div class="predict-nums"><div class="pnum">08</div><div class="pnum">15</div><div class="pnum">18</div><div class="pnum">24</div><div class="pnum">37</div><div class="pnum">42</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-text">BEST: 1 MATCH / BONUS MISS</div>
+      <div class="summary-best">43 → 4口的中</div>
+    </div>
+  </div>
+
+  <!-- 第2105回 -->
+  <div class="round-card">
+    <div class="round-header">
+      <div><div class="round-num">#2105</div><div class="round-date">2026.05.25</div></div>
+      <div class="round-stage stage-high">高め / 165</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">05</div><div class="num-ball winning">26</div><div class="num-ball winning">28</div>
+        <div class="num-ball winning">30</div><div class="num-ball winning">36</div><div class="num-ball winning">40</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">32</div>
+      </div>
+    </div>
+    <div class="predict-section">
+      <div class="section-label">AI PREDICTION vs RESULT — Claude v5.0</div>
+      <div class="predict-row">
+        <div class="predict-label">口1 低め</div>
+        <div class="predict-nums"><div class="pnum">02</div><div class="pnum">08</div><div class="pnum">17</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum">37</div></div>
+        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口2〜4</div>
+        <div class="predict-nums"><div class="pnum">08</div><div class="pnum">15</div><div class="pnum">18</div><div class="pnum">21</div><div class="pnum hit">30</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
+      </div>
+      <div class="predict-row">
+        <div class="predict-label">口5 高め</div>
+        <div class="predict-nums"><div class="pnum">14</div><div class="pnum">15</div><div class="pnum">21</div><div class="pnum hit">28</div><div class="pnum hit">30</div><div class="pnum">43</div></div>
+        <div class="predict-score"><div class="hit-count count-2">2</div><div class="hit-label">MATCH</div></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-text">BEST: 2 MATCH / BONUS MISS</div>
+      <div class="summary-best">合計165 → フィルター外が敗因</div>
+    </div>
+  </div>
+
+  <!-- 第2104回 -->
+  <div class="round-card">
+    <div class="round-header">
+      <div><div class="round-num">#2104</div><div class="round-date">2026.05.21</div></div>
+      <div class="round-stage stage-mid">中間 / 145</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">18</div><div class="num-ball winning">19</div><div class="num-ball winning">21</div>
+        <div class="num-ball winning">25</div><div class="num-ball winning">28</div><div class="num-ball winning">34</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">04</div>
+      </div>
+    </div>
+    <div class="predict-section">
+      <div class="section-label">AI PREDICTION vs RESULT — Gemini v4.1（最終予測）</div>
+      <div class="predict-row">
+        <div class="predict-label">口1〜5</div>
+        <div class="predict-nums"><div class="pnum">07</div><div class="pnum">14</div><div class="pnum hit">18</div><div class="pnum hit">21</div><div class="pnum">24</div><div class="pnum">37</div></div>
+        <div class="predict-score"><div class="hit-count count-2">2</div><div class="hit-label">MATCH</div></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-text">BEST: 2 MATCH / BONUS MISS</div>
+      <div class="summary-best">18・21 → 全5口的中</div>
+    </div>
+  </div>
+
+  <!-- 過去ログ -->
+  <div class="log-section">
+    <div class="log-title">ARCHIVE LOG — 過去の記録</div>
+
+    <!-- 第2103回 -->
+    <div class="log-item">
+      <div class="log-header">
+        <div class="log-num">#2103</div>
+        <div class="log-date">2026.05.18</div>
+        <div class="log-model">予測なし</div>
+      </div>
+      <div class="log-winning">当選: 01-02-04-05-08-38 <span>BONUS: 39</span></div>
+      <ul class="log-list">
+        <li><span>・合計58 → 超低域集中・連番多数</span><span class="match">購入なし</span></li>
+        <li><span>・1〜8が5個という歴史的低出目</span></li>
+        <li><span>・この回の分析が合計値フィルター撤廃につながった</span></li>
+      </ul>
+      <div class="log-note">⚠ 旧フィルター（合計110〜150）では100%排除されるパターン → v4.1で80〜160に拡張</div>
+    </div>
+
+    <!-- 第2102回 -->
+    <div class="log-item">
+      <div class="log-header">
+        <div class="log-num">#2102</div>
+        <div class="log-date">2026.05.14</div>
+        <div class="log-model">Claude × ORBIT 共同予測</div>
+      </div>
+      <div class="log-winning">当選: 18-21-25-28-30-43 <span>BONUS: 08</span></div>
+      <ul class="log-list">
+        <li><span>・A: [6,10,18,24,26,37]</span><span class="match">24一致 1個</span></li>
+        <li><span>・B: [8,14,29,30,36,42]</span><span class="match">0個</span></li>
+        <li><span>・C: [5,17,24,33,39,43]</span><span class="match-hit">43一致 1個</span></li>
+        <li><span>・D: [6,13,27,30,34,40]</span><span class="match">30一致 1個</span></li>
+        <li><span>・E: [1,19,22,31,38,41]</span><span class="match">0個</span></li>
+      </ul>
+      <div class="log-note">最高1個一致 / ボーナス08 → 全口外れ</div>
+    </div>
+
+    <!-- 第2101回 -->
+    <div class="log-item">
+      <div class="log-header">
+        <div class="log-num">#2101</div>
+        <div class="log-date">2026.05.11</div>
+        <div class="log-model">Gemini v4.0</div>
+      </div>
+      <div class="log-winning">当選: 01-17-29-33-40-42 <span>BONUS: 21</span></div>
+      <ul class="log-list">
+        <li><span>・口1: [8,14,17,24,29,37]</span><span class="match-hit">17,29一致 2個</span></li>
+        <li><span>・口2: [8,14,17,21,24,37]</span><span class="match">17一致 1個 ⭐BONUS21</span></li>
+        <li><span>・口3: [8,14,17,24,27,37]</span><span class="match">17一致 1個</span></li>
+        <li><span>・口4: [8,14,21,24,29,37]</span><span class="match">29一致 1個 ⭐BONUS21</span></li>
+        <li><span>・口5: [8,14,17,24,29,35]</span><span class="match-hit">17,29一致 2個</span></li>
+      </ul>
+      <div class="log-note">最高2個一致 / 軸数字8・14・24が全滅 → 固定軸の危険性が発覚</div>
     </div>
 
   </div>
@@ -484,5 +1048,62 @@
   </div>
 
 </div>
+<script>
+const canvas = document.getElementById('canvas-bg');
+const ctx = canvas.getContext('2d');
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resize();
+window.addEventListener('resize', resize);
+const particles = [];
+for (let i = 0; i < 80; i++) {
+  particles.push({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    r: Math.random() * 1.2 + 0.3,
+    vx: (Math.random() - 0.5) * 0.3,
+    vy: (Math.random() - 0.5) * 0.3,
+    alpha: Math.random() * 0.4 + 0.1
+  });
+}
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = 'rgba(0,212,255,0.025)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < canvas.width; x += 40) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+  }
+  for (let y = 0; y < canvas.height; y += 40) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+  }
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = canvas.width;
+    if (p.x > canvas.width) p.x = 0;
+    if (p.y < 0) p.y = canvas.height;
+    if (p.y > canvas.height) p.y = 0;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(0,212,255,${p.alpha})`;
+    ctx.fill();
+  });
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 120) {
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = `rgba(0,212,255,${0.05 * (1 - dist/120)})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
 </body>
 </html>
