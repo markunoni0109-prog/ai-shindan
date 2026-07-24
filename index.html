@@ -18,7 +18,7 @@
     --bg: #ffffff;
     --ink: #111111;
     --ink-soft: #444444;
-    --muted: #9a9a9a;
+    --muted: #7a7a7a;
     --hairline: #e4e4e4;
   }
 
@@ -37,14 +37,16 @@
 
   h1 {
     font-size: 26px;
-    font-weight: normal;
+    font-weight: 700;
     letter-spacing: 6px;
     margin-bottom: 10px;
+    -webkit-text-stroke: 0.4px var(--ink);
   }
 
   .tagline {
     font-size: 13px;
-    color: var(--ink-soft);
+    font-weight: 700;
+    color: var(--ink);
     letter-spacing: 1px;
     margin-bottom: 76px;
   }
@@ -95,6 +97,7 @@
 
   .cell-name {
     font-size: 13px;
+    font-weight: 700;
     letter-spacing: 1px;
   }
 
@@ -102,7 +105,8 @@
 
   .log-line {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
+    font-size: 11px;
+    font-weight: 500;
     letter-spacing: 0.5px;
     color: var(--muted);
     display: flex;
@@ -111,7 +115,7 @@
   }
 
   .log-line .dot { font-size: 9px; line-height: 1; }
-  .log-line.active { color: var(--ink-soft); }
+  .log-line.active { color: var(--ink); }
   .log-line.active .dot { color: var(--ink); }
 
   .rule {
