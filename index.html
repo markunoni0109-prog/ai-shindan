@@ -3,480 +3,206 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI HUNTER | Sanctuary of Data Analysis</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
+<title>AI HUNTER</title>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6CLDGG0DS9"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6CLDGG0DS9');
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kurenaido&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #030608;
-    --navy: #050c1e;
-    --accent: #00d4ff;
-    --accent2: #0052cc;
-    --silver: #a8b8cc;
-    --text: #e0e8f0;
-    --muted: #3a4a6a;
-    --gold: #ffd700;
+    --bg: #ffffff;
+    --ink: #111111;
+    --ink-soft: #444444;
+    --muted: #9a9a9a;
+    --hairline: #e4e4e4;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  html, body {
-    width: 100%;
-    min-height: 100vh;
-    background: var(--bg);
-    font-family: 'Noto Sans JP', sans-serif;
-    overflow-x: hidden;
-  }
-
-  /* ===== キャンバス背景 ===== */
-  #canvas-bg {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-  }
-
-  /* ===== メインコンテナ ===== */
-  .hero {
-    position: relative;
-    z-index: 1;
+  body {
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: 'Zen Kurenaido', sans-serif;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 60px 24px 80px;
-    text-align: center;
+    padding: 72px 24px 40px;
   }
 
-  /* ===== トップバッジ ===== */
-  .top-badge {
-    font-family: 'Orbitron', monospace;
-    font-size: 10px;
-    letter-spacing: 4px;
-    color: var(--accent);
-    border: 1px solid rgba(0,212,255,0.3);
-    padding: 6px 16px;
-    margin-bottom: 48px;
-    opacity: 0;
-    animation: fadeDown 1s ease 0.2s forwards;
-  }
-
-  /* ===== ロゴ ===== */
-  .logo {
-    font-family: 'Orbitron', monospace;
-    font-size: clamp(36px, 10vw, 80px);
-    font-weight: 900;
-    color: #fff;
+  h1 {
+    font-size: 26px;
+    font-weight: normal;
     letter-spacing: 6px;
-    line-height: 1;
-    margin-bottom: 16px;
-    opacity: 0;
-    animation: fadeDown 1s ease 0.4s forwards;
-    text-shadow:
-      0 0 40px rgba(0,212,255,0.2),
-      0 0 80px rgba(0,212,255,0.1);
+    margin-bottom: 10px;
   }
 
-  .logo span { color: var(--accent); }
-
-  /* ===== サブタイトル ===== */
-  .sub {
-    font-family: 'Orbitron', monospace;
-    font-size: clamp(9px, 2vw, 11px);
-    letter-spacing: 5px;
-    color: var(--silver);
-    margin-bottom: 64px;
-    opacity: 0;
-    animation: fadeDown 1s ease 0.6s forwards;
+  .tagline {
+    font-size: 13px;
+    color: var(--ink-soft);
+    letter-spacing: 1px;
+    margin-bottom: 76px;
   }
 
-  /* ===== コンパス ===== */
-  .compass-wrap {
-    position: relative;
-    width: clamp(160px, 40vw, 220px);
-    height: clamp(160px, 40vw, 220px);
-    margin: 0 auto 64px;
-    opacity: 0;
-    animation: fadeIn 1.5s ease 0.8s forwards;
-  }
-
-  .compass-ring {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    border: 1px solid rgba(168,184,204,0.5);
-    animation: rotateSlow 20s linear infinite;
-  }
-
-  .compass-ring::before,
-  .compass-ring::after {
-    content: '';
-    position: absolute;
-    background: var(--accent);
-    border-radius: 2px;
-  }
-
-  /* 目盛り */
-  .compass-ring::before {
-    width: 1px;
-    height: 12px;
-    top: -1px;
-    left: 50%;
-    transform: translateX(-50%);
-    box-shadow: 0 0 6px var(--accent);
-  }
-
-  .compass-ring::after {
-    width: 12px;
-    height: 1px;
-    right: -1px;
-    top: 50%;
-    transform: translateY(-50%);
-    box-shadow: 0 0 6px var(--accent);
-  }
-
-  .compass-ring2 {
-    position: absolute;
-    inset: 12%;
-    border-radius: 50%;
-    border: 0.5px solid rgba(168,184,204,0.25);
-    animation: rotateSlow 30s linear infinite reverse;
-  }
-
-  /* 矢印（北） */
-  .compass-arrow {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: rotateSlow 8s ease-in-out infinite alternate;
-  }
-
-  .arrow-n {
-    position: absolute;
-    width: 0;
-    height: 0;
-    top: 20%;
-    left: 50%;
-    transform: translateX(-50%);
-    border-left: 7px solid transparent;
-    border-right: 7px solid transparent;
-    border-bottom: 48px solid var(--accent);
-    filter: drop-shadow(0 0 8px var(--accent));
-  }
-
-  .arrow-s {
-    position: absolute;
-    width: 0;
-    height: 0;
-    bottom: 20%;
-    left: 50%;
-    transform: translateX(-50%);
-    border-left: 7px solid transparent;
-    border-right: 7px solid transparent;
-    border-top: 48px solid rgba(168,184,204,0.4);
-  }
-
-  /* コア */
-  .compass-core {
-    position: absolute;
-    inset: 38%;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(0,212,255,0.3), transparent 70%);
-    border: 1px solid var(--accent);
-    box-shadow:
-      0 0 20px rgba(0,212,255,0.4),
-      inset 0 0 20px rgba(0,212,255,0.1);
-    animation: corePulse 3s ease-in-out infinite;
-  }
-
-  /* グロー */
-  .compass-glow {
-    position: absolute;
-    inset: -20%;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(0,82,204,0.15), transparent 70%);
-    pointer-events: none;
-  }
-
-  /* ===== キャッチコピー ===== */
-  .catch {
-    font-size: clamp(18px, 4vw, 24px);
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: 4px;
-    margin-bottom: 16px;
-    opacity: 0;
-    animation: fadeUp 1s ease 1.2s forwards;
-  }
-
-  .catch-sub {
-    font-size: clamp(11px, 2.5vw, 13px);
-    color: var(--silver);
-    letter-spacing: 2px;
-    margin-bottom: 56px;
-    opacity: 0;
-    animation: fadeUp 1s ease 1.4s forwards;
-  }
-
-  /* ===== ボタン ===== */
-  .btn-group {
-    display: flex;
-    gap: 16px;
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 40px 32px;
+    max-width: 620px;
     width: 100%;
-    max-width: 480px;
-    opacity: 0;
-    animation: fadeUp 1s ease 1.6s forwards;
+    margin-bottom: 88px;
   }
 
-  .btn {
-    flex: 1;
-    position: relative;
-    padding: 20px 16px;
-    background: rgba(5,12,30,0.9);
-    border: 1px solid var(--muted);
-    color: #fff;
-    text-decoration: none;
+  .cell {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    overflow: hidden;
+    gap: 14px;
   }
 
-  .btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(0,212,255,0.05), transparent);
-    opacity: 0;
-    transition: opacity 0.3s;
+  .circle {
+    width: 104px;
+    height: 104px;
+    border-radius: 50%;
+    border: 1px solid var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: var(--ink);
+    transition: background 0.2s ease, transform 0.2s ease;
   }
 
-  .btn:hover {
-    border-color: var(--accent);
-    box-shadow:
-      0 0 20px rgba(0,212,255,0.2),
-      inset 0 0 20px rgba(0,212,255,0.05);
-    transform: translateY(-2px);
-  }
+  .circle:hover { background: #f6f6f6; transform: translateY(-2px); }
 
-  .btn:hover::before { opacity: 1; }
-
-  .btn-keiba:hover { border-color: var(--gold); box-shadow: 0 0 20px rgba(255,215,0,0.2); }
-  .btn-keiba:hover::before { background: linear-gradient(135deg, rgba(255,215,0,0.05), transparent); }
-
-  .btn-icon {
-    font-size: 28px;
-  }
-
-  .btn-name {
-    font-family: 'Orbitron', monospace;
-    font-size: clamp(11px, 2.5vw, 13px);
-    font-weight: 700;
-    letter-spacing: 2px;
-  }
-
-  .btn-desc {
-    font-size: 10px;
-    color: var(--silver);
+  .circle-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 500;
     letter-spacing: 1px;
   }
 
-  .btn-arrow {
-    position: absolute;
-    bottom: 10px;
-    right: 12px;
-    font-size: 10px;
-    color: var(--accent);
-    font-family: 'Orbitron', monospace;
-    opacity: 0;
-    transition: opacity 0.3s;
+  .circle.coming {
+    border: 1px dashed #d5d5d5;
+    color: #cccccc;
+    pointer-events: none;
   }
 
-  .btn:hover .btn-arrow { opacity: 1; }
+  .cell-name {
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
 
-  /* ===== フッター ===== */
-  .footer {
-    position: relative;
-    z-index: 1;
-    padding: 24px;
-    text-align: center;
-    font-family: 'Orbitron', monospace;
-    font-size: 9px;
-    letter-spacing: 3px;
+  .cell.disabled .cell-name { color: var(--muted); }
+
+  .log-line {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .log-line .dot { font-size: 9px; line-height: 1; }
+  .log-line.active { color: var(--ink-soft); }
+  .log-line.active .dot { color: var(--ink); }
+
+  .rule {
+    width: 100%;
+    max-width: 280px;
+    border: none;
+    border-top: 1px solid var(--hairline);
+    margin-bottom: 20px;
+  }
+
+  footer {
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .domain {
+    font-size: 11px;
+    letter-spacing: 2px;
     color: var(--muted);
   }
 
-  /* ===== アニメーション ===== */
-  @keyframes fadeDown {
-    from { opacity: 0; transform: translateY(-20px); }
-    to   { opacity: 1; transform: translateY(0); }
+  .research-link {
+    display: inline-block;
+    font-size: 14px;
+    letter-spacing: 2px;
+    color: var(--ink);
+    text-decoration: none;
+    padding: 10px 22px;
+    border: 1px solid var(--ink);
+    border-radius: 20px;
+    margin-bottom: 6px;
+    transition: background 0.2s ease, transform 0.2s ease;
   }
 
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+  .research-link:hover { background: #f6f6f6; transform: translateY(-2px); }
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to   { opacity: 1; transform: scale(1); }
-  }
-
-  @keyframes rotateSlow {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-  }
-
-  @keyframes corePulse {
-    0%, 100% { box-shadow: 0 0 20px rgba(0,212,255,0.4), inset 0 0 20px rgba(0,212,255,0.1); }
-    50%       { box-shadow: 0 0 40px rgba(0,212,255,0.7), inset 0 0 30px rgba(0,212,255,0.2); }
-  }
-
-  /* ===== レスポンシブ ===== */
-  @media (max-width: 480px) {
-    .btn-group { flex-direction: column; max-width: 320px; }
-    .btn { flex-direction: row; padding: 18px 20px; gap: 16px; text-align: left; align-items: center; }
-    .btn-icon { font-size: 32px; flex-shrink: 0; }
-    .btn-name { font-size: 13px; }
+  @media (max-width: 520px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+      row-gap: 48px;
+    }
   }
 </style>
 </head>
 <body>
 
-<!-- 背景パーティクル -->
-<canvas id="canvas-bg"></canvas>
+<h1>AI HUNTER</h1>
+<p class="tagline">AIによるデータ研究の公開サイト</p>
 
-<div class="hero">
-  <div class="top-badge">POWERED BY AI · DATA ANALYSIS</div>
-
-  <h1 class="logo">AI <span>HUNTER</span></h1>
-  <p class="sub">SANCTUARY OF DATA ANALYSIS</p>
-
-  <!-- コンパス -->
-  <div class="compass-wrap">
-    <div class="compass-glow"></div>
-    <div class="compass-ring"></div>
-    <div class="compass-ring2"></div>
-    <div class="compass-arrow">
-      <div class="arrow-n"></div>
-      <div class="arrow-s"></div>
-    </div>
-    <div class="compass-core"></div>
+<div class="grid">
+  <div class="cell">
+    <a href="./keiba_hunter.html" class="circle">
+      <span class="circle-code">KB</span>
+    </a>
+    <span class="cell-name">競馬予測</span>
+    <span class="log-line active"><span class="dot">●</span>LOGGED — 2026.05〜</span>
   </div>
 
-  <p class="catch">運じゃない。パターンだ。</p>
-  <p class="catch-sub">データは嘘をつかない</p>
+  <div class="cell">
+    <a href="./loto6_results.html" class="circle">
+      <span class="circle-code">LT</span>
+    </a>
+    <span class="cell-name">ロト予測</span>
+    <span class="log-line active"><span class="dot">●</span>LOGGED — 2026.07〜</span>
+  </div>
 
-  <!-- ボタン2つ -->
-  <div class="btn-group">
-    <a href="./keiba.html" class="btn btn-keiba">
-      <span class="btn-icon">🏇</span>
-      <div>
-        <div class="btn-name">競馬ハンター</div>
-        <div class="btn-desc">AI予測・データ分析</div>
-      </div>
-      <span class="btn-arrow">→</span>
-    </a>
-    <a href="./loto6_results.html" class="btn btn-loto">
-      <span class="btn-icon">🎯</span>
-      <div>
-        <div class="btn-name">ロトハンター</div>
-        <div class="btn-desc">ロト6 研究ログ</div>
-      </div>
-      <span class="btn-arrow">→</span>
-    </a>
-    <a href="./loto6_research.html" class="btn" style="border-color:#a78fff;">
-      <span class="btn-icon">🔬</span>
-      <div>
-        <div class="btn-name">研究日誌</div>
-        <div class="btn-desc">開発経過・仮説・バックテスト</div>
-      </div>
-      <span class="btn-arrow">→</span>
-    </a>
+  <div class="cell disabled">
+    <div class="circle coming">
+      <span class="circle-code">NB</span>
+    </div>
+    <span class="cell-name">ナンバーズ</span>
+    <span class="log-line"><span class="dot">○</span>NOT LOGGED</span>
+  </div>
+
+  <div class="cell disabled">
+    <div class="circle coming">
+      <span class="circle-code">TT</span>
+    </div>
+    <span class="cell-name">toto予測</span>
+    <span class="log-line"><span class="dot">○</span>NOT LOGGED</span>
   </div>
 </div>
 
-<footer class="footer">© 2026 AI-HUNTER.JP · DATA NEVER LIES</footer>
+<hr class="rule">
+<footer>
+  <a href="./loto6_research.html" class="research-link">→ 研究日誌</a>
+  <div class="domain">ai-hunter.jp</div>
+</footer>
 
-<script>
-// パーティクル背景
-const canvas = document.getElementById('canvas-bg');
-const ctx = canvas.getContext('2d');
-
-function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-resize();
-window.addEventListener('resize', resize);
-
-const particles = [];
-const NUM = 80;
-
-for (let i = 0; i < NUM; i++) {
-  particles.push({
-    x: Math.random() * window.innerWidth,
-    y: Math.random() * window.innerHeight,
-    r: Math.random() * 1.2 + 0.3,
-    vx: (Math.random() - 0.5) * 0.3,
-    vy: (Math.random() - 0.5) * 0.3,
-    alpha: Math.random() * 0.5 + 0.1
-  });
-}
-
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // グリッドライン
-  ctx.strokeStyle = 'rgba(0,212,255,0.03)';
-  ctx.lineWidth = 1;
-  for (let x = 0; x < canvas.width; x += 40) {
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-  }
-  for (let y = 0; y < canvas.height; y += 40) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-  }
-
-  // パーティクル
-  particles.forEach(p => {
-    p.x += p.vx;
-    p.y += p.vy;
-    if (p.x < 0) p.x = canvas.width;
-    if (p.x > canvas.width) p.x = 0;
-    if (p.y < 0) p.y = canvas.height;
-    if (p.y > canvas.height) p.y = 0;
-
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(0,212,255,${p.alpha})`;
-    ctx.fill();
-  });
-
-  // 接続ライン
-  for (let i = 0; i < particles.length; i++) {
-    for (let j = i + 1; j < particles.length; j++) {
-      const dx = particles[i].x - particles[j].x;
-      const dy = particles[i].y - particles[j].y;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist < 120) {
-        ctx.beginPath();
-        ctx.moveTo(particles[i].x, particles[i].y);
-        ctx.lineTo(particles[j].x, particles[j].y);
-        ctx.strokeStyle = `rgba(0,212,255,${0.06 * (1 - dist/120)})`;
-        ctx.lineWidth = 0.5;
-        ctx.stroke();
-      }
-    }
-  }
-
-  requestAnimationFrame(draw);
-}
-draw();
-</script>
 </body>
 </html>
