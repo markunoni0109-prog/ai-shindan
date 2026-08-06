@@ -152,6 +152,7 @@
   .tag-improve { color: var(--accent); border-color: var(--accent); }
   .tag-discover { color: var(--gold); border-color: var(--gold); }
   .tag-version { color: #a78fff; border-color: #a78fff; }
+  .tag-policy { color: #ffffff; border-color: #ffffff; }
 
   .entry-title {
     font-size: 15px;
@@ -228,78 +229,48 @@
 
   .data-table tr:hover td { background: rgba(255,255,255,0.02); }
 
-  /* 答え合わせエントリー用 */
-  .tag-result { color: var(--gold); border-color: var(--gold); }
-
-  .mini-nums {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    align-items: center;
-    margin: 12px 0 16px;
-  }
-
-  .mini-ball {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Orbitron', monospace;
-    font-weight: 900;
-    font-size: 11px;
-    border: 1px solid var(--border);
-    color: #b0bcd8;
-  }
-
-  .mini-ball-hit {
-    border-color: var(--accent);
-    color: #fff;
-    background: rgba(0,212,255,0.12);
-  }
-
-  .mini-ball-bonus {
-    border-color: var(--gold);
-    color: var(--gold);
-    background: rgba(255,215,0,0.08);
-  }
-
-  .mini-nums-label {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 2px;
-    margin-right: 4px;
-  }
-
-  .mini-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 10px;
-    margin: 16px 0;
-  }
-
-  .mini-stat {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid var(--border);
-    padding: 12px;
-    text-align: center;
-  }
-
-  .mini-stat-num {
-    font-family: 'Orbitron', monospace;
-    font-size: 18px;
-    font-weight: 900;
-    margin-bottom: 2px;
-  }
-
-  .mini-stat-label {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 9px;
-    color: var(--muted);
-    letter-spacing: 1px;
-  }
+  /* ============================================================
+     loto6_15000_result.html 移植スタイル（.result-embed 配下にスコープ）
+     元ファイルの <style> 内ルールをそのまま、セレクタの頭に
+     ".result-embed " を付けただけで、値は一切変更していません。
+     ============================================================ */
+  .result-embed{margin:24px 0;}
+  .result-embed .header{text-align:center;padding:30px 20px 20px;border-bottom:1px solid var(--border);}
+  .result-embed .header-brand{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:6px;color:var(--accent);margin-bottom:6px;}
+  .result-embed .header-title{font-family:'Orbitron',monospace;font-size:24px;font-weight:900;color:#fff;margin-bottom:8px;}
+  .result-embed .header-sub{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;}
+  .result-embed .container{max-width:900px;margin:0 auto;padding:20px;}
+  .result-embed .section-title{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:4px;color:var(--accent);margin:30px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+  .result-embed .winning-box{background:var(--card);border:1px solid var(--accent);padding:20px;margin-bottom:20px;text-align:center;}
+  .result-embed .winning-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--muted);margin-bottom:10px;}
+  .result-embed .winning-nums{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:8px;}
+  .result-embed .num-ball{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-weight:900;font-size:14px;border:2px solid;}
+  .result-embed .num-win{background:linear-gradient(135deg,rgba(0,212,255,0.2),rgba(0,212,255,0.05));border-color:var(--accent);color:#fff;}
+  .result-embed .num-bonus{background:linear-gradient(135deg,rgba(255,215,0,0.2),rgba(255,215,0,0.05));border-color:var(--gold);color:var(--gold);}
+  .result-embed .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:24px;}
+  .result-embed .stat-card{background:var(--card);border:1px solid var(--border);padding:16px;text-align:center;}
+  .result-embed .stat-num{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;margin-bottom:4px;}
+  .result-embed .stat-label{font-size:10px;color:var(--muted);letter-spacing:1px;}
+  .result-embed .color-gold{color:var(--gold);}
+  .result-embed .color-hit{color:var(--hit);}
+  .result-embed .color-accent{color:var(--accent);}
+  .result-embed .color-warn{color:var(--warn);}
+  .result-embed .dist-bar{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-family:'Share Tech Mono',monospace;font-size:12px;}
+  .result-embed .dist-label{min-width:80px;color:var(--muted);}
+  .result-embed .dist-bar-inner{height:16px;background:var(--accent);opacity:0.7;min-width:2px;}
+  .result-embed .dist-count{color:var(--text);}
+  .result-embed .predict-row{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);padding:10px 14px;margin-bottom:6px;}
+  .result-embed .predict-label{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);min-width:40px;}
+  .result-embed .pnum{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:11px;font-weight:bold;border:1px solid var(--border);color:var(--muted);}
+  .result-embed .pnum-hit{border-color:var(--hit);color:var(--hit);background:rgba(0,255,136,0.1);}
+  .result-embed .match-badge{margin-left:auto;font-family:'Orbitron',monospace;font-size:11px;}
+  .result-embed .match-2{color:var(--hit);}
+  .result-embed .match-0{color:var(--muted);}
+  .result-embed .top4-table{width:100%;border-collapse:collapse;font-family:'Share Tech Mono',monospace;font-size:12px;}
+  .result-embed .top4-table th{background:rgba(0,212,255,0.05);color:var(--accent);padding:8px;border-bottom:1px solid var(--border);text-align:center;}
+  .result-embed .top4-table td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.03);text-align:center;}
+  .result-embed .hit-num{color:var(--hit);font-weight:bold;}
+  .result-embed .note-box{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent);padding:16px;margin-bottom:20px;font-size:13px;line-height:2;}
 
   /* フッター */
   .footer {
@@ -339,7 +310,7 @@
   </div>
 
   <div class="nav">
-    <a href="./loto6_results.html">← 予測・結果</a>
+    <a href="#diary">← 予測・結果</a>
     <a href="#diary" class="active">開発日誌</a>
     <a href="#version">バージョン履歴</a>
     <a href="#backtest">バックテスト</a>
@@ -352,35 +323,155 @@
 
     <div class="entry">
       <div class="entry-header">
-        <div class="entry-date">2026.07.30</div>
-        <div class="entry-tag tag-result">答え合わせ</div>
+        <div class="entry-date">2026.08.02</div>
+        <div class="entry-tag tag-policy">方針</div>
       </div>
-      <div class="entry-title">第2124回 15,000口答え合わせ：4等28口、AIの盲点も見えた</div>
+      <div class="entry-title">AI HUNTERとは何か。改めて明文化した</div>
       <div class="entry-body">
-        <p>7/28に公開した15,000口（仮想300万円分）を、第2124回の実際の当選番号で答え合わせした。</p>
+        <p>ここまで日誌を書き続けてきたが、「そもそも何をやっているプロジェクトなのか」を一度きちんと言語化しておくことにした。読んでくれる人が増えてきたからこそ、前提を揃えておきたい。</p>
+        <p><span class="highlight">■ プロジェクトの本質</span><br>
+        ロト6は<span class="bad">ランダムであることを前提</span>にしている。「当たる」とは主張しない。研究・検証・改善の過程を正直に公開する。外れた結果も全部公開する。有料販売・課金は一切なし。</p>
+        <p><span class="highlight">■ 研究内容</span><br>
+        過去データの統計分析、AIスコアリングモデルの開発と改善、バックテストによる検証、引力・反発マトリクスなどの発見――ここまでの日誌に書いてきた通り。</p>
+        <p>予測サイトではなく、研究日誌として公開する。これがAI HUNTERの立ち位置。</p>
+      </div>
+    </div>
 
-        <div class="mini-nums">
-          <span class="mini-nums-label">当選番号</span>
-          <div class="mini-ball mini-ball-hit">06</div>
-          <div class="mini-ball mini-ball-hit">20</div>
-          <div class="mini-ball mini-ball-hit">29</div>
-          <div class="mini-ball mini-ball-hit">36</div>
-          <div class="mini-ball mini-ball-hit">37</div>
-          <div class="mini-ball mini-ball-hit">41</div>
-          <div class="mini-ball mini-ball-bonus">B19</div>
+    <div class="entry">
+      <div class="entry-header">
+        <div class="entry-date">2026.07.30</div>
+        <div class="entry-tag tag-discover">検証</div>
+      </div>
+      <div class="entry-title">第2124回 答え合わせ。15,000口中4等28口、ROI6.3%</div>
+      <div class="entry-body">
+        <p>7/28に公開した仮想300万円・15,000口の答え合わせ。以下、答え合わせページのHTMLをそのまま貼り込む。</p>
+
+        <div class="result-embed">
+
+          <div class="header">
+            <div class="header-brand">AI HUNTER — RESEARCH RESULT</div>
+            <div class="header-title">仮想300万円 答え合わせ</div>
+            <div class="header-sub">第2124回 / 2026.07.30 / 15,000口 × 実当選番号</div>
+          </div>
+
+          <div class="container">
+
+            <div class="section-title">WINNING NUMBERS — 第2124回当選番号</div>
+            <div class="winning-box">
+              <div class="winning-label">WINNING NUMBERS</div>
+              <div class="winning-nums">
+                <div class="num-ball num-win">06</div>
+                <div class="num-ball num-win">20</div>
+                <div class="num-ball num-win">29</div>
+                <div class="num-ball num-win">36</div>
+                <div class="num-ball num-win">37</div>
+                <div class="num-ball num-win">41</div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span style="font-family:Share Tech Mono,monospace;font-size:10px;color:var(--gold);">BONUS</span>
+                  <div class="num-ball num-bonus">19</div>
+                </div>
+              </div>
+              <div style="font-family:Share Tech Mono,monospace;font-size:12px;color:var(--muted);">合計値: 169（高め）</div>
+            </div>
+
+            <div class="section-title">RESULT — 15,000口 答え合わせ結果</div>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-num color-gold">28口</div>
+                <div class="stat-label">4等（4個一致）</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-num color-hit">745口</div>
+                <div class="stat-label">5等（3個一致）</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-num color-accent">¥190,400</div>
+                <div class="stat-label">仮想払戻金額</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-num color-warn">6.3%</div>
+                <div class="stat-label">仮想ROI</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-num" style="color:#a78fff;">0口</div>
+                <div class="stat-label">3等以上</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-num color-hit">4個</div>
+                <div class="stat-label">最高一致数</div>
+              </div>
+            </div>
+
+            <div class="section-title">DISTRIBUTION — 一致数分布</div>
+            <div style="background:var(--card);border:1px solid var(--border);padding:20px;margin-bottom:24px;">
+              <div class="dist-bar">
+                <div class="dist-label">0個一致</div>
+                <div class="dist-bar-inner" style="width:132px;background:var(--accent);"></div>
+                <div class="dist-count">3,312口 (22.1%)</div>
+              </div>
+              <div class="dist-bar">
+                <div class="dist-label">1個一致</div>
+                <div class="dist-bar-inner" style="width:277px;background:var(--accent);"></div>
+                <div class="dist-count">6,945口 (46.3%)</div>
+              </div>
+              <div class="dist-bar">
+                <div class="dist-label">2個一致</div>
+                <div class="dist-bar-inner" style="width:159px;background:var(--accent);"></div>
+                <div class="dist-count">3,970口 (26.5%)</div>
+              </div>
+              <div class="dist-bar">
+                <div class="dist-label">3個一致</div>
+                <div class="dist-bar-inner" style="width:30px;background:var(--hit);"></div>
+                <div class="dist-count">745口 (5.0%)</div>
+              </div>
+              <div class="dist-bar">
+                <div class="dist-label">4個一致</div>
+                <div class="dist-bar-inner" style="width:1px;background:var(--gold);"></div>
+                <div class="dist-count">28口 (0.2%)</div>
+              </div>
+              <div class="dist-bar">
+                <div class="dist-label">5個一致</div>
+                <div class="dist-bar-inner" style="width:0px;background:var(--accent);"></div>
+                <div class="dist-count">0口 (0.0%)</div>
+              </div>
+            </div>
+
+            <div class="section-title">GEMINI SELECTION — Geminiが選んだ5口</div>
+            <div class="predict-row"><div class="predict-label">口1</div><div class="pnum ">08</div><div class="pnum ">18</div><div class="pnum ">26</div><div class="pnum ">28</div><div class="pnum pnum-hit">36</div><div class="pnum ">43</div><div class="match-badge match-1">1 MATCH</div></div>
+            <div class="predict-row"><div class="predict-label">口2</div><div class="pnum ">01</div><div class="pnum ">08</div><div class="pnum ">18</div><div class="pnum ">26</div><div class="pnum pnum-hit">36</div><div class="pnum ">43</div><div class="match-badge match-1">1 MATCH</div></div>
+            <div class="predict-row"><div class="predict-label">口3</div><div class="pnum pnum-hit">06</div><div class="pnum ">18</div><div class="pnum ">24</div><div class="pnum ">26</div><div class="pnum pnum-hit">36</div><div class="pnum ">43</div><div class="match-badge match-2">2 MATCH</div></div>
+            <div class="predict-row"><div class="predict-label">口4</div><div class="pnum ">01</div><div class="pnum ">08</div><div class="pnum ">18</div><div class="pnum ">24</div><div class="pnum ">26</div><div class="pnum ">43</div><div class="match-badge match-0">0 MATCH</div></div>
+            <div class="predict-row"><div class="predict-label">口5</div><div class="pnum ">01</div><div class="pnum pnum-hit">06</div><div class="pnum ">08</div><div class="pnum ">18</div><div class="pnum pnum-hit">36</div><div class="pnum ">43</div><div class="match-badge match-2">2 MATCH</div></div>
+
+            <div class="section-title">TOP 4-MATCH — 4個一致の口（上位5件）</div>
+            <table class="top4-table">
+              <tr><th>口番号</th><th>数字1</th><th>数字2</th><th>数字3</th><th>数字4</th><th>数字5</th><th>数字6</th><th>スコア</th><th>一致数字</th></tr>
+              <tr><td>#2202</td><td class="hit-num">06</td><td class="">18</td><td class="">26</td><td class="hit-num">29</td><td class="hit-num">36</td><td class="hit-num">37</td><td>30.14</td><td class="hit-num">[6, 29, 36, 37]</td></tr>
+              <tr><td>#3008</td><td class="hit-num">06</td><td class="">18</td><td class="">28</td><td class="hit-num">29</td><td class="hit-num">36</td><td class="hit-num">37</td><td>29.23</td><td class="hit-num">[6, 29, 36, 37]</td></tr>
+              <tr><td>#3309</td><td class="hit-num">06</td><td class="">08</td><td class="">18</td><td class="hit-num">29</td><td class="hit-num">36</td><td class="hit-num">37</td><td>28.94</td><td class="hit-num">[6, 29, 36, 37]</td></tr>
+              <tr><td>#3492</td><td class="">01</td><td class="hit-num">06</td><td class="">18</td><td class="hit-num">29</td><td class="hit-num">36</td><td class="hit-num">37</td><td>28.76</td><td class="hit-num">[6, 29, 36, 37]</td></tr>
+              <tr><td>#3548</td><td class="hit-num">06</td><td class="">18</td><td class="">24</td><td class="hit-num">29</td><td class="hit-num">36</td><td class="hit-num">37</td><td>28.70</td><td class="hit-num">[6, 29, 36, 37]</td></tr>
+            </table>
+
+            <div class="section-title">ANALYSIS — 今回の発見</div>
+            <div class="note-box">
+              <strong style="color:var(--accent);">36番が鍵だった。</strong><br>
+              15,000口中36番は45%の口に入っていた。今回の当選にも36番が含まれており、AIの重視が的中した形になった。<br><br>
+              <strong style="color:var(--warn);">AIが選ばなかった20・29・41が当選に入った。</strong><br>
+              20・29・41はAIが全く選ばなかった数字。これがAIの盲点であり、次のモデルへの改善課題になる。<br><br>
+              <strong style="color:var(--hit);">4等が28口（0.2%）出た。</strong><br>
+              15,000口の上位0.2%が4個一致を達成。仮想払戻190,400円。ROI6.3%は実際のロト6還元率（約46%）より低いが、AIの強みと弱点が明確に見えた研究データとなった。
+            </div>
+
+            <div style="text-align:center;margin-top:20px;">
+              <a href="./loto6_15000_view.html" style="font-family:Share Tech Mono,monospace;font-size:12px;color:var(--accent);border:1px solid var(--accent);padding:8px 20px;text-decoration:none;">← 15,000口 全データを見る</a>
+            </div>
+
+          </div>
+
         </div>
 
-        <div class="mini-stats">
-          <div class="mini-stat"><div class="mini-stat-num" style="color:var(--gold);">28口</div><div class="mini-stat-label">4等(4個一致)</div></div>
-          <div class="mini-stat"><div class="mini-stat-num" style="color:var(--hit);">745口</div><div class="mini-stat-label">5等(3個一致)</div></div>
-          <div class="mini-stat"><div class="mini-stat-num" style="color:var(--accent);">¥190,400</div><div class="mini-stat-label">仮想払戻</div></div>
-          <div class="mini-stat"><div class="mini-stat-num" style="color:var(--warn);">6.3%</div><div class="mini-stat-label">仮想ROI</div></div>
-        </div>
-
-        <p><span class="highlight">36番が鍵だった。</span>15,000口中45%の口に入れていた36番が、実際に当選番号に含まれていた。事前の「AIが最も重視した数字」がそのまま当たりに繋がった珍しいケース。</p>
-        <p><span class="bad">一方で20・29・41はAIが1口も選ばなかった数字。</span>この3つが当選に入ったことが、3等以上（0口）を出せなかった直接の原因。次モデルへの明確な改善課題として記録する。</p>
-        <p>15,000口という母数の上位0.2%が4等（4個一致）まで到達した点は、探索・スコアリングの方向性自体は間違っていないことを示している。ROI6.3%は実際のロト6還元率（約46%）にはまだ遠いが、「どこが弱いか」がデータとして残ったのが今回の収穫。</p>
-        <p>→ <a href="./loto6_15000_result.html" style="color:var(--accent);">答え合わせページ（全文）</a>　→ <a href="./loto6_15000_view.html" style="color:var(--accent);">15,000口 全公開ページ</a></p>
+        <p>ここまでが答え合わせページの全内容。この結果を受けて、次のモデル改善（v8.4）ではLOW域とAIの盲点数字の扱いを見直す予定。</p>
       </div>
     </div>
 
