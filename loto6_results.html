@@ -61,10 +61,6 @@
   @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
   .round-card.latest { border-color: var(--accent); box-shadow: 0 0 30px rgba(0,212,255,0.1); }
   .round-card.latest::before { content: 'LATEST'; position: absolute; top: 12px; right: 12px; font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 2px; color: var(--accent); background: rgba(0,212,255,0.1); border: 1px solid var(--accent); padding: 3px 8px; }
-  .round-card.upcoming { border-color: var(--gold); box-shadow: 0 0 30px rgba(255,215,0,0.1); }
-  .round-card.upcoming::before { content: 'UPCOMING'; position: absolute; top: 12px; right: 12px; font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 2px; color: var(--gold); background: rgba(255,215,0,0.1); border: 1px solid var(--gold); padding: 3px 8px; }
-  .stage-pending { color: var(--gold); border-color: var(--gold); background: rgba(255,215,0,0.05); }
-  .no-predict-note { padding: 20px; font-family: 'Share Tech Mono', monospace; font-size: 12px; color: var(--muted); line-height: 1.8; border-top: 1px solid var(--border); }
   .round-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; background: rgba(255,255,255,0.02); }
   .round-num { font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 900; color: var(--accent); }
   .round-date { font-size: 12px; color: var(--muted); font-family: 'Share Tech Mono', monospace; }
@@ -145,8 +141,42 @@
   </div>
 
 
-  <!-- 第2125回 -->
+  <!-- 第2127回 -->
   <div class="round-card latest">
+    <div class="round-header">
+      <div><div class="round-num">#2127</div><div class="round-date">2026.08.10</div></div>
+      <div class="round-stage stage-mid">中間 / 126</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">07</div><div class="num-ball winning">12</div><div class="num-ball winning">15</div>
+        <div class="num-ball winning">29</div><div class="num-ball winning">30</div><div class="num-ball winning">33</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">22</div>
+      </div>
+    </div>
+    <div class="no-predict-note">この回はAIによる事前予測を実施していない（記録なし）。結果のみ記録。</div>
+  </div>
+
+  <!-- 第2126回 -->
+  <div class="round-card">
+    <div class="round-header">
+      <div><div class="round-num">#2126</div><div class="round-date">2026.08.06</div></div>
+      <div class="round-stage stage-high">高め / 174</div>
+    </div>
+    <div class="winning-section">
+      <div class="section-label">WINNING NUMBERS</div>
+      <div class="winning-numbers">
+        <div class="num-ball winning">18</div><div class="num-ball winning">20</div><div class="num-ball winning">22</div>
+        <div class="num-ball winning">35</div><div class="num-ball winning">37</div><div class="num-ball winning">42</div>
+        <span class="bonus-label">BONUS</span><div class="num-ball bonus">24</div>
+      </div>
+    </div>
+    <div class="no-predict-note">この回はAIによる事前予測を実施していない（記録なし）。結果のみ記録。</div>
+  </div>
+
+  <!-- 第2125回 -->
+  <div class="round-card">
     <div class="round-header">
       <div><div class="round-num">#2125</div><div class="round-date">2026.08.03</div></div>
       <div class="round-stage stage-mid">中間 / 151</div>
@@ -159,7 +189,7 @@
         <span class="bonus-label">BONUS</span><div class="num-ball bonus">39</div>
       </div>
     </div>
-    <div class="no-predict-note">この回はAIによる事前予測を実施していない（記録なし）。#2124の15,000口実験の答え合わせ作業と重なったため、通常の5口予測をスキップした。次回以降は毎回予測を残すよう運用を見直す。</div>
+    <div class="no-predict-note">この回はAIによる事前予測を実施していない（記録なし）。結果のみ記録。</div>
   </div>
 
   <!-- 第2124回 -->
@@ -176,42 +206,11 @@
         <span class="bonus-label">BONUS</span><div class="num-ball bonus">19</div>
       </div>
     </div>
-    <div class="predict-section">
-      <div class="section-label">AI PREDICTION vs RESULT — Gemini比較5口（本命は15,000口生成・研究日誌参照）</div>
-      <div class="predict-row">
-        <div class="predict-label">口1</div>
-        <div class="predict-nums"><div class="pnum">08</div><div class="pnum">18</div><div class="pnum">26</div><div class="pnum">28</div><div class="pnum hit">36</div><div class="pnum">43</div></div>
-        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
-      </div>
-      <div class="predict-row">
-        <div class="predict-label">口2</div>
-        <div class="predict-nums"><div class="pnum">01</div><div class="pnum">08</div><div class="pnum">18</div><div class="pnum">26</div><div class="pnum hit">36</div><div class="pnum">43</div></div>
-        <div class="predict-score"><div class="hit-count count-1">1</div><div class="hit-label">MATCH</div></div>
-      </div>
-      <div class="predict-row">
-        <div class="predict-label">口3</div>
-        <div class="predict-nums"><div class="pnum hit">06</div><div class="pnum">18</div><div class="pnum">24</div><div class="pnum">26</div><div class="pnum hit">36</div><div class="pnum">43</div></div>
-        <div class="predict-score"><div class="hit-count count-2">2</div><div class="hit-label">MATCH</div></div>
-      </div>
-      <div class="predict-row">
-        <div class="predict-label">口4</div>
-        <div class="predict-nums"><div class="pnum">01</div><div class="pnum">08</div><div class="pnum">18</div><div class="pnum">24</div><div class="pnum">26</div><div class="pnum">43</div></div>
-        <div class="predict-score"><div class="hit-count count-0">0</div><div class="hit-label">MATCH</div></div>
-      </div>
-      <div class="predict-row">
-        <div class="predict-label">口5</div>
-        <div class="predict-nums"><div class="pnum">01</div><div class="pnum hit">06</div><div class="pnum">08</div><div class="pnum">18</div><div class="pnum hit">36</div><div class="pnum">43</div></div>
-        <div class="predict-score"><div class="hit-count count-2">2</div><div class="hit-label">MATCH</div></div>
-      </div>
-    </div>
-    <div class="summary-bar">
-      <div class="summary-text">BEST: 2 MATCH / 本命15,000口では4等28口・仮想ROI6.3%</div>
-      <div class="summary-best">36番的中・20/29/41はAI完全未選択が盲点</div>
-    </div>
+    <div class="no-predict-note">この回はGemini比較5口予測を実施。本命は15,000口生成（研究日誌参照）。詳細は loto6_15000_result.html を参照。</div>
   </div>
 
   <!-- 第2123回 -->
-  <div class="round-card">
+  <div class="round-card latest">
     <div class="round-header">
       <div><div class="round-num">#2123</div><div class="round-date">2026.07.27</div></div>
       <div class="round-stage stage-low">低め / 109</div>
