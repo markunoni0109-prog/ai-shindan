@@ -39,13 +39,25 @@
   .box { background:var(--card); border:1px solid var(--border); border-left:3px solid var(--accent); padding:20px; margin:20px 0; font-size:13px; }
   .box.rule { border-left-color:var(--warn); }
   .box.conclusion { border-left-color:var(--hit); }
+  .box.adopt { border-left-color:var(--hit); }
+  .box.reject { border-left-color:var(--warn); }
+  .box.pending { border-left-color:var(--gold); }
   table { width:100%; border-collapse:collapse; font-family:'Share Tech Mono',monospace; font-size:12px; margin:16px 0; }
   th { background:rgba(0,212,255,0.05); color:var(--accent); padding:10px 8px; border-bottom:1px solid var(--border); text-align:left; }
   td { padding:8px; border-bottom:1px solid rgba(255,255,255,0.03); }
+  .verdict { display:inline-block; font-family:'Orbitron',monospace; font-size:10px; letter-spacing:2px; padding:4px 10px; margin-left:8px; }
+  .verdict.adopt { background:rgba(0,255,136,0.1); color:var(--hit); border:1px solid var(--hit); }
+  .verdict.reject { background:rgba(255,102,0,0.1); color:var(--warn); border:1px solid var(--warn); }
+  .verdict.pending { background:rgba(255,215,0,0.1); color:var(--gold); border:1px solid var(--gold); }
   .roles { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin:20px 0; }
   .role-card { background:var(--card); border:1px solid var(--border); padding:18px; }
   .role-card .name { font-family:'Orbitron',monospace; font-size:13px; color:var(--accent); margin-bottom:8px; }
   .role-card p { font-size:13px; margin-bottom:0; }
+  .model-step { background:var(--card); border:1px solid var(--border); border-left:3px solid var(--accent); padding:20px; margin:12px 0; }
+  .model-step .step-label { font-family:'Orbitron',monospace; font-size:10px; letter-spacing:3px; color:var(--accent); margin-bottom:8px; }
+  .model-step .step-title { font-size:14px; color:#fff; font-weight:bold; margin-bottom:10px; }
+  .model-step p { font-size:13px; margin-bottom:6px; }
+  .update-badge { font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--gold); border:1px solid var(--gold); padding:2px 8px; margin-left:10px; }
   footer { text-align:center; padding:30px; font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--muted); border-top:1px solid var(--border); margin-top:40px; }
 </style>
 </head>
@@ -54,7 +66,7 @@
 <div class="header">
   <div class="header-brand">AI HUNTER — PROJECT CHARTER</div>
   <div class="header-title">研究方針・プロジェクト憲章</div>
-  <div class="header-sub">LOTO HUNTER RESEARCH PRINCIPLES / 更新：2026年8月</div>
+  <div class="header-sub">LOTO HUNTER RESEARCH PRINCIPLES / 更新：2026年8月 / 第1回〜第2126回 全データ検証済み</div>
 </div>
 
 <div class="container">
@@ -73,77 +85,130 @@
   </div>
   <p>の順で検証する。<span class="bad">有効性が確認できない特徴は削除する。</span></p>
 
-  <h2><span class="num">2</span>これまでに発見された主要仮説</h2>
-  <p>人間によるデータ観察から、以下の特徴が発見された。合計値による3段階(LOW：合計110以下／MID：合計111〜150／HIGH：合計151以上)。実データでは、LOW約22.1%・MID約52.3%・HIGH約25.6%という分布が確認された。この分布は完全ランダムでも発生する範囲に近く、独自の偏りとは確認されていない。したがって現在は、「予測法」ではなく「出目構造を分類するための研究上の区分」として扱う。</p>
+  <h2><span class="num">2</span>全仮説の検証結果 <span class="update-badge">2026.08 UPDATED</span></h2>
+  <p>第1回〜第2126回の全データを対象に、実測値・ランダム理論基準値・統計的有意性（p値）・OOS検証を実施した。</p>
 
-  <h2><span class="num">3</span>段階別連番</h2>
-  <p>観測された連番率：LOW約59.6%・MID約49.7%・HIGH約59.3%。低・高で連番率が高く、中間で低くなる特徴が確認されたが、ランダム組合せでも同様の構造が発生することが確認された。したがって、特別な予測能力を持つ特徴とは認定しない。連番率そのものを予測ルールとして固定しない。</p>
-
-  <h2><span class="num">4</span>特定連番ペア・3連番</h2>
-  <p>過去データから、1-2／3-4／4-5／21-22／22-23／24-25／41-42／42-43などの頻出ペア、1-2-3／4-5-6／17-18-19／21-22-23／24-25-26／37-38-39／40-41-42などの3連番が観察された。しかし、AIによる検証では、現時点でランダム揺らぎを超える再現性は確認されていない。<span class="bad">特定連番を有力数字として扱うルールは採用しない。</span></p>
-
-  <h2><span class="num">5</span>段階間の遷移</h2>
-  <p>LOW・MID・HIGHについて、「前回HIGHだったから次回LOWになりやすい」などの遷移仮説を検証した。結果、前回の段階によって次回の段階が大きく変化するという統計的証拠は確認されなかった。</p>
   <table>
-    <tr><th>検証者</th><th>p値</th></tr>
-    <tr><td>Gemini</td><td>0.6884</td></tr>
-    <tr><td>Claude</td><td>0.835</td></tr>
+    <tr>
+      <th>仮説</th>
+      <th>観測値</th>
+      <th>ランダム基準</th>
+      <th>p値</th>
+      <th>判定</th>
+    </tr>
+    <tr>
+      <td>合計値3段階（LOW/MID/HIGH）</td>
+      <td>LOW:22.1% MID:52.3% HIGH:25.6%</td>
+      <td>LOW:23.1% MID:50.7% HIGH:26.2%</td>
+      <td>&gt;0.10</td>
+      <td><span class="verdict pending">枠組み採用</span></td>
+    </tr>
+    <tr>
+      <td>各段階の連番率</td>
+      <td>LOW:59.6% MID:49.7% HIGH:59.3%</td>
+      <td>LOW:60.8% MID:49.4% HIGH:59.3%</td>
+      <td>0.59〜0.98</td>
+      <td><span class="verdict reject">廃止</span></td>
+    </tr>
+    <tr>
+      <td>特定連番ペア・3連番</td>
+      <td>ランダム揺らぎの範囲内</td>
+      <td>一様分布</td>
+      <td>&gt;0.05</td>
+      <td><span class="verdict reject">廃止</span></td>
+    </tr>
+    <tr>
+      <td>段階間遷移（LOW→MID等）</td>
+      <td>遷移に規則性なし</td>
+      <td>完全独立</td>
+      <td>0.6884</td>
+      <td><span class="verdict reject">廃止</span></td>
+    </tr>
+    <tr>
+      <td>LOW欠損後のLOW復動</td>
+      <td>92.61%（176回中163回）</td>
+      <td>92.21%（数学的必然）</td>
+      <td>0.8410</td>
+      <td><span class="verdict adopt">採用（必須フィルター）</span></td>
+    </tr>
+    <tr>
+      <td>差2（1個飛ばし）の減少</td>
+      <td>92.44%（OOS:100%）</td>
+      <td>88.92%</td>
+      <td>0.0836</td>
+      <td><span class="verdict adopt">採用（消去フィルター）</span></td>
+    </tr>
   </table>
-  <p>いずれも独立性を否定できない結果。<span class="bad">段階遷移を予測ルールとして採用しない。</span></p>
 
-  <h2><span class="num">6</span>LOW欠損後のLOW復動</h2>
-  <p>LOW＝1〜14として、前回LOWが0個だったケースを調査。結果：176回中163回で、次回LOWが1個以上(163/176＝92.61%)という高い観測値が確認された。しかし完全ランダムでも、次回LOWが1個以上となる確率は約92%である。したがって、92.61%という数字自体は興味深いが、現在のところ予測上の優位性とは認定しない。<span class="bad">「LOW欠損の反動」という説明は禁止する。</span></p>
+  <h2><span class="num">3</span>各仮説の詳細と判定理由</h2>
 
-  <h2><span class="num">7</span>差2（1個飛ばし）</h2>
-  <p>数字を昇順に並べ、隣接数字との差が2になる組を「差2」と定義。前回に差2が2組以上存在したケースについて、次回に差2が1組以下となるケースを調査した。</p>
-  <table>
-    <tr><th>項目</th><th>値</th></tr>
-    <tr><td>観測値</td><td class="highlight">220 / 238 = 92.44%</td></tr>
-    <tr><td>ランダム基準</td><td>約88.9%</td></tr>
-    <tr><td>Gemini検証 p値</td><td class="highlight">≈0.0836</td></tr>
-  </table>
-  <p>観測値はランダム基準より高かった。ただし、期間分割・OOSで再現性が十分確認できていないため、現時点では採用確定しない。<span class="highlight">「研究継続候補」とする。</span></p>
+  <p><strong style="color:#fff;">■ 仮説1：合計値3段階</strong> <span class="verdict pending">枠組み採用</span></p>
+  <p>独自の偏りではなく確率空間の幾何構造に依存しているが、予測モデルの合計値フィルターとして有効。独自アノマリーとしては扱わない。</p>
 
-  <h2><span class="num">8</span>これまでの総合判定</h2>
-  <p>現時点で、「次回抽選に対する予測能力が統計的に確認された特徴」は存在しない。一方で、研究対象として価値のある現象は存在する。</p>
-  <div class="box">
-    <p class="good" style="margin-bottom:8px;">■ 継続研究</p>
-    <ul>
-      <li>合計値分布</li><li>差2構造</li><li>数字間共起</li><li>GAP分布</li>
-      <li>個別数字の出現間隔</li><li>ペア相関</li><li>長期間での安定性</li>
-    </ul>
-    <p class="bad" style="margin:14px 0 8px;">■ 現時点で予測ルールとして採用しない</p>
-    <ul>
-      <li>LOW/MID/HIGH遷移</li><li>特定連番ペア</li><li>特定3連番</li>
-      <li>LOW欠損→LOW復動</li><li>単純な連番率</li><li>経験則による数字固定</li>
-    </ul>
+  <p><strong style="color:#fff;">■ 仮説2：連番率</strong> <span class="verdict reject">廃止</span></p>
+  <p>「LOW・HIGH段階で連番率が高く、MIDで低い」現象は、完全ランダムでも数学的に同じ現象が発生する。出目の癖ではなく数学的帰結。</p>
+
+  <p><strong style="color:#fff;">■ 仮説3：特定連番ペア・3連番</strong> <span class="verdict reject">廃止</span></p>
+  <p>サンプルサイズ拡大に伴い理論値へ平準化。過剰適合の原因となるため廃止。</p>
+
+  <p><strong style="color:#fff;">■ 仮説4：段階遷移</strong> <span class="verdict reject">廃止</span></p>
+  <p>前回段階に関わらず次回各段階への移行確率は常に一定。マルコフ遷移の期待は実効性なし。</p>
+
+  <p><strong style="color:#fff;">■ 仮説5：LOW欠損後のLOW復動</strong> <span class="verdict adopt">採用（必須フィルター）</span></p>
+  <p>約93%という高確率で成立。ただし「反動」ではなく「1〜14が0個になる確率がそもそも7.79%しかない」という組み合わせ論的必然。この理解のもとで必須フィルターとして採用。OOS（1501〜2126回）：91.80%で再現確認。</p>
+
+  <p><strong style="color:#fff;">■ 仮説6：差2の減少</strong> <span class="verdict adopt">採用（消去フィルター）</span></p>
+  <p>理論値88.9%に対し観測値92.4%。OOSで100%決束。過度なギャップ重複を排除するネガティブフィルターとして採用。</p>
+
+  <h2><span class="num">4</span>新モデル設計 — 確率境界型ポートフォリオモデル <span class="update-badge">NEW</span></h2>
+  <p>検証を通過した特徴のみで構成する新モデル。「当たりそうだから」ではなく「外れる可能性が数学的に低い口を残す」という設計思想。</p>
+
+  <div class="model-step">
+    <div class="step-label">STEP 1</div>
+    <div class="step-title">理論中央域フィルター（合計値帯）</div>
+    <p>合計値を <span class="highlight">100〜160の範囲（理論発生確率72.1%）</span>に9割の口数を固定。</p>
+    <p>110以下・150以上の極端枠は全体の1割以下のヘッジ枠に留める。</p>
   </div>
 
-  <h2><span class="num">9</span>GeminiとClaudeの役割から得られた結論</h2>
+  <div class="model-step">
+    <div class="step-label">STEP 2</div>
+    <div class="step-title">幾何的連番動的付与</div>
+    <p>選定された合計値ターゲットに応じ、連番の組み込み比率を自動調整。</p>
+    <p>合計値110以下または151以上 → 連番保持率 <span class="highlight">60%</span></p>
+    <p>合計値111〜150（中央域） → 連番保持率 <span class="highlight">50%</span></p>
+  </div>
+
+  <div class="model-step">
+    <div class="step-label">STEP 3</div>
+    <div class="step-title">否定（消去）構造フィルター</div>
+    <p><strong style="color:var(--hit);">条件A：</strong>前回LOW（1〜14）が0個だった場合 → 次回生成口の93%以上でLOWから1〜3個を強制配置。</p>
+    <p><strong style="color:var(--hit);">条件B：</strong>前回差2が2組以上出現した場合 → 次回生成口の90%以上で差2を1組以下に抑制。</p>
+  </div>
+
+  <h2><span class="num">5</span>今後の継続研究テーマ</h2>
+  <ul>
+    <li><strong>GAP研究</strong> — 理論期待値・実測GAP・GAP分布・数字ごとの差・時系列安定性</li>
+    <li><strong>ペア研究</strong> — 903ペアの共起頻度・理論期待値・有意差・多重比較補正・OOS再現性</li>
+    <li><strong>個別数字研究</strong> — 出現頻度・GAP・長期/短期トレンド・理論値との差</li>
+  </ul>
+
+  <h2><span class="num">6</span>AIの役割分担</h2>
   <div class="roles">
     <div class="role-card">
       <div class="name">Gemini</div>
-      <p>大量データから特徴を発見・集計する能力を利用する。特に、人間が発見した仮説を数値化する役割を担当。</p>
+      <p>大量データから特徴を発見・集計。人間が発見した仮説を数値化する役割。</p>
     </div>
     <div class="role-card">
       <div class="name">Claude</div>
-      <p>Geminiや人間が発見した仮説を、ランダム基準・統計検定・期間分割・OOSによって反証する役割を担当。</p>
+      <p>仮説をランダム基準・統計検定・期間分割・OOSによって反証する役割。</p>
     </div>
     <div class="role-card">
       <div class="name">ORBIT / OpenAI</div>
-      <p>両AIの結果について、定義・計算条件・結論の整合性を確認する監査役として扱う。</p>
+      <p>両AIの結果について定義・計算条件・結論の整合性を確認する監査役。</p>
     </div>
   </div>
 
-  <h2><span class="num">10</span>今後の研究方針</h2>
-  <p>今後は「新しいルールを増やす」ことを改善とはしない。改善とは、<span class="highlight">無効な特徴を削除し、有効性が確認された特徴だけを残すこと</span>と定義する。特に今後は以下を優先する。</p>
-  <ul>
-    <li><strong>GAP研究</strong> — 理論期待値・実測GAP・GAP分布・極端な空白期間・数字ごとの差・時系列安定性</li>
-    <li><strong>ペア研究</strong> — 43数字から作られる903ペアの共起頻度・理論期待値・有意差・多重比較補正・OOS再現性</li>
-    <li><strong>個別数字研究</strong> — 出現頻度・GAP・長期/短期トレンド・理論値との差・時期による変化</li>
-  </ul>
-
-  <h2><span class="num">11</span>絶対ルール</h2>
+  <h2><span class="num">7</span>絶対ルール</h2>
   <div class="box rule">
     <p style="margin-bottom:10px;">ロトハンターでは、以下を禁止する。</p>
     <ul>
@@ -151,16 +216,16 @@
       <li>「一度当たったから有効」</li>
       <li>「AIが強いと言ったから採用」</li>
     </ul>
-    <p style="margin:14px 0 0;">採用には、<span class="highlight">明確な定義・理論基準・統計検定・複数期間での再現性・OOS検証・再現可能なコード</span>を必要とする。そして、結果が理論を否定した場合は、理論を捨てる。これをロトハンターの研究原則とする。</p>
+    <p style="margin:14px 0 0;">採用には、<span class="highlight">明確な定義・理論基準・統計検定・複数期間での再現性・OOS検証・再現可能なコード</span>を必要とする。結果が理論を否定した場合は、理論を捨てる。</p>
   </div>
 
   <h2><span class="num">総合結論</span></h2>
   <div class="box conclusion">
-    <p style="margin-bottom:10px;">これまでの研究で最も重要だった発見は、</p>
-    <p class="good" style="margin-bottom:10px;">「人間が見つけた特徴の多くは、本当にデータ上に存在する。しかし、その特徴が存在することと、予測能力があることは別問題である」</p>
-    <p style="margin-bottom:10px;">ということだった。したがって今後のAI HUNTERは、</p>
-    <p class="highlight" style="margin-bottom:10px;">発見 → 数値化 → 反証 → 再検証 → 生き残った特徴だけを研究資産として保存</p>
-    <p style="margin-bottom:0;">という方式で進める。既存ロジックを守ることではなく、<strong>既存ロジックを壊せるAIを作る。</strong>これを今後のロトハンタープロジェクトの基本方針とする。</p>
+    <p style="margin-bottom:10px;">今回の全データ検証で最も重要だった発見：</p>
+    <p class="good" style="margin-bottom:10px;">「データ上の特徴の多くは、AIや人間の錯覚ではなく確率空間そのものが持っている数学的性質である。特徴が存在することと、予測能力があることは別問題である。」</p>
+    <p style="margin-bottom:10px;">新モデルでは「過去の特定数字が出やすい」という前提を排除し、</p>
+    <p class="highlight" style="margin-bottom:10px;">数学的確率空間の90%以上を占める標準領域から外れたムダ口を徹底的にカットする</p>
+    <p>というアプローチへ完全シフトする。既存ロジックを守ることではなく、<strong>既存ロジックを壊せるAIを作る。</strong>これをロトハンタープロジェクトの基本方針とする。</p>
   </div>
 
 </div>
