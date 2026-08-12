@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>研究方針・プロジェクト憲章 | LOTO HUNTER</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050810;
+    --surface: #0a0f1e;
+    --card: #0d1428;
+    --border: #1a2744;
+    --accent: #00d4ff;
+    --text: #e0e8ff;
+    --muted: #4a5580;
+    --gold: #ffd700;
+    --hit: #00ff88;
+    --warn: #ff6600;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Noto Sans JP',sans-serif; line-height:1.9; }
+  .header { text-align:center; padding:60px 20px 30px; border-bottom:1px solid var(--border); }
+  .header-brand { font-family:'Orbitron',monospace; font-size:11px; letter-spacing:6px; color:var(--accent); margin-bottom:10px; }
+  .header-title { font-family:'Orbitron',monospace; font-size:28px; font-weight:900; color:#fff; margin-bottom:10px; }
+  .header-sub { font-family:'Share Tech Mono',monospace; font-size:12px; color:var(--muted); letter-spacing:2px; }
+  .container { max-width:820px; margin:0 auto; padding:40px 24px 80px; }
+  .nav { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:40px; }
+  .nav a { font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:1px; color:var(--muted); border:1px solid var(--border); padding:8px 14px; text-decoration:none; }
+  .nav a:hover { color:var(--accent); border-color:var(--accent); }
+  h2 { font-family:'Orbitron',monospace; font-size:13px; letter-spacing:3px; color:var(--accent); margin:44px 0 16px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+  h2 .num { color:var(--muted); margin-right:8px; }
+  p { margin-bottom:14px; font-size:14px; }
+  .highlight { color:var(--accent); }
+  .good { color:var(--hit); }
+  .bad { color:var(--warn); }
+  ul { margin:0 0 14px 22px; font-size:14px; }
+  li { margin-bottom:6px; }
+  .box { background:var(--card); border:1px solid var(--border); border-left:3px solid var(--accent); padding:20px; margin:20px 0; font-size:13px; }
+  .box.rule { border-left-color:var(--warn); }
+  .box.conclusion { border-left-color:var(--hit); }
+  table { width:100%; border-collapse:collapse; font-family:'Share Tech Mono',monospace; font-size:12px; margin:16px 0; }
+  th { background:rgba(0,212,255,0.05); color:var(--accent); padding:10px 8px; border-bottom:1px solid var(--border); text-align:left; }
+  td { padding:8px; border-bottom:1px solid rgba(255,255,255,0.03); }
+  .roles { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin:20px 0; }
+  .role-card { background:var(--card); border:1px solid var(--border); padding:18px; }
+  .role-card .name { font-family:'Orbitron',monospace; font-size:13px; color:var(--accent); margin-bottom:8px; }
+  .role-card p { font-size:13px; margin-bottom:0; }
+  footer { text-align:center; padding:30px; font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--muted); border-top:1px solid var(--border); margin-top:40px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand">AI HUNTER — PROJECT CHARTER</div>
+  <div class="header-title">研究方針・プロジェクト憲章</div>
+  <div class="header-sub">LOTO HUNTER RESEARCH PRINCIPLES / 更新：2026年8月</div>
+</div>
+
+<div class="container">
+
+  <div class="nav">
+    <a href="./index.html">← トップ</a>
+    <a href="./loto6_research.html">研究日誌</a>
+    <a href="./loto6_results.html">予測・結果</a>
+  </div>
+
+  <h2><span class="num">1</span>研究の目的</h2>
+  <p>ロト6の過去抽選データを対象として、出目の構造・頻度・間隔・連番・ゾーン・合計値・数字間の関係などを統計的に分析する。</p>
+  <p>本研究では、既存の分析手法を正しいものとは仮定しない。発見された特徴はすべて仮説として扱い、</p>
+  <div class="box">
+    <span class="highlight">観測 → 理論値との比較 → 統計検定 → 期間分割 → OOS検証</span>
+  </div>
+  <p>の順で検証する。<span class="bad">有効性が確認できない特徴は削除する。</span></p>
+
+  <h2><span class="num">2</span>これまでに発見された主要仮説</h2>
+  <p>人間によるデータ観察から、以下の特徴が発見された。合計値による3段階(LOW：合計110以下／MID：合計111〜150／HIGH：合計151以上)。実データでは、LOW約22.1%・MID約52.3%・HIGH約25.6%という分布が確認された。この分布は完全ランダムでも発生する範囲に近く、独自の偏りとは確認されていない。したがって現在は、「予測法」ではなく「出目構造を分類するための研究上の区分」として扱う。</p>
+
+  <h2><span class="num">3</span>段階別連番</h2>
+  <p>観測された連番率：LOW約59.6%・MID約49.7%・HIGH約59.3%。低・高で連番率が高く、中間で低くなる特徴が確認されたが、ランダム組合せでも同様の構造が発生することが確認された。したがって、特別な予測能力を持つ特徴とは認定しない。連番率そのものを予測ルールとして固定しない。</p>
+
+  <h2><span class="num">4</span>特定連番ペア・3連番</h2>
+  <p>過去データから、1-2／3-4／4-5／21-22／22-23／24-25／41-42／42-43などの頻出ペア、1-2-3／4-5-6／17-18-19／21-22-23／24-25-26／37-38-39／40-41-42などの3連番が観察された。しかし、AIによる検証では、現時点でランダム揺らぎを超える再現性は確認されていない。<span class="bad">特定連番を有力数字として扱うルールは採用しない。</span></p>
+
+  <h2><span class="num">5</span>段階間の遷移</h2>
+  <p>LOW・MID・HIGHについて、「前回HIGHだったから次回LOWになりやすい」などの遷移仮説を検証した。結果、前回の段階によって次回の段階が大きく変化するという統計的証拠は確認されなかった。</p>
+  <table>
+    <tr><th>検証者</th><th>p値</th></tr>
+    <tr><td>Gemini</td><td>0.6884</td></tr>
+    <tr><td>Claude</td><td>0.835</td></tr>
+  </table>
+  <p>いずれも独立性を否定できない結果。<span class="bad">段階遷移を予測ルールとして採用しない。</span></p>
+
+  <h2><span class="num">6</span>LOW欠損後のLOW復動</h2>
+  <p>LOW＝1〜14として、前回LOWが0個だったケースを調査。結果：176回中163回で、次回LOWが1個以上(163/176＝92.61%)という高い観測値が確認された。しかし完全ランダムでも、次回LOWが1個以上となる確率は約92%である。したがって、92.61%という数字自体は興味深いが、現在のところ予測上の優位性とは認定しない。<span class="bad">「LOW欠損の反動」という説明は禁止する。</span></p>
+
+  <h2><span class="num">7</span>差2（1個飛ばし）</h2>
+  <p>数字を昇順に並べ、隣接数字との差が2になる組を「差2」と定義。前回に差2が2組以上存在したケースについて、次回に差2が1組以下となるケースを調査した。</p>
+  <table>
+    <tr><th>項目</th><th>値</th></tr>
+    <tr><td>観測値</td><td class="highlight">220 / 238 = 92.44%</td></tr>
+    <tr><td>ランダム基準</td><td>約88.9%</td></tr>
+    <tr><td>Gemini検証 p値</td><td class="highlight">≈0.0836</td></tr>
+  </table>
+  <p>観測値はランダム基準より高かった。ただし、期間分割・OOSで再現性が十分確認できていないため、現時点では採用確定しない。<span class="highlight">「研究継続候補」とする。</span></p>
+
+  <h2><span class="num">8</span>これまでの総合判定</h2>
+  <p>現時点で、「次回抽選に対する予測能力が統計的に確認された特徴」は存在しない。一方で、研究対象として価値のある現象は存在する。</p>
+  <div class="box">
+    <p class="good" style="margin-bottom:8px;">■ 継続研究</p>
+    <ul>
+      <li>合計値分布</li><li>差2構造</li><li>数字間共起</li><li>GAP分布</li>
+      <li>個別数字の出現間隔</li><li>ペア相関</li><li>長期間での安定性</li>
+    </ul>
+    <p class="bad" style="margin:14px 0 8px;">■ 現時点で予測ルールとして採用しない</p>
+    <ul>
+      <li>LOW/MID/HIGH遷移</li><li>特定連番ペア</li><li>特定3連番</li>
+      <li>LOW欠損→LOW復動</li><li>単純な連番率</li><li>経験則による数字固定</li>
+    </ul>
+  </div>
+
+  <h2><span class="num">9</span>GeminiとClaudeの役割から得られた結論</h2>
+  <div class="roles">
+    <div class="role-card">
+      <div class="name">Gemini</div>
+      <p>大量データから特徴を発見・集計する能力を利用する。特に、人間が発見した仮説を数値化する役割を担当。</p>
+    </div>
+    <div class="role-card">
+      <div class="name">Claude</div>
+      <p>Geminiや人間が発見した仮説を、ランダム基準・統計検定・期間分割・OOSによって反証する役割を担当。</p>
+    </div>
+    <div class="role-card">
+      <div class="name">ORBIT / OpenAI</div>
+      <p>両AIの結果について、定義・計算条件・結論の整合性を確認する監査役として扱う。</p>
+    </div>
+  </div>
+
+  <h2><span class="num">10</span>今後の研究方針</h2>
+  <p>今後は「新しいルールを増やす」ことを改善とはしない。改善とは、<span class="highlight">無効な特徴を削除し、有効性が確認された特徴だけを残すこと</span>と定義する。特に今後は以下を優先する。</p>
+  <ul>
+    <li><strong>GAP研究</strong> — 理論期待値・実測GAP・GAP分布・極端な空白期間・数字ごとの差・時系列安定性</li>
+    <li><strong>ペア研究</strong> — 43数字から作られる903ペアの共起頻度・理論期待値・有意差・多重比較補正・OOS再現性</li>
+    <li><strong>個別数字研究</strong> — 出現頻度・GAP・長期/短期トレンド・理論値との差・時期による変化</li>
+  </ul>
+
+  <h2><span class="num">11</span>絶対ルール</h2>
+  <div class="box rule">
+    <p style="margin-bottom:10px;">ロトハンターでは、以下を禁止する。</p>
+    <ul>
+      <li>「当たりそうだから採用」</li>
+      <li>「一度当たったから有効」</li>
+      <li>「AIが強いと言ったから採用」</li>
+    </ul>
+    <p style="margin:14px 0 0;">採用には、<span class="highlight">明確な定義・理論基準・統計検定・複数期間での再現性・OOS検証・再現可能なコード</span>を必要とする。そして、結果が理論を否定した場合は、理論を捨てる。これをロトハンターの研究原則とする。</p>
+  </div>
+
+  <h2><span class="num">総合結論</span></h2>
+  <div class="box conclusion">
+    <p style="margin-bottom:10px;">これまでの研究で最も重要だった発見は、</p>
+    <p class="good" style="margin-bottom:10px;">「人間が見つけた特徴の多くは、本当にデータ上に存在する。しかし、その特徴が存在することと、予測能力があることは別問題である」</p>
+    <p style="margin-bottom:10px;">ということだった。したがって今後のAI HUNTERは、</p>
+    <p class="highlight" style="margin-bottom:10px;">発見 → 数値化 → 反証 → 再検証 → 生き残った特徴だけを研究資産として保存</p>
+    <p style="margin-bottom:0;">という方式で進める。既存ロジックを守ることではなく、<strong>既存ロジックを壊せるAIを作る。</strong>これを今後のロトハンタープロジェクトの基本方針とする。</p>
+  </div>
+
+</div>
+
+<footer>DATA NEVER LIES · AI HUNTER · ai-hunter.jp · @onikumar029</footer>
+
+</body>
+</html>
