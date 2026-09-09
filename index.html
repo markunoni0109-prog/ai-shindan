@@ -2,211 +2,90 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI HUNTER</title>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-6CLDGG0DS9"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-6CLDGG0DS9');
-</script>
-<link href="https://fonts.googleapis.com/css2?family=Zen+Kurenaido&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #ffffff;
-    --ink: #111111;
-    --ink-soft: #444444;
-    --muted: #7a7a7a;
-    --hairline: #e4e4e4;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background-color: var(--bg);
-    color: var(--ink);
-    font-family: 'Zen Kurenaido', sans-serif;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 72px 24px 40px;
-  }
-
-  h1 {
-    font-size: 26px;
-    font-weight: 700;
-    letter-spacing: 6px;
-    margin-bottom: 10px;
-    -webkit-text-stroke: 0.4px var(--ink);
-  }
-
-  .tagline {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--ink);
-    letter-spacing: 1px;
-    margin-bottom: 76px;
-  }
-
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 40px 32px;
-    max-width: 620px;
-    width: 100%;
-    margin-bottom: 88px;
-  }
-
-  .cell {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
-  }
-
-  .circle {
-    width: 104px;
-    height: 104px;
-    border-radius: 50%;
-    border: 1px solid var(--ink);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    color: var(--ink);
-    transition: background 0.2s ease, transform 0.2s ease;
-  }
-
-  .circle:hover { background: #f6f6f6; transform: translateY(-2px); }
-
-  .circle-code {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 22px;
-    font-weight: 500;
-    letter-spacing: 1px;
-  }
-
-  .circle.coming {
-    border: 1px dashed #d5d5d5;
-    color: #cccccc;
-    pointer-events: none;
-  }
-
-  .cell-name {
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 1px;
-  }
-
-  .cell.disabled .cell-name { color: var(--muted); }
-
-  .log-line {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.5px;
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-
-  .log-line .dot { font-size: 9px; line-height: 1; }
-  .log-line.active { color: var(--ink); }
-  .log-line.active .dot { color: var(--ink); }
-
-  .rule {
-    width: 100%;
-    max-width: 280px;
-    border: none;
-    border-top: 1px solid var(--hairline);
-    margin-bottom: 20px;
-  }
-
-  footer {
-    font-family: 'JetBrains Mono', monospace;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
-  }
-
-  .domain {
-    font-size: 11px;
-    letter-spacing: 2px;
-    color: var(--muted);
-  }
-
-  .research-link {
-    display: inline-block;
-    font-size: 14px;
-    letter-spacing: 2px;
-    color: var(--ink);
-    text-decoration: none;
-    padding: 10px 22px;
-    border: 1px solid var(--ink);
-    border-radius: 20px;
-    margin-bottom: 6px;
-    transition: background 0.2s ease, transform 0.2s ease;
-  }
-
-  .research-link:hover { background: #f6f6f6; transform: translateY(-2px); }
-
-  @media (max-width: 520px) {
-    .grid {
-      grid-template-columns: repeat(2, 1fr);
-      row-gap: 48px;
-    }
-  }
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B5D5D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TOILET FINDER">
+<meta name="mobile-web-app-capable" content="yes">
+<title>TOKYO TOILET FINDER</title>
+<meta name="description" content="Googleより詳しい、旅行者向け東京トイレデータベース。漏れそうな時に、いちばん近いトイレへ。">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>AI HUNTER</h1>
-<p class="tagline">AIによるデータ研究の公開サイト</p>
-
-<div class="grid">
-  <div class="cell">
-    <a href="./keiba_hunter.html" class="circle">
-      <span class="circle-code">KB</span>
-    </a>
-    <span class="cell-name">競馬予測</span>
-    <span class="log-line active"><span class="dot">●</span>LOGGED — 2026.05〜</span>
+<header class="app-header">
+  <div class="brand">
+    <span class="brand-mark">TOKYO</span><span class="brand-mark brand-mark--fill">TOILET</span><span class="brand-mark">FINDER</span>
   </div>
+  <button id="langToggle" class="lang-toggle" type="button" aria-label="Switch language">EN</button>
+</header>
 
-  <div class="cell">
-    <a href="./loto6_results.html" class="circle">
-      <span class="circle-code">LT</span>
-    </a>
-    <span class="cell-name">ロト予測</span>
-    <span class="log-line active"><span class="dot">●</span>LOGGED — 2026.07〜</span>
-  </div>
+<nav class="city-bar" id="cityBar" aria-label="City selector"></nav>
 
-  <div class="cell disabled">
-    <div class="circle coming">
-      <span class="circle-code">NB</span>
+<div id="offlineBanner" class="offline-banner hidden">📡 オフラインです（保存済みデータを表示しています）</div>
+<div id="installBanner" class="install-banner hidden">
+  <span id="installText">ホーム画面に追加すると次から早く開けます</span>
+  <button id="installBtn" class="install-btn" type="button">追加する</button>
+  <button id="installDismiss" class="install-dismiss" type="button" aria-label="Dismiss">✕</button>
+</div>
+
+<main id="app">
+
+  <section id="emergencyZone" class="emergency-zone">
+    <button id="emergencyBtn" class="emergency-btn" type="button">
+      <span class="emergency-btn__icon">🚨</span>
+      <span class="emergency-btn__label" id="emergencyLabel">漏れそう！</span>
+    </button>
+    <p class="emergency-hint" id="emergencyHint">タップすると現在地から一番近いトイレを探します</p>
+  </section>
+
+  <section id="emergencyResults" class="emergency-results hidden" aria-live="polite"></section>
+
+  <section id="browseZone" class="browse-zone">
+    <div class="toolbar">
+      <input id="searchInput" class="search-input" type="search" placeholder="施設名・エリアで検索…" />
+      <select id="areaSelect" class="area-select" aria-label="Area filter"></select>
     </div>
-    <span class="cell-name">ナンバーズ</span>
-    <span class="log-line"><span class="dot">○</span>NOT LOGGED</span>
-  </div>
 
-  <div class="cell disabled">
-    <div class="circle coming">
-      <span class="circle-code">TT</span>
+    <div class="chip-row" id="viewModeChips">
+      <button id="viewBrowse" class="chip" type="button" data-active="true">📋 一覧</button>
+      <button id="viewRanking" class="chip" type="button" data-active="false">🏆 神トイレランキング</button>
     </div>
-    <span class="cell-name">toto予測</span>
-    <span class="log-line"><span class="dot">○</span>NOT LOGGED</span>
+
+    <div id="filterControls">
+      <div class="chip-row" id="quickFilters">
+        <button id="filter24h" class="chip" type="button" data-active="false">🕐 24時間</button>
+        <button id="filterWheelchair" class="chip" type="button" data-active="false">♿ バリアフリー</button>
+        <button id="filterBaby" class="chip" type="button" data-active="false">👶 ベビー設備</button>
+      </div>
+
+      <div class="chip-row" id="rankChips"></div>
+
+      <div id="categoryChips" class="chip-row" role="tablist" aria-label="Category filter"></div>
+    </div>
+
+    <div id="resultMeta" class="result-meta"></div>
+    <div id="listContainer" class="list-container"></div>
+  </section>
+
+</main>
+
+<div id="detailSheet" class="detail-sheet hidden">
+  <div class="detail-sheet__panel">
+    <button id="detailClose" class="detail-sheet__close" type="button" aria-label="Close">✕</button>
+    <div id="detailContent"></div>
   </div>
 </div>
 
-<hr class="rule">
-<footer>
-  <a href="./loto6_research.html" class="research-link">→ 研究日誌</a>
-  <div class="domain">ai-hunter.jp</div>
+<footer class="app-footer">
+  <p id="footerNote">AI HUNTER FACTORY100｜データは有志収集ベース（COMMUNITY）。営業時間・設備は現地で要確認。</p>
 </footer>
 
+<script src="i18n.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
