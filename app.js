@@ -115,11 +115,16 @@
   }
 
   async function loadMaster() {
+    // This build ships data_master.json flat at the repo root (see the delivered
+    // ZIP layout) — fetch it directly. A previous version speculatively tried a
+    // /data/ subfolder first, which could silently load a stale duplicate if one
+    // existed there; that lookup has been removed to guarantee the shipped file wins.
     try {
-      const res = await fetch("data_master.json");
-      state.all = await res.json();
+      const res = await fetch("data_master.json", { cache: "no-store" });
+      state.all = res.ok ? await res.json() : [];
     } catch (e) {
       state.all = [];
+      console.error("TOKYO TOILET FINDER: failed to load data_master.json", e);
     }
     state.byCity = {};
     state.all.forEach((r) => {
@@ -291,6 +296,8 @@
     if (r.emergency_rank) tags.push(`<span class="tag tag--rank">${r.emergency_rank.replace("（ユーザー指定）", "")}</span>`);
     if (r.is_24h) tags.push(`<span class="tag tag--24h">24h</span>`);
     if (r.wheelchair === true) tags.push(`<span class="tag tag--24h">♿</span>`);
+    if (r.paper === true) tags.push(`<span class="tag tag--24h">🧻 ${T.paperTag}</span>`);
+    if (r.washlet === true) tags.push(`<span class="tag tag--24h">🚿 ${T.washletTag}</span>`);
     if (r.baby_bed === true || r.baby_chair === true) tags.push(`<span class="tag tag--24h">👶</span>`);
     if (isHiddenGem(r)) tags.push(`<span class="tag tag--hidden-gem">${T.hiddenGemTag}</span>`);
     if (isNightSafeHeuristic(r)) tags.push(`<span class="tag tag--night-safe">${T.nightSafeTag}</span>`);
@@ -447,68 +454,104 @@
     el.detailSheet.classList.add("hidden");
   }
 
-  // --- Emergency: rank -> 24h -> walking distance ---
-  function runEmergency() {
-    const T = t();
-    el.emergencyResults.classList.remove("hidden");
-    el.emergencyResults.innerHTML = `<div class="emergency-note">${T.emergencySearching}</div>`;
+  // --- SOS: vibration + flash + geolocation + nearest-toilet reveal + one-tap Maps ---
+  function walkTimeLabel(meters) {
+    const seconds = Math.round((meters / 80) * 60);
+    if (seconds < 60) return `徒歩${Math.max(5, seconds)}秒`;
+    return `徒歩${Math.max(1, Math.round(seconds / 60))}分`;
+  }
 
-    const usable = state.current.filter((r) => r.category !== "unusable");
-    if (usable.length === 0) {
-      el.emergencyResults.innerHTML = `<div class="emergency-note">${T.emergencyNoData}</div>`;
+  function safeVibrate() {
+    try {
+      if (navigator.vibrate) navigator.vibrate([120, 80, 120]);
+    } catch (e) {
+      /* unsupported device: no-op */
+    }
+  }
+
+  function playSosFlash() {
+    el.emergencyBtn.classList.remove("is-triggered");
+    // force reflow so the animation can restart on repeated taps
+    void el.emergencyBtn.offsetWidth;
+    el.emergencyBtn.classList.add("is-triggered");
+    setTimeout(() => el.emergencyBtn.classList.remove("is-triggered"), 850);
+  }
+
+  function showSosStatus(text, isError) {
+    el.emergencyResults.classList.remove("hidden");
+    el.emergencyResults.innerHTML = `<div class="sos-status${isError ? " sos-status--error" : ""}">${text}</div>`;
+  }
+
+  function triggerSOS() {
+    safeVibrate();
+    playSosFlash();
+
+    // Reserve a tab synchronously (within the click gesture) so we can redirect it
+    // once the nearest toilet is found, without the browser blocking a later popup.
+    let mapsWindow = null;
+    try {
+      mapsWindow = window.open("", "_blank");
+    } catch (e) {
+      mapsWindow = null;
+    }
+
+    showSosStatus(t().sosSearching);
+
+    // Search the ENTIRE dataset (all cities), not just the currently selected city tab,
+    // since the nearest toilet to the user's real GPS position may be outside the active tab.
+    const candidates = state.all.filter((r) => r.category !== "unusable" && r.lat && r.lng);
+
+    if (candidates.length === 0) {
+      showSosStatus(t().emergencyNoData, true);
+      if (mapsWindow) mapsWindow.close();
       return;
     }
 
     if (!navigator.geolocation) {
-      finishEmergency(usable, false);
+      showSosStatus(t().sosLocationOff, true);
+      if (mapsWindow) mapsWindow.close();
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         state.geo = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        finishEmergency(usable, true);
+        const nearest = candidates
+          .map((r) => ({ r, dist: distanceOf(r) }))
+          .sort((a, b) => a.dist - b.dist)[0];
+        revealSosResult(nearest.r, nearest.dist, mapsWindow);
       },
       () => {
-        el.emergencyResults.innerHTML = `<div class="emergency-note">${T.emergencyDenied}</div>`;
-        finishEmergency(usable, false);
+        showSosStatus(t().sosLocationOff, true);
+        if (mapsWindow) mapsWindow.close();
       },
-      { timeout: 8000 }
+      { timeout: 8000, enableHighAccuracy: true }
     );
   }
 
-  // Sort priority: emergency rank desc -> 24h desc -> walking distance asc (unknown distance sorts last).
-  function finishEmergency(usable, haveGeo) {
-    const withMeta = usable.map((r) => ({ r, dist: haveGeo ? distanceOf(r) : null }));
-    withMeta.sort((a, b) => {
-      const rankDiff = rankScore(b.r.emergency_rank) - rankScore(a.r.emergency_rank);
-      if (rankDiff !== 0) return rankDiff;
-      const h24Diff = (b.r.is_24h ? 1 : 0) - (a.r.is_24h ? 1 : 0);
-      if (h24Diff !== 0) return h24Diff;
-      if (a.dist == null && b.dist == null) return 0;
-      if (a.dist == null) return 1;
-      if (b.dist == null) return -1;
-      return a.dist - b.dist;
-    });
-    renderEmergencyList(withMeta.slice(0, 6), haveGeo);
-  }
-
-  function renderEmergencyList(items, haveGeo) {
-    const T = t();
-    const cards = items
-      .map(({ r, dist }) => {
-        const distLabel = dist != null ? `${Math.round(dist)}m・徒歩${walkMinutes(dist)}分` : "";
-        return `
-        <div class="emergency-card">
-          ${r.emergency_rank ? `<div class="emergency-card__rank">${r.emergency_rank.replace("（ユーザー指定）", "")}</div>` : ""}
-          <div class="emergency-card__name">${displayName(r)}</div>
-          <div class="emergency-card__meta">${[distLabel, r.open_hours].filter(Boolean).join(" ｜ ")}</div>
-          <a class="emergency-card__go" href="${navUrl(r)}" target="_blank" rel="noopener">${T.goWalk}</a>
-        </div>`;
-      })
-      .join("");
-    const note = haveGeo ? `<div class="emergency-note">${T.emergencyNoCoord}</div>` : "";
-    el.emergencyResults.innerHTML = note + cards;
+  function revealSosResult(r, dist, mapsWindow) {
+    const url = navUrl(r);
+    if (mapsWindow) {
+      try {
+        mapsWindow.location.href = url;
+      } catch (e) {
+        /* popup may have been closed by the user; the manual button below still works */
+      }
+    }
+    const photoHtml = r.photo_url
+      ? `<img class="photo-img" src="${r.photo_url}" alt="${displayName(r)}">`
+      : `<div class="photo-placeholder">${t().noPhoto}</div>`;
+    el.emergencyResults.innerHTML = `
+      <div class="sos-result">
+        <div class="sos-result__title">${t().sosFound}</div>
+        ${photoHtml}
+        <div class="sos-result__name">${displayName(r)}</div>
+        <div class="sos-result__time">${walkTimeLabel(dist)}・${Math.round(dist)}m</div>
+        <div class="card__meta" style="justify-content:center;margin-bottom:8px;">${extraTagsHtml(r)}</div>
+        <div class="sos-result__meta">${[r.open_hours, r.address].filter(Boolean).join(" ｜ ")}</div>
+        <a class="sos-result__go" href="${url}" target="_blank" rel="noopener">${t().sosGoBtn}</a>
+      </div>
+    `;
   }
 
   // --- PWA: install prompt + offline banner ---
@@ -574,7 +617,7 @@
   }
 
   function bindEvents() {
-    el.emergencyBtn.addEventListener("click", runEmergency);
+    el.emergencyBtn.addEventListener("click", triggerSOS);
     el.searchInput.addEventListener("input", (e) => {
       state.query = e.target.value.trim();
       renderMain();

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="shieldGloss" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3A3A3A"/>
+      <stop offset="45%" stop-color="#0A0A0A"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </linearGradient>
+    <radialGradient id="bgGloss" cx="35%" cy="20%" r="80%">
+      <stop offset="0%" stop-color="#FF3B2E"/>
+      <stop offset="55%" stop-color="#E60012"/>
+      <stop offset="100%" stop-color="#C40010"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Red background, rounded square (iOS/Android icon shape) -->
+  <rect x="0" y="0" width="1024" height="1024" rx="220" ry="220" fill="url(#bgGloss)"/>
+
+  <!-- White outer frame emphasizing the "icon" feel -->
+  <rect x="42" y="42" width="940" height="940" rx="180" ry="180"
+        fill="none" stroke="#FFFFFF" stroke-width="26"/>
+
+  <!-- Black shield, glossy -->
+  <path d="M512,150
+           L 772,235
+           Q 818,250 818,298
+           L 818,516
+           Q 818,760 512,894
+           Q 206,760 206,516
+           L 206,298
+           Q 206,250 252,235
+           Z"
+        fill="url(#shieldGloss)" stroke="#000000" stroke-width="4"/>
+
+  <!-- Glossy highlight streak on the shield -->
+  <ellipse cx="420" cy="330" rx="170" ry="66" fill="#FFFFFF" opacity="0.12"
+           transform="rotate(-22 420 330)"/>
+  <ellipse cx="380" cy="420" rx="70" ry="220" fill="#FFFFFF" opacity="0.06"
+           transform="rotate(-12 380 420)"/>
+
+  <!-- SOS -->
+  <text x="512" y="452" text-anchor="middle"
+        font-family="Noto Sans CJK JP, Arial, Helvetica, sans-serif"
+        font-weight="900" font-size="184" letter-spacing="6"
+        fill="#FFFFFF">SOS</text>
+
+  <!-- Toilet pictogram (rendered from the 🚽 glyph as a clean white line icon) -->
+  <text x="506" y="648" text-anchor="middle"
+        font-family="Noto Color Emoji"
+        font-size="200" fill="#FFFFFF">&#128701;</text>
+
+  <!-- 漏れそう!! -->
+  <text x="512" y="768" text-anchor="middle"
+        font-family="Noto Sans CJK JP, Arial, Helvetica, sans-serif"
+        font-weight="900" font-size="78"
+        fill="#FFFFFF">漏れそう!!</text>
+</svg>

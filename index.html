@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#E60012">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="TOILET FINDER">
+<meta name="apple-mobile-web-app-title" content="TOILET SOS">
 <meta name="mobile-web-app-capable" content="yes">
-<title>TOKYO TOILET FINDER</title>
-<meta name="description" content="Googleより詳しい、旅行者向け東京トイレデータベース。漏れそうな時に、いちばん近いトイレへ。">
+<title>AI HUNTER TOILET SOS</title>
+<meta name="description" content="AI HUNTER TOILET SOS｜Googleより詳しい、旅行者向け東京トイレデータベース。漏れそうな時に、いちばん近いトイレへ。">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="icon" href="icon-32.png" sizes="32x32" type="image/png">
@@ -20,7 +20,11 @@
 
 <header class="app-header">
   <div class="brand">
-    <span class="brand-mark">TOKYO</span><span class="brand-mark brand-mark--fill">TOILET</span><span class="brand-mark">FINDER</span>
+    <img src="icon.svg" alt="AI HUNTER" class="brand-icon">
+    <div class="brand-text">
+      <span class="brand-text__top">AI HUNTER</span>
+      <span class="brand-text__bottom">TOILET SOS</span>
+    </div>
   </div>
   <button id="langToggle" class="lang-toggle" type="button" aria-label="Switch language">EN</button>
 </header>
@@ -39,10 +43,13 @@
   <section id="emergencyZone" class="emergency-zone">
     <div class="sos-wrap">
       <button id="emergencyBtn" class="sos-btn" type="button">
+        <span class="sos-btn__shape" aria-hidden="true"></span>
         <span class="sos-flash" id="sosFlash" aria-hidden="true"></span>
-        <span class="sos-btn__sos">🆘 SOS‼️</span>
-        <span class="sos-btn__mid" id="emergencyLabel">🚽 漏れそう‼️</span>
-        <span class="sos-btn__sub" id="emergencyHint">押すだけ。徒歩最短の神トイレへ。</span>
+        <span class="sos-btn__content">
+          <span class="sos-btn__sos">SOS‼️</span>
+          <span class="sos-btn__mid" id="emergencyLabel">🚽 漏れそう‼️</span>
+          <span class="sos-btn__sub" id="emergencyHint">押すだけ。徒歩最短の神トイレへ。</span>
+        </span>
       </button>
     </div>
   </section>
