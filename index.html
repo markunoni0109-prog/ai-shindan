@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0B5D5D">
+<meta name="theme-color" content="#E60012">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TOILET FINDER">
@@ -12,7 +12,8 @@
 <meta name="description" content="Googleより詳しい、旅行者向け東京トイレデータベース。漏れそうな時に、いちばん近いトイレへ。">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icon.svg">
+<link rel="icon" href="icon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="icon-180.png">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -36,14 +37,17 @@
 <main id="app">
 
   <section id="emergencyZone" class="emergency-zone">
-    <button id="emergencyBtn" class="emergency-btn" type="button">
-      <span class="emergency-btn__icon">🚨</span>
-      <span class="emergency-btn__label" id="emergencyLabel">漏れそう！</span>
-    </button>
-    <p class="emergency-hint" id="emergencyHint">タップすると現在地から一番近いトイレを探します</p>
+    <div class="sos-wrap">
+      <button id="emergencyBtn" class="sos-btn" type="button">
+        <span class="sos-flash" id="sosFlash" aria-hidden="true"></span>
+        <span class="sos-btn__sos">🆘 SOS‼️</span>
+        <span class="sos-btn__mid" id="emergencyLabel">🚽 漏れそう‼️</span>
+        <span class="sos-btn__sub" id="emergencyHint">押すだけ。徒歩最短の神トイレへ。</span>
+      </button>
+    </div>
   </section>
 
-  <section id="emergencyResults" class="emergency-results hidden" aria-live="polite"></section>
+  <section id="emergencyResults" class="emergency-results hidden" aria-live="assertive"></section>
 
   <section id="browseZone" class="browse-zone">
     <div class="toolbar">
