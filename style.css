@@ -233,19 +233,21 @@ body {
 
 /* ---------- SOS banner (round button, per final mock) ---------- */
 .sos-banner {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  gap: 10px;
-  padding: 18px 14px;
+  gap: 8px;
+  padding: 16px 10px;
   background: linear-gradient(180deg, #FDE9E5 0%, #FDF3F1 100%);
   border-bottom: 1px solid #F6CFC6;
 }
-.sos-banner__left { flex: 1 1 auto; min-width: 0; }
+.sos-banner__left { min-width: 0; overflow: hidden; }
 .sos-banner__title {
-  font-size: 26px;
+  font-size: clamp(18px, 6.2vw, 26px);
   font-weight: 900;
   color: var(--alert-deep);
   line-height: 1.1;
+  white-space: nowrap;
 }
 .sos-banner__sub {
   font-size: 13px;

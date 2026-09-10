@@ -862,36 +862,56 @@
 
     // Search the ENTIRE dataset (all cities), not just the currently selected city tab,
     // since emergency-ready venues near the user's real GPS position may be outside the active tab.
-    const candidates = state.all.filter((r) => r.category !== "unusable");
-    if (candidates.length === 0) {
+    const basePool = state.all.filter((r) => r.category !== "unusable");
+    if (basePool.length === 0) {
       showSosStatus(t().emergencyNoData, true);
       return;
     }
 
-    const finish = () => {
-      let withMeta = candidates.map((r) => ({ r, dist: distanceOf(r) }));
+    // Evaluation order once we have a real GPS fix: (1) within ~3km, preferring a tight
+    // ~500m band, (2) SOS suitability (explicit isSOS flag, else category heuristic),
+    // (3) actual distance. A nearby station/public toilet must never lose to a department
+    // store that is merely "the right category" but several km away - so distance banding
+    // is checked BEFORE category priority, not after.
+    const NEAR_BAND_M = 500;
+    const MAX_RADIUS_M = 3000;
+    function distanceBand(distMeters) {
+      if (distMeters <= NEAR_BAND_M) return 0;
+      if (distMeters <= MAX_RADIUS_M) return 1;
+      return 2;
+    }
 
-      // Emergency search must stay geographically relevant. When GPS is available,
-      // never let a far-away department store beat a nearby station/park just because
-      // its category has a higher global priority.
-      if (state.geo) {
-        const nearby = withMeta.filter((x) => x.dist != null && x.dist <= 3000);
-        if (nearby.length) withMeta = nearby;
+    const finishWithGeo = () => {
+      // Only venues with real, verified coordinates can be evaluated for proximity - venues
+      // without coordinates are excluded here rather than shown with a guessed distance.
+      const withCoords = basePool
+        .filter((r) => r.lat && r.lng)
+        .map((r) => ({ r, dist: distanceOf(r) }));
+
+      let pool = withCoords.filter((x) => x.dist <= MAX_RADIUS_M);
+      if (pool.length === 0) {
+        // Nothing within 3km - fall back to whatever geocoded venues exist at all,
+        // still ranked nearest-first, rather than showing an unhelpful empty result.
+        pool = withCoords;
       }
 
+      pool.sort((a, b) => {
+        const bandDiff = distanceBand(a.dist) - distanceBand(b.dist);
+        if (bandDiff !== 0) return bandDiff;
+        const pd = sosPriority(a.r) - sosPriority(b.r);
+        if (pd !== 0) return pd;
+        return a.dist - b.dist;
+      });
+
+      renderSosList(pool.slice(0, 8));
+    };
+
+    // No GPS fix available: we cannot evaluate real distance at all, so we fall back to
+    // SOS suitability only, and the card renderer will not display any distance/walk-time
+    // claim for these (see renderSosCard - it only shows a time when `dist` is a real number).
+    const finishWithoutGeo = () => {
+      const withMeta = basePool.map((r) => ({ r, dist: null }));
       withMeta.sort((a, b) => {
-        if (a.dist != null && b.dist != null) {
-          // First compare rough distance bands, then facility suitability, then exact distance.
-          // This preserves SOS quality without sending the user across Tokyo.
-          const bandA = Math.floor(a.dist / 500);
-          const bandB = Math.floor(b.dist / 500);
-          if (bandA !== bandB) return bandA - bandB;
-          const pd = sosPriority(a.r) - sosPriority(b.r);
-          if (pd !== 0) return pd;
-          return a.dist - b.dist;
-        }
-        if (a.dist != null) return -1;
-        if (b.dist != null) return 1;
         const pd = sosPriority(a.r) - sosPriority(b.r);
         if (pd !== 0) return pd;
         return rankScore(b.r.emergency_rank) - rankScore(a.r.emergency_rank);
@@ -900,15 +920,15 @@
     };
 
     if (!navigator.geolocation) {
-      finish();
+      finishWithoutGeo();
       return;
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         state.geo = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        finish();
+        finishWithGeo();
       },
-      () => finish(), // no location: still show the priority list, just without distance
+      () => finishWithoutGeo(),
       { timeout: 8000, enableHighAccuracy: true }
     );
   }
