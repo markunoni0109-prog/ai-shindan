@@ -59,6 +59,7 @@
     emergencyResults: document.getElementById("emergencyResults"),
     sosPushLabel: document.getElementById("sosPushLabel"),
     sosDescLabel: document.getElementById("sosDescLabel"),
+    sosNoteSmall: document.getElementById("sosNoteSmall"),
     searchInput: document.getElementById("searchInput"),
     areaSelect: document.getElementById("areaSelect"),
     viewBrowse: document.getElementById("viewBrowse"),
@@ -406,11 +407,24 @@
     updateMap(visible.map((v) => v.r));
   }
 
-  function renderCard(r, dist, number) {
+  function typeBadgeClass(category) {
+    if (category === "dept_commercial" || category === "commercial") return "type-badge--dept";
+    if (category === "station") return "type-badge--station";
+    if (category === "park") return "type-badge--park";
+    if (category === "government") return "type-badge--gov";
+    return "type-badge--other";
+  }
+
+  function renderCard(r, dist, number, opts) {
+    const showTypeBadge = opts && opts.showTypeBadge;
     const card = document.createElement("div");
     card.className = "card";
     const distLabel = dist != null ? ` ｜ 🚶 徒歩${walkMinutes(dist)}分（${Math.round(dist)}m）` : "";
     const isFav = state.favorites.has(r.id);
+    const typeBadgeHtml = showTypeBadge
+      ? `<span class="type-badge ${typeBadgeClass(r.category)}">${buildingTypeLabel(r.category)}</span>`
+      : "";
+    const secondLine = r.address || r.area_tag || "";
     card.innerHTML = `
       <div class="card__badge">${number}</div>
       ${photoHtmlSmall(r)}
@@ -419,7 +433,8 @@
           <div class="card__name">${displayName(r)}</div>
           <button class="card__fav" type="button" aria-label="favorite">${isFav ? "★" : "☆"}</button>
         </div>
-        <div class="card__area">${r.area_tag || ""}</div>
+        ${typeBadgeHtml}
+        <div class="card__area">${secondLine}</div>
         <div class="card__meta">
           <span>${(r.open_hours || "-")}${distLabel}</span>
           ${extraTagsHtml(r)}
@@ -588,7 +603,7 @@
     el.detailSheet.classList.add("hidden");
   }
 
-  // --- SOS: vibration + flash + geolocation + nearest-toilet reveal + one-tap Maps ---
+  // --- SOS: vibration + flash + geolocation + prioritized emergency-ready list ---
   function walkTimeLabel(meters) {
     const seconds = Math.round((meters / 80) * 60);
     if (seconds < 60) return `徒歩${Math.max(5, seconds)}秒`;
@@ -616,76 +631,97 @@
     el.emergencyResults.innerHTML = `<div class="sos-status${isError ? " sos-status--error" : ""}">${text}</div>`;
   }
 
+  // Emergency priority: dept stores/commercial > stations > parks > public facilities.
+  // Convenience stores and venues with unclear usage conditions are pushed to the bottom
+  // (they still show up in the normal browse list, just not favored during an SOS search).
+  function sosPriority(category) {
+    if (category === "dept_commercial" || category === "commercial") return 1;
+    if (category === "station") return 2;
+    if (category === "park") return 3;
+    if (category === "government") return 4;
+    if (category === "convenience" || category === "unknown" || category === "unknown_conflict") return 9;
+    return 6;
+  }
+
+  function buildingTypeLabel(category) {
+    const T = t();
+    if (category === "dept_commercial" || category === "commercial") return T.buildingTypeDept;
+    if (category === "station") return T.buildingTypeStation;
+    if (category === "park") return T.buildingTypePark;
+    if (category === "government") return T.buildingTypeGov;
+    return categoryLabel(category);
+  }
+
   function triggerSOS() {
     safeVibrate();
     playSosFlash();
-
-    // Reserve a tab synchronously (within the click gesture) so we can redirect it
-    // once the nearest toilet is found, without the browser blocking a later popup.
-    let mapsWindow = null;
-    try {
-      mapsWindow = window.open("", "_blank");
-    } catch (e) {
-      mapsWindow = null;
-    }
-
     showSosStatus(t().sosSearching);
 
     // Search the ENTIRE dataset (all cities), not just the currently selected city tab,
-    // since the nearest toilet to the user's real GPS position may be outside the active tab.
-    const candidates = state.all.filter((r) => r.category !== "unusable" && r.lat && r.lng);
-
+    // since emergency-ready venues near the user's real GPS position may be outside the active tab.
+    const candidates = state.all.filter((r) => r.category !== "unusable");
     if (candidates.length === 0) {
       showSosStatus(t().emergencyNoData, true);
-      if (mapsWindow) mapsWindow.close();
       return;
     }
+
+    const finish = () => {
+      const withMeta = candidates.map((r) => ({ r, dist: distanceOf(r) }));
+      withMeta.sort((a, b) => {
+        const pd = sosPriority(a.r.category) - sosPriority(b.r.category);
+        if (pd !== 0) return pd;
+        if (a.dist == null && b.dist == null) return rankScore(b.r.emergency_rank) - rankScore(a.r.emergency_rank);
+        if (a.dist == null) return 1;
+        if (b.dist == null) return -1;
+        return a.dist - b.dist;
+      });
+      renderSosList(withMeta.slice(0, 8));
+    };
 
     if (!navigator.geolocation) {
-      showSosStatus(t().sosLocationOff, true);
-      if (mapsWindow) mapsWindow.close();
+      finish();
       return;
     }
-
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         state.geo = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        const nearest = candidates
-          .map((r) => ({ r, dist: distanceOf(r) }))
-          .sort((a, b) => a.dist - b.dist)[0];
-        revealSosResult(nearest.r, nearest.dist, mapsWindow);
+        finish();
       },
-      () => {
-        showSosStatus(t().sosLocationOff, true);
-        if (mapsWindow) mapsWindow.close();
-      },
+      () => finish(), // no location: still show the priority list, just without distance
       { timeout: 8000, enableHighAccuracy: true }
     );
   }
 
-  function revealSosResult(r, dist, mapsWindow) {
-    const url = navUrl(r);
-    if (mapsWindow) {
-      try {
-        mapsWindow.location.href = url;
-      } catch (e) {
-        /* popup may have been closed by the user; the manual button below still works */
-      }
+  function renderSosList(items) {
+    const T = t();
+    if (items.length === 0) {
+      showSosStatus(T.sosEmptyList, true);
+      return;
     }
-    const photoHtml = r.photo_url
-      ? `<img class="photo-img" src="${r.photo_url}" alt="${displayName(r)}">`
-      : `<div class="photo-placeholder">${t().noPhoto}</div>`;
+
     el.emergencyResults.innerHTML = `
-      <div class="sos-result">
-        <div class="sos-result__title">${t().sosFound}</div>
-        ${photoHtml}
-        <div class="sos-result__name">${displayName(r)}</div>
-        <div class="sos-result__time">${walkTimeLabel(dist)}・${Math.round(dist)}m</div>
-        <div class="card__meta" style="justify-content:center;margin-bottom:8px;">${extraTagsHtml(r)}</div>
-        <div class="sos-result__meta">${[r.open_hours, r.address].filter(Boolean).join(" ｜ ")}</div>
-        <a class="sos-result__go" href="${url}" target="_blank" rel="noopener">${t().sosGoBtn}</a>
+      <div class="sos-banner-note">
+        <div class="sos-banner-note__text">
+          <div class="sos-banner-note__title">${T.sosBannerTitle}</div>
+          <div class="sos-banner-note__sub">${T.sosBannerSub}</div>
+        </div>
+        <span class="sos-banner-note__pill">${T.sosOnlyPill}</span>
       </div>
+      <button id="sosCloseBtn" class="sos-close-btn" type="button">${T.sosClose}</button>
+      <div id="sosCardList" class="list-container"></div>
     `;
+
+    const listEl = document.getElementById("sosCardList");
+    items.forEach(({ r, dist }, idx) => {
+      listEl.appendChild(renderCard(r, dist, idx + 1, { showTypeBadge: true }));
+    });
+
+    document.getElementById("sosCloseBtn").addEventListener("click", closeSosResults);
+  }
+
+  function closeSosResults() {
+    el.emergencyResults.classList.add("hidden");
+    el.emergencyResults.innerHTML = "";
   }
 
   // --- PWA: install prompt + offline banner ---
@@ -731,6 +767,7 @@
     el.emergencyHint.textContent = T.emergencyHint;
     el.sosPushLabel.textContent = T.sosPushLabel;
     el.sosDescLabel.textContent = T.sosDescLabel;
+    el.sosNoteSmall.textContent = T.sosNoteSmall;
     el.nearMeLabel.textContent = T.nearMeLabel;
     el.sortNearestLabel.textContent = T.sortNearestLabel;
     el.searchInput.placeholder = T.searchPlaceholder;
@@ -861,7 +898,9 @@
       el.tabFavorites.dataset.active = "false";
       el.mapSection.classList.remove("map-section--expanded");
       state.visibleCount = 8;
+      closeSosResults();
       renderMain();
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
     el.tabMap.addEventListener("click", () => {
       state.activeTab = "map";
@@ -869,7 +908,9 @@
       el.tabMap.dataset.active = "true";
       el.tabFavorites.dataset.active = "false";
       el.mapSection.classList.add("map-section--expanded");
+      closeSosResults();
       renderMain();
+      el.mapSection.scrollIntoView({ behavior: "smooth", block: "start" });
     });
     el.tabFavorites.addEventListener("click", () => {
       state.activeTab = "favorites";
@@ -878,7 +919,9 @@
       el.tabFavorites.dataset.active = "true";
       el.mapSection.classList.remove("map-section--expanded");
       state.visibleCount = 8;
+      closeSosResults();
       renderMain();
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
 
     el.detailClose.addEventListener("click", closeDetail);
