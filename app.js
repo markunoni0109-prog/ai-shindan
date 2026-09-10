@@ -10,6 +10,9 @@
     lang: localStorage.getItem("ttf_lang") || "ja",
     city: localStorage.getItem("ttf_city") || "asakusa",
     view: "browse", // 'browse' | 'ranking'
+    activeTab: "home", // 'home' | 'map' | 'favorites'
+    sortNearest: true,
+    visibleCount: 8,
     category: "all",
     area: "all",
     rank: "all", // 'all' | 'S' | 'A' | 'B'
@@ -22,22 +25,55 @@
     current: [],
     geo: null, // { lat, lng } once obtained, reused for distance display in list/ranking too
     deferredInstallPrompt: null,
+    favorites: new Set(JSON.parse(localStorage.getItem("ttf_favorites") || "[]")),
+    map: null,
+    mapMarkersLayer: null,
   };
 
   const el = {
     cityBar: document.getElementById("cityBar"),
     langToggle: document.getElementById("langToggle"),
+    menuBtn: document.getElementById("menuBtn"),
+    sideMenu: document.getElementById("sideMenu"),
+    sideMenuBackdrop: document.getElementById("sideMenuBackdrop"),
+    sideMenuClose: document.getElementById("sideMenuClose"),
+    searchToggleBtn: document.getElementById("searchToggleBtn"),
+    nearMeBtn: document.getElementById("nearMeBtn"),
+    nearMeLabel: document.getElementById("nearMeLabel"),
+    filterSheet: document.getElementById("filterSheet"),
+    filterSheetClose: document.getElementById("filterSheetClose"),
+    openFilterSheet: document.getElementById("openFilterSheet"),
+    sortNearest: document.getElementById("sortNearest"),
+    sortNearestLabel: document.getElementById("sortNearestLabel"),
+    mapSection: document.getElementById("mapSection"),
+    leafletMapEl: document.getElementById("leafletMap"),
+    showMoreBtn: document.getElementById("showMoreBtn"),
+    showMoreLabel: document.getElementById("showMoreLabel"),
+    tabHome: document.getElementById("tabHome"),
+    tabMap: document.getElementById("tabMap"),
+    tabFavorites: document.getElementById("tabFavorites"),
+    headerTagline: document.getElementById("headerTagline"),
     emergencyBtn: document.getElementById("emergencyBtn"),
     emergencyLabel: document.getElementById("emergencyLabel"),
     emergencyHint: document.getElementById("emergencyHint"),
     emergencyResults: document.getElementById("emergencyResults"),
+    sosPushLabel: document.getElementById("sosPushLabel"),
+    sosDescLabel: document.getElementById("sosDescLabel"),
     searchInput: document.getElementById("searchInput"),
     areaSelect: document.getElementById("areaSelect"),
     viewBrowse: document.getElementById("viewBrowse"),
     viewRanking: document.getElementById("viewRanking"),
-    filterControls: document.getElementById("filterControls"),
     filter24h: document.getElementById("filter24h"),
+    filter24hLabel: document.getElementById("filter24hLabel"),
     filterWheelchair: document.getElementById("filterWheelchair"),
+    filterWheelchairLabel: document.getElementById("filterWheelchairLabel"),
+    openFilterSheetLabel: document.getElementById("openFilterSheetLabel"),
+    sideMenuAreaHeading: document.getElementById("sideMenuAreaHeading"),
+    viewRankingLabel: document.getElementById("viewRankingLabel"),
+    filterSheetHeading: document.getElementById("filterSheetHeading"),
+    tabHomeLabel: document.getElementById("tabHomeLabel"),
+    tabMapLabel: document.getElementById("tabMapLabel"),
+    tabFavoritesLabel: document.getElementById("tabFavoritesLabel"),
     filterBaby: document.getElementById("filterBaby"),
     rankChips: document.getElementById("rankChips"),
     categoryChips: document.getElementById("categoryChips"),
@@ -53,6 +89,10 @@
     installBtn: document.getElementById("installBtn"),
     installDismiss: document.getElementById("installDismiss"),
   };
+
+  function saveFavorites() {
+    localStorage.setItem("ttf_favorites", JSON.stringify(Array.from(state.favorites)));
+  }
 
   function t() {
     return I18N[state.lang];
@@ -156,6 +196,7 @@
     state.only24h = false;
     state.wheelchairOnly = false;
     state.babyOnly = false;
+    state.visibleCount = 8;
     el.filter24h.dataset.active = "false";
     el.filterWheelchair.dataset.active = "false";
     el.filterBaby.dataset.active = "false";
@@ -167,6 +208,7 @@
     renderRankChips();
     renderCategoryChips();
     renderMain();
+    closeSideMenu();
   }
 
   function categoryLabel(cat) {
@@ -250,6 +292,7 @@
   }
 
   function matchesFilters(r) {
+    if (state.activeTab === "favorites" && !state.favorites.has(r.id)) return false;
     if (state.category !== "all" && r.category !== state.category) return false;
     if (state.area !== "all" && r.area_tag !== state.area) return false;
     if (state.only24h && !r.is_24h) return false;
@@ -264,6 +307,21 @@
       if (!haystack.includes(q)) return false;
     }
     return true;
+  }
+
+  function sortForDisplay(items) {
+    const withMeta = items.map((r) => ({ r, dist: distanceOf(r) }));
+    if (state.sortNearest) {
+      withMeta.sort((a, b) => {
+        if (a.dist == null && b.dist == null) return rankScore(b.r.emergency_rank) - rankScore(a.r.emergency_rank);
+        if (a.dist == null) return 1;
+        if (b.dist == null) return -1;
+        return a.dist - b.dist;
+      });
+    } else {
+      withMeta.sort((a, b) => rankScore(b.r.emergency_rank) - rankScore(a.r.emergency_rank));
+    }
+    return withMeta;
   }
 
   function displayName(r) {
@@ -308,6 +366,7 @@
   function renderMain() {
     if (state.view === "ranking") {
       renderRanking();
+      updateMap([]);
     } else {
       renderList();
     }
@@ -317,58 +376,133 @@
     if (state.current.length === 0) {
       el.resultMeta.textContent = "";
       el.listContainer.innerHTML = `<div class="empty-state">${t().comingSoon}</div>`;
+      el.showMoreBtn.classList.add("hidden");
+      updateMap([]);
       return;
     }
     const filtered = state.current.filter(matchesFilters);
-    el.resultMeta.textContent = t().resultCount(filtered.length);
 
     if (filtered.length === 0) {
+      el.resultMeta.textContent = t().resultCount(0);
       const usingEquipmentFilter = state.wheelchairOnly || state.babyOnly;
       el.listContainer.innerHTML = `<div class="empty-state">${
-        usingEquipmentFilter ? t().emptyStateFilter : t().emptyState
+        state.activeTab === "favorites" ? t().favoritesEmpty : usingEquipmentFilter ? t().emptyStateFilter : t().emptyState
       }</div>`;
+      el.showMoreBtn.classList.add("hidden");
+      updateMap([]);
       return;
     }
 
-    const groups = {};
-    filtered.forEach((r) => {
-      const key = r.area_tag || "-";
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(r);
-    });
+    const sorted = sortForDisplay(filtered);
+    el.resultMeta.textContent = t().resultCount(sorted.length);
 
+    const visible = sorted.slice(0, state.visibleCount);
     const frag = document.createDocumentFragment();
-    Object.keys(groups).forEach((area) => {
-      const heading = document.createElement("div");
-      heading.className = "area-heading";
-      heading.textContent = `${area} (${groups[area].length})`;
-      frag.appendChild(heading);
-      groups[area].forEach((r) => frag.appendChild(renderCard(r)));
-    });
+    visible.forEach((entry, idx) => frag.appendChild(renderCard(entry.r, entry.dist, idx + 1)));
     el.listContainer.innerHTML = "";
     el.listContainer.appendChild(frag);
+
+    el.showMoreBtn.classList.toggle("hidden", sorted.length <= visible.length);
+    updateMap(visible.map((v) => v.r));
   }
 
-  function renderCard(r) {
+  function renderCard(r, dist, number) {
     const card = document.createElement("div");
     card.className = "card";
-    const dist = distanceOf(r);
-    const distLabel = dist != null ? ` ｜ ${Math.round(dist)}m・徒歩${walkMinutes(dist)}分` : "";
+    const distLabel = dist != null ? ` ｜ 🚶 徒歩${walkMinutes(dist)}分（${Math.round(dist)}m）` : "";
+    const isFav = state.favorites.has(r.id);
     card.innerHTML = `
+      <div class="card__badge">${number}</div>
       ${photoHtmlSmall(r)}
       <div class="card__body">
         <div class="card__top">
           <div class="card__name">${displayName(r)}</div>
-          <div class="card__icon">${categoryIcon(r.category)}</div>
+          <button class="card__fav" type="button" aria-label="favorite">${isFav ? "★" : "☆"}</button>
         </div>
+        <div class="card__area">${r.area_tag || ""}</div>
         <div class="card__meta">
           <span>${(r.open_hours || "-")}${distLabel}</span>
           ${extraTagsHtml(r)}
         </div>
       </div>
+      <a class="card__go" href="${navUrl(r)}" target="_blank" rel="noopener">📍 ${t().goShort}</a>
     `;
+    card.querySelector(".card__fav").addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleFavorite(r.id);
+      card.querySelector(".card__fav").textContent = state.favorites.has(r.id) ? "★" : "☆";
+      if (state.activeTab === "favorites") renderList();
+    });
+    card.querySelector(".card__go").addEventListener("click", (e) => e.stopPropagation());
     card.addEventListener("click", () => openDetail(r));
     return card;
+  }
+
+  function toggleFavorite(id) {
+    if (state.favorites.has(id)) state.favorites.delete(id);
+    else state.favorites.add(id);
+    saveFavorites();
+  }
+
+  // --- Leaflet map (OpenStreetMap tiles, no API key required) ---
+  function initMap() {
+    if (state.map || typeof L === "undefined") return;
+    state.map = L.map(el.leafletMapEl, { zoomControl: false, attributionControl: true }).setView([35.6895, 139.6917], 14);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "&copy; OpenStreetMap contributors",
+    }).addTo(state.map);
+    L.control.zoom({ position: "bottomright" }).addTo(state.map);
+    state.mapMarkersLayer = L.layerGroup().addTo(state.map);
+  }
+
+  function numberedPinIcon(n) {
+    return L.divIcon({
+      className: "",
+      html: `<div class="pin-marker pin-marker--numbered"><span>${n}</span></div>`,
+      iconSize: [34, 34],
+      iconAnchor: [17, 32],
+    });
+  }
+
+  function meMarkerIcon() {
+    return L.divIcon({
+      className: "",
+      html: `<div class="pin-marker pin-marker--me"></div>`,
+      iconSize: [18, 18],
+      iconAnchor: [9, 9],
+    });
+  }
+
+  function updateMap(items) {
+    if (typeof L === "undefined") return;
+    if (!state.map) initMap();
+    if (!state.map) return;
+    state.mapMarkersLayer.clearLayers();
+
+    const bounds = [];
+    if (state.geo) {
+      L.marker([state.geo.lat, state.geo.lng], { icon: meMarkerIcon(), zIndexOffset: 1000 })
+        .addTo(state.mapMarkersLayer);
+      bounds.push([state.geo.lat, state.geo.lng]);
+    }
+    items.forEach((r, idx) => {
+      if (!r.lat || !r.lng) return;
+      const marker = L.marker([r.lat, r.lng], { icon: numberedPinIcon(idx + 1) }).addTo(state.mapMarkersLayer);
+      marker.bindPopup(`<strong>${displayName(r)}</strong><br>${r.open_hours || ""}`);
+      marker.on("click", () => openDetail(r));
+      bounds.push([r.lat, r.lng]);
+    });
+
+    if (bounds.length > 0) {
+      if (bounds.length === 1) {
+        state.map.setView(bounds[0], 16);
+      } else {
+        state.map.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+      }
+    }
+    // Leaflet needs a nudge after being shown inside an initially-hidden/resized container.
+    setTimeout(() => state.map && state.map.invalidateSize(), 60);
   }
 
   function renderRanking() {
@@ -592,14 +726,27 @@
 
   function applyLangToStaticUI() {
     const T = t();
+    el.headerTagline.textContent = T.headerTagline;
     el.emergencyLabel.textContent = T.emergencyLabel;
     el.emergencyHint.textContent = T.emergencyHint;
+    el.sosPushLabel.textContent = T.sosPushLabel;
+    el.sosDescLabel.textContent = T.sosDescLabel;
+    el.nearMeLabel.textContent = T.nearMeLabel;
+    el.sortNearestLabel.textContent = T.sortNearestLabel;
     el.searchInput.placeholder = T.searchPlaceholder;
-    el.filter24h.textContent = "🕐 " + T.filter24h;
-    el.filterWheelchair.textContent = "♿ " + T.filterWheelchair;
+    el.filter24hLabel.textContent = T.filter24h;
+    el.filterWheelchairLabel.textContent = T.filterWheelchair;
+    el.openFilterSheetLabel.textContent = T.openFilterSheet;
+    el.sideMenuAreaHeading.textContent = T.sideMenuAreaHeading;
+    el.viewRankingLabel.textContent = T.viewRanking;
+    el.filterSheetHeading.textContent = T.openFilterSheet;
     el.filterBaby.textContent = "👶 " + T.filterBaby;
     el.viewBrowse.textContent = T.viewBrowse;
     el.viewRanking.textContent = T.viewRanking;
+    el.showMoreLabel.textContent = T.showMore;
+    el.tabHomeLabel.textContent = T.tabHome;
+    el.tabMapLabel.textContent = T.tabMap;
+    el.tabFavoritesLabel.textContent = T.tabFavorites;
     el.footerNote.textContent = T.footerNote;
     el.installText.textContent = T.installText;
     el.installBtn.textContent = T.installBtn;
@@ -612,12 +759,71 @@
     state.view = view;
     el.viewBrowse.dataset.active = String(view === "browse");
     el.viewRanking.dataset.active = String(view === "ranking");
-    el.filterControls.style.display = view === "ranking" ? "none" : "";
+    closeSideMenu();
     renderMain();
+  }
+
+  function openSideMenu() {
+    el.sideMenu.classList.remove("hidden");
+  }
+  function closeSideMenu() {
+    el.sideMenu.classList.add("hidden");
+  }
+  function openFilterSheetFn() {
+    el.filterSheet.classList.remove("hidden");
+  }
+  function closeFilterSheetFn() {
+    el.filterSheet.classList.add("hidden");
+  }
+
+  function requestGeoOnce(onDone) {
+    if (!navigator.geolocation) {
+      onDone(false);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        state.geo = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        onDone(true);
+      },
+      () => onDone(false),
+      { timeout: 8000, enableHighAccuracy: true }
+    );
   }
 
   function bindEvents() {
     el.emergencyBtn.addEventListener("click", triggerSOS);
+
+    el.menuBtn.addEventListener("click", openSideMenu);
+    el.sideMenuClose.addEventListener("click", closeSideMenu);
+    el.sideMenuBackdrop.addEventListener("click", closeSideMenu);
+
+    el.searchToggleBtn.addEventListener("click", () => {
+      openFilterSheetFn();
+      setTimeout(() => el.searchInput.focus(), 50);
+    });
+    el.openFilterSheet.addEventListener("click", openFilterSheetFn);
+    el.filterSheetClose.addEventListener("click", closeFilterSheetFn);
+    el.filterSheet.addEventListener("click", (e) => {
+      if (e.target === el.filterSheet) closeFilterSheetFn();
+    });
+
+    el.nearMeBtn.addEventListener("click", () => {
+      state.sortNearest = true;
+      el.sortNearest.dataset.active = "true";
+      requestGeoOnce(() => renderMain());
+    });
+
+    el.sortNearest.addEventListener("click", () => {
+      state.sortNearest = !state.sortNearest;
+      el.sortNearest.dataset.active = String(state.sortNearest);
+      if (state.sortNearest && !state.geo) {
+        requestGeoOnce(() => renderMain());
+      } else {
+        renderMain();
+      }
+    });
+
     el.searchInput.addEventListener("input", (e) => {
       state.query = e.target.value.trim();
       renderMain();
@@ -643,6 +849,38 @@
       el.filterBaby.dataset.active = String(state.babyOnly);
       renderMain();
     });
+    el.showMoreBtn.addEventListener("click", () => {
+      state.visibleCount += 8;
+      renderList();
+    });
+
+    el.tabHome.addEventListener("click", () => {
+      state.activeTab = "home";
+      el.tabHome.dataset.active = "true";
+      el.tabMap.dataset.active = "false";
+      el.tabFavorites.dataset.active = "false";
+      el.mapSection.classList.remove("map-section--expanded");
+      state.visibleCount = 8;
+      renderMain();
+    });
+    el.tabMap.addEventListener("click", () => {
+      state.activeTab = "map";
+      el.tabHome.dataset.active = "false";
+      el.tabMap.dataset.active = "true";
+      el.tabFavorites.dataset.active = "false";
+      el.mapSection.classList.add("map-section--expanded");
+      renderMain();
+    });
+    el.tabFavorites.addEventListener("click", () => {
+      state.activeTab = "favorites";
+      el.tabHome.dataset.active = "false";
+      el.tabMap.dataset.active = "false";
+      el.tabFavorites.dataset.active = "true";
+      el.mapSection.classList.remove("map-section--expanded");
+      state.visibleCount = 8;
+      renderMain();
+    });
+
     el.detailClose.addEventListener("click", closeDetail);
     el.detailSheet.addEventListener("click", (e) => {
       if (e.target === el.detailSheet) closeDetail();

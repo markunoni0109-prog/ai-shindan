@@ -14,22 +14,27 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="icon" href="icon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="icon-180.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header class="app-header">
-  <div class="brand">
-    <img src="icon.svg" alt="AI HUNTER" class="brand-icon">
-    <div class="brand-text">
-      <span class="brand-text__top">AI HUNTER</span>
-      <span class="brand-text__bottom">TOILET SOS</span>
+<header class="ths-header">
+  <button id="menuBtn" class="ths-icon-btn ths-icon-btn--menu" type="button" aria-label="Menu">☰</button>
+  <div class="ths-logo">
+    <img src="icon.svg" alt="AI HUNTER" class="ths-logo__icon">
+    <div class="ths-logo__text">
+      <span class="ths-logo__title">TOILET SOS</span>
+      <span class="ths-logo__tagline" id="headerTagline">今すぐ行けるトイレを見つける</span>
     </div>
   </div>
-  <button id="langToggle" class="lang-toggle" type="button" aria-label="Switch language">EN</button>
+  <div class="ths-header__actions">
+    <button id="searchToggleBtn" class="ths-icon-btn" type="button" aria-label="Search">🔍</button>
+    <button id="nearMeBtn" class="ths-icon-btn ths-icon-btn--loc" type="button" aria-label="Current location">
+      <span class="ths-icon-btn__pin">📍</span><span class="ths-icon-btn__label" id="nearMeLabel">現在地</span>
+    </button>
+  </div>
 </header>
-
-<nav class="city-bar" id="cityBar" aria-label="City selector"></nav>
 
 <div id="offlineBanner" class="offline-banner hidden">📡 オフラインです（保存済みデータを表示しています）</div>
 <div id="installBanner" class="install-banner hidden">
@@ -38,49 +43,87 @@
   <button id="installDismiss" class="install-dismiss" type="button" aria-label="Dismiss">✕</button>
 </div>
 
+<!-- Slide-in menu: city/area selection, language, ranking view, about -->
+<div id="sideMenu" class="side-menu hidden">
+  <div class="side-menu__backdrop" id="sideMenuBackdrop"></div>
+  <div class="side-menu__panel">
+    <button id="sideMenuClose" class="side-menu__close" type="button" aria-label="Close">✕</button>
+    <h3 class="side-menu__heading" id="sideMenuAreaHeading">エリアを選ぶ</h3>
+    <nav class="city-bar city-bar--vertical" id="cityBar" aria-label="City selector"></nav>
+    <h3 class="side-menu__heading">🏆 <span id="viewRankingLabel">神トイレランキング</span></h3>
+    <div class="chip-row" id="viewModeChips">
+      <button id="viewBrowse" class="chip" type="button" data-active="true">📋 一覧</button>
+      <button id="viewRanking" class="chip" type="button" data-active="false">🏆 ランキング</button>
+    </div>
+    <h3 class="side-menu__heading">Language</h3>
+    <button id="langToggle" class="lang-toggle" type="button" aria-label="Switch language">EN</button>
+    <p class="side-menu__footnote" id="footerNote">AI HUNTER FACTORY100｜データは有志収集ベース（COMMUNITY）。営業時間・設備は現地で要確認。</p>
+  </div>
+</div>
+
+<!-- Slide-up filter sheet: search / area / category / rank / baby -->
+<div id="filterSheet" class="detail-sheet hidden">
+  <div class="detail-sheet__panel">
+    <button id="filterSheetClose" class="detail-sheet__close" type="button" aria-label="Close">✕</button>
+    <h3 class="side-menu__heading" id="filterSheetHeading">絞り込み</h3>
+    <input id="searchInput" class="search-input" type="search" placeholder="施設名・エリアで検索…" />
+    <select id="areaSelect" class="area-select area-select--full" aria-label="Area filter"></select>
+    <div class="chip-row" id="rankChips"></div>
+    <div class="chip-row" id="quickFiltersExtra">
+      <button id="filterBaby" class="chip" type="button" data-active="false">👶 ベビー設備</button>
+    </div>
+    <div id="categoryChips" class="chip-row" role="tablist" aria-label="Category filter"></div>
+  </div>
+</div>
+
 <main id="app">
 
-  <section id="emergencyZone" class="emergency-zone">
-    <div class="sos-wrap">
-      <button id="emergencyBtn" class="sos-btn" type="button">
-        <span class="sos-btn__shape" aria-hidden="true"></span>
+  <section id="emergencyZone" class="sos-banner">
+    <div class="sos-banner__left">
+      <div class="sos-banner__title" id="emergencyLabel">漏れそう!?</div>
+      <div class="sos-banner__sub" id="emergencyHint">今すぐトイレを探します</div>
+    </div>
+    <div class="sos-circle-wrap">
+      <button id="emergencyBtn" class="sos-circle" type="button">
+        <span class="sos-circle__ring" aria-hidden="true"></span>
+        <span class="sos-circle__ring sos-circle__ring--2" aria-hidden="true"></span>
         <span class="sos-flash" id="sosFlash" aria-hidden="true"></span>
-        <span class="sos-btn__content">
-          <span class="sos-btn__sos">SOS‼️</span>
-          <span class="sos-btn__mid" id="emergencyLabel">🚽 漏れそう‼️</span>
-          <span class="sos-btn__sub" id="emergencyHint">押すだけ。徒歩最短の神トイレへ。</span>
-        </span>
+        <span class="sos-circle__label">SOS</span>
       </button>
+    </div>
+    <div class="sos-banner__right">
+      <div class="sos-banner__push" id="sosPushLabel">押すだけ</div>
+      <div class="sos-banner__desc" id="sosDescLabel">緊急のトイレ情報を表示</div>
     </div>
   </section>
 
   <section id="emergencyResults" class="emergency-results hidden" aria-live="assertive"></section>
 
-  <section id="browseZone" class="browse-zone">
-    <div class="toolbar">
-      <input id="searchInput" class="search-input" type="search" placeholder="施設名・エリアで検索…" />
-      <select id="areaSelect" class="area-select" aria-label="Area filter"></select>
-    </div>
+  <div class="filter-bar">
+    <button id="sortNearest" class="filter-pill" data-active="true" type="button">
+      <span class="filter-pill__icon">☰</span><span id="sortNearestLabel">近い順</span>
+    </button>
+    <button id="filter24h" class="filter-pill" type="button" data-active="false">
+      <span class="filter-pill__icon">🕐</span><span id="filter24hLabel">24時間</span>
+    </button>
+    <button id="filterWheelchair" class="filter-pill" type="button" data-active="false">
+      <span class="filter-pill__icon">♿</span><span id="filterWheelchairLabel">バリアフリー</span>
+    </button>
+    <button id="openFilterSheet" class="filter-pill filter-pill--ghost" type="button">
+      <span class="filter-pill__icon">⚙️</span><span id="openFilterSheetLabel">絞り込み</span>
+    </button>
+  </div>
 
-    <div class="chip-row" id="viewModeChips">
-      <button id="viewBrowse" class="chip" type="button" data-active="true">📋 一覧</button>
-      <button id="viewRanking" class="chip" type="button" data-active="false">🏆 神トイレランキング</button>
-    </div>
+  <section id="mapSection" class="map-section">
+    <div id="leafletMap" class="leaflet-map"></div>
+  </section>
 
-    <div id="filterControls">
-      <div class="chip-row" id="quickFilters">
-        <button id="filter24h" class="chip" type="button" data-active="false">🕐 24時間</button>
-        <button id="filterWheelchair" class="chip" type="button" data-active="false">♿ バリアフリー</button>
-        <button id="filterBaby" class="chip" type="button" data-active="false">👶 ベビー設備</button>
-      </div>
-
-      <div class="chip-row" id="rankChips"></div>
-
-      <div id="categoryChips" class="chip-row" role="tablist" aria-label="Category filter"></div>
-    </div>
-
+  <section class="browse-zone">
     <div id="resultMeta" class="result-meta"></div>
     <div id="listContainer" class="list-container"></div>
+    <button id="showMoreBtn" class="show-more-btn hidden" type="button">
+      <span id="showMoreLabel">もっと見る</span> <span aria-hidden="true">⌄</span>
+    </button>
   </section>
 
 </main>
@@ -92,10 +135,19 @@
   </div>
 </div>
 
-<footer class="app-footer">
-  <p id="footerNote">AI HUNTER FACTORY100｜データは有志収集ベース（COMMUNITY）。営業時間・設備は現地で要確認。</p>
-</footer>
+<nav class="bottom-tabs">
+  <button class="bottom-tab" id="tabHome" data-active="true" type="button">
+    <span class="bottom-tab__icon">🏠</span><span id="tabHomeLabel">ホーム</span>
+  </button>
+  <button class="bottom-tab" id="tabMap" data-active="false" type="button">
+    <span class="bottom-tab__icon">🗺️</span><span id="tabMapLabel">地図</span>
+  </button>
+  <button class="bottom-tab" id="tabFavorites" data-active="false" type="button">
+    <span class="bottom-tab__icon">⭐</span><span id="tabFavoritesLabel">お気に入り</span>
+  </button>
+</nav>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="i18n.js"></script>
 <script src="app.js"></script>
 </body>
