@@ -37467,13 +37467,18 @@
     "ostomate": null,
     "baby_bed": null,
     "baby_chair": null,
-    "wheelchair": null,
+    "wheelchair": true,
     "suitcase": null,
     "paper": null,
     "parking": null,
     "clean_score": null,
     "night_safe": null,
-    "photo_url": null
+    "photo_url": null,
+    "isSOS": true,
+    "verifiedAt": "2026-09-10",
+    "sourceType": "official",
+    "sourceUrl": "https://www.s-markcity.co.jp/information/",
+    "verifiedDetail": "公式：バリアフリートイレはイーストB1F・ウエスト1F・イースト4F・ウエスト4F。"
   },
   {
     "id": "shibuya-0010",

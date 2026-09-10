@@ -388,6 +388,7 @@
     const T = t();
     const tags = [];
     if (r.emergency_rank) tags.push(`<span class="tag tag--rank">${r.emergency_rank.replace("（ユーザー指定）", "")}</span>`);
+    if (r.isSOS === true) tags.push(`<span class="tag tag--sos">🚨 ${T.sosCandidateTag}</span>`);
     if (r.is_24h) tags.push(`<span class="tag tag--24h">24h</span>`);
     if (r.wheelchair === true) tags.push(`<span class="tag tag--24h">♿</span>`);
     if (r.paper === true) tags.push(`<span class="tag tag--24h">🧻 ${T.paperTag}</span>`);
@@ -460,20 +461,24 @@
     return r.cleanLevel || null;
   }
 
-  // Extra detail line shown only on AI HUNTER-certified "god toilets", and only for the
-  // specific sub-fields a given record actually has (all optional, all default to absent,
-  // and are never AI-guessed - see the data reliability rules in the project brief).
-  function godToiletExtrasHtml(r) {
+  // Confirmed-only detail tags - shown on EVERY card (not just god-toilets), and only for
+  // the specific sub-fields a given record actually has. Nothing here is AI-guessed; a
+  // null/absent field simply produces no tag rather than a placeholder or inferred value.
+  // `emphasize` (used for isGodToilet cards) only changes the visual styling, never the
+  // underlying data shown.
+  function detailExtrasHtml(r, emphasize) {
     const parts = [];
     if (r.entrySeconds != null) parts.push(`🚪 ${t().entranceLabel}${r.entrySeconds}${t().secondsUnit}`);
-    if (r.insideSeconds != null) parts.push(`⬇️ ${t().insideLabel}${r.insideSeconds}${t().secondsUnit}`);
+    if (r.insideSeconds != null) parts.push(`🏢 ${t().insideLabel}${r.insideSeconds}${t().secondsUnit}`);
     if (r.entranceHint) parts.push(`📍 ${r.entranceHint}`);
     if (r.toiletType) parts.push(`🚽 ${r.toiletType}`);
     const clean = cleanlinessLabel(r);
     if (clean) parts.push(`✨ ${clean}`);
     if (r.parking) parts.push(`🚗 ${r.parking}`);
+    if (r.womenCrowd) parts.push(`👩 ${r.womenCrowd}`);
     if (parts.length === 0) return "";
-    return `<div class="god-extra">${parts.map((p) => `<span class="god-extra__item">${p}</span>`).join("")}</div>`;
+    const cls = emphasize ? "god-extra god-extra--emphasize" : "god-extra";
+    return `<div class="${cls}">${parts.map((p) => `<span class="god-extra__item">${p}</span>`).join("")}</div>`;
   }
 
   function sponsorCardClass(r) {
@@ -496,7 +501,7 @@
     if (r.storeInstagram) socialLinks.push(`<a href="${r.storeInstagram}" target="_blank" rel="noopener">Instagram</a>`);
     if (r.storeX) socialLinks.push(`<a href="${r.storeX}" target="_blank" rel="noopener">X</a>`);
     card.innerHTML = `
-      <div class="premium-card__header">👑 ${t().sponsorPremium} ${r.premiumNo ? `No.${r.premiumNo}` : ""} ${r.isGodToilet ? `｜🏆 ${t().godBadgeText}` : ""}</div>
+      <div class="premium-card__header">👑 ${t().sponsorPremium} ${r.premiumNo ? `No.${r.premiumNo}` : ""} ${r.isGodToilet ? `｜👑 ${t().godBadgeText}` : ""}</div>
       ${photoHtml}
       <div class="premium-card__body">
         <div class="premium-card__name">${displayName(r)}</div>
@@ -527,7 +532,7 @@
       ? `<span class="type-badge ${typeBadgeClass(r.category)}">${buildingTypeLabel(r.category)}</span>`
       : "";
     const secondLine = r.address || r.area_tag || "";
-    const godBadgeHtml = isGod ? `<div class="god-badge">🏆 ${t().godBadgeText}</div>` : "";
+    const godBadgeHtml = isGod ? `<div class="god-badge">👑 ${t().godBadgeText}</div>` : "";
     const sponsorBadgeHtml =
       r.sponsorTier === "premium"
         ? `<div class="sponsor-badge sponsor-badge--premium">${t().sponsorPremium}</div>`
@@ -558,7 +563,7 @@
           <span>${(r.open_hours || "-")}${distLabel}</span>
           ${extraTagsHtml(r)}
         </div>
-        ${isGod ? godToiletExtrasHtml(r) : ""}
+        ${detailExtrasHtml(r, isGod)}
         ${partnerExtraHtml}
       </div>
       <a class="card__go" href="${navUrl(r)}" target="_blank" rel="noopener">📍 ${t().goShort}</a>
@@ -771,7 +776,7 @@
       ${photoHtml}
       <div class="card__meta" style="margin-bottom:10px;">${badges}</div>
       ${rowsHtml}
-      ${r.isGodToilet ? godToiletExtrasHtml(r) : ""}
+      ${detailExtrasHtml(r, r.isGodToilet === true)}
       <div class="detail-memo">
         <strong>${T.detailMemoTitle}</strong><br>
         ${r.ai_hunter_memo || T.noMemo}
