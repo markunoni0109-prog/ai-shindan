@@ -57,6 +57,7 @@
     </div>
     <h3 class="side-menu__heading">Language</h3>
     <button id="langToggle" class="lang-toggle" type="button" aria-label="Switch language">EN</button>
+    <button id="openSponsorInfo" class="lang-toggle" type="button" style="background:#1a1a1a;color:#F0CD6B;margin-top:10px;">📢 <span id="sponsorInfoLinkLabel">掲載・スポンサーについて</span></button>
     <p class="side-menu__footnote" id="footerNote">AI HUNTER FACTORY100｜データは有志収集ベース（COMMUNITY）。営業時間・設備は現地で要確認。</p>
   </div>
 </div>
@@ -73,6 +74,37 @@
       <button id="filterBaby" class="chip" type="button" data-active="false">👶 ベビー設備</button>
     </div>
     <div id="categoryChips" class="chip-row" role="tablist" aria-label="Category filter"></div>
+  </div>
+</div>
+
+<!-- Sponsor info sheet: concept + FREE/PARTNER/PREMIUM plans + one clearly-labeled demo card -->
+<div id="sponsorInfoSheet" class="detail-sheet hidden">
+  <div class="detail-sheet__panel">
+    <button id="sponsorInfoClose" class="detail-sheet__close" type="button" aria-label="Close">✕</button>
+    <h3 class="side-menu__heading" id="sponsorInfoTitle">AI HUNTER TOILET SOSとは</h3>
+    <p class="sponsor-info__lead" id="sponsorInfoLead">
+      トイレを探しているユーザーを、近隣の店舗・施設へ送客します。店舗PRから地図での誘導まで、ワンタップで完結します。
+    </p>
+    <div class="sponsor-plan">
+      <div class="sponsor-plan__name">FREE</div>
+      <ul class="sponsor-plan__list" id="sponsorPlanFreeList"></ul>
+    </div>
+    <div class="sponsor-plan sponsor-plan--partner">
+      <div class="sponsor-plan__name">PARTNER</div>
+      <ul class="sponsor-plan__list" id="sponsorPlanPartnerList"></ul>
+    </div>
+    <div class="sponsor-plan sponsor-plan--premium">
+      <div class="sponsor-plan__name">PREMIUM / 認定店</div>
+      <ul class="sponsor-plan__list" id="sponsorPlanPremiumList"></ul>
+    </div>
+    <p class="sponsor-info__pricing" id="sponsorInfoPricing">
+      料金は月額掲載モデルを想定しており、現時点では確定金額を掲載しておりません。詳細はお問い合わせください。
+    </p>
+    <h4 class="side-menu__heading" id="sponsorDemoHeading">掲載イメージ（デモ）</h4>
+    <div id="sponsorDemoCard"></div>
+    <p class="sponsor-info__disclaimer" id="sponsorInfoDisclaimer">
+      ※上記はレイアウトのサンプルであり、実在の店舗・契約・認定関係を示すものではありません。「スポンサー募集中」の枠です。
+    </p>
   </div>
 </div>
 
@@ -145,6 +177,9 @@
   </button>
   <button class="bottom-tab" id="tabFavorites" data-active="false" type="button">
     <span class="bottom-tab__icon">⭐</span><span id="tabFavoritesLabel">お気に入り</span>
+  </button>
+  <button class="bottom-tab" id="tabRanking" data-active="false" type="button">
+    <span class="bottom-tab__icon">🏆</span><span id="tabRankingLabel">ランキング</span>
   </button>
 </nav>
 

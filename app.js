@@ -43,6 +43,16 @@
     filterSheet: document.getElementById("filterSheet"),
     filterSheetClose: document.getElementById("filterSheetClose"),
     openFilterSheet: document.getElementById("openFilterSheet"),
+    openSponsorInfo: document.getElementById("openSponsorInfo"),
+    sponsorInfoSheet: document.getElementById("sponsorInfoSheet"),
+    sponsorInfoClose: document.getElementById("sponsorInfoClose"),
+    sponsorDemoCard: document.getElementById("sponsorDemoCard"),
+    sponsorInfoLinkLabel: document.getElementById("sponsorInfoLinkLabel"),
+    sponsorInfoTitle: document.getElementById("sponsorInfoTitle"),
+    sponsorInfoLead: document.getElementById("sponsorInfoLead"),
+    sponsorInfoPricing: document.getElementById("sponsorInfoPricing"),
+    sponsorDemoHeading: document.getElementById("sponsorDemoHeading"),
+    sponsorInfoDisclaimer: document.getElementById("sponsorInfoDisclaimer"),
     sortNearest: document.getElementById("sortNearest"),
     sortNearestLabel: document.getElementById("sortNearestLabel"),
     mapSection: document.getElementById("mapSection"),
@@ -52,6 +62,7 @@
     tabHome: document.getElementById("tabHome"),
     tabMap: document.getElementById("tabMap"),
     tabFavorites: document.getElementById("tabFavorites"),
+    tabRanking: document.getElementById("tabRanking"),
     headerTagline: document.getElementById("headerTagline"),
     emergencyBtn: document.getElementById("emergencyBtn"),
     emergencyLabel: document.getElementById("emergencyLabel"),
@@ -75,6 +86,7 @@
     tabHomeLabel: document.getElementById("tabHomeLabel"),
     tabMapLabel: document.getElementById("tabMapLabel"),
     tabFavoritesLabel: document.getElementById("tabFavoritesLabel"),
+    tabRankingLabel: document.getElementById("tabRankingLabel"),
     filterBaby: document.getElementById("filterBaby"),
     rankChips: document.getElementById("rankChips"),
     categoryChips: document.getElementById("categoryChips"),
@@ -97,6 +109,17 @@
 
   function t() {
     return I18N[state.lang];
+  }
+
+  // Analytics hook stub: no external network calls are made from this function. It only
+  // logs locally so the event names/shapes are ready to wire up to a real analytics
+  // provider later, without changing any call sites when that happens.
+  function trackEvent(name, detail) {
+    try {
+      console.log("[AI HUNTER event]", name, detail || {});
+    } catch (e) {
+      /* no-op */
+    }
   }
 
   function haversine(lat1, lng1, lat2, lng2) {
@@ -146,6 +169,7 @@
   // Composite score for the "God-tier ranking" view: rank first, then 24h, memo presence, accessibility.
   function godScore(r) {
     return (
+      (r.isGodToilet ? 1000 : 0) +
       rankScore(r.emergency_rank) * 10 +
       (r.is_24h ? 3 : 0) +
       (r.ai_hunter_memo ? 2 : 0) +
@@ -191,6 +215,7 @@
   function switchCity(city) {
     state.city = city;
     localStorage.setItem("ttf_city", city);
+    trackEvent("search_executed", { city });
     state.category = "all";
     state.area = "all";
     state.rank = "all";
@@ -312,16 +337,26 @@
 
   function sortForDisplay(items) {
     const withMeta = items.map((r) => ({ r, dist: distanceOf(r) }));
-    if (state.sortNearest) {
-      withMeta.sort((a, b) => {
-        if (a.dist == null && b.dist == null) return rankScore(b.r.emergency_rank) - rankScore(a.r.emergency_rank);
+    withMeta.sort((a, b) => {
+      // 0. PREMIUM sponsor placements may surface first in area results (clearly badged as
+      //    sponsored - see the god-badge/sponsor-badge markup; never silently blended in).
+      const premiumDiff = (b.r.sponsorTier === "premium" ? 1 : 0) - (a.r.sponsorTier === "premium" ? 1 : 0);
+      if (premiumDiff !== 0) return premiumDiff;
+      // 1. AI HUNTER-certified "god toilets" always float to the top.
+      const godDiff = (b.r.isGodToilet ? 1 : 0) - (a.r.isGodToilet ? 1 : 0);
+      if (godDiff !== 0) return godDiff;
+      // 2. Distance (only meaningful while "近い順" is active and we have a fix).
+      if (state.sortNearest && (a.dist != null || b.dist != null)) {
         if (a.dist == null) return 1;
         if (b.dist == null) return -1;
-        return a.dist - b.dist;
-      });
-    } else {
-      withMeta.sort((a, b) => rankScore(b.r.emergency_rank) - rankScore(a.r.emergency_rank));
-    }
+        if (a.dist !== b.dist) return a.dist - b.dist;
+      }
+      // 3. SOS-ready venues (already carry an emergency rank) come next.
+      const rankDiff = rankScore(b.r.emergency_rank) - rankScore(a.r.emergency_rank);
+      if (rankDiff !== 0) return rankDiff;
+      // 4. Everything else keeps its original relative order.
+      return 0;
+    });
     return withMeta;
   }
 
@@ -399,7 +434,11 @@
 
     const visible = sorted.slice(0, state.visibleCount);
     const frag = document.createDocumentFragment();
-    visible.forEach((entry, idx) => frag.appendChild(renderCard(entry.r, entry.dist, idx + 1)));
+    visible.forEach((entry, idx) =>
+      frag.appendChild(
+        entry.r.sponsorTier === "premium" ? renderPremiumCard(entry.r, idx + 1) : renderCard(entry.r, entry.dist, idx + 1)
+      )
+    );
     el.listContainer.innerHTML = "";
     el.listContainer.appendChild(frag);
 
@@ -415,17 +454,97 @@
     return "type-badge--other";
   }
 
+  // Cleanliness word: prefers the canonical `cleanLevel` string field (きれい/普通/汚い),
+  // set only by real verification - never inferred. No current data sets this yet.
+  function cleanlinessLabel(r) {
+    return r.cleanLevel || null;
+  }
+
+  // Extra detail line shown only on AI HUNTER-certified "god toilets", and only for the
+  // specific sub-fields a given record actually has (all optional, all default to absent,
+  // and are never AI-guessed - see the data reliability rules in the project brief).
+  function godToiletExtrasHtml(r) {
+    const parts = [];
+    if (r.entrySeconds != null) parts.push(`🚪 ${t().entranceLabel}${r.entrySeconds}${t().secondsUnit}`);
+    if (r.insideSeconds != null) parts.push(`⬇️ ${t().insideLabel}${r.insideSeconds}${t().secondsUnit}`);
+    if (r.entranceHint) parts.push(`📍 ${r.entranceHint}`);
+    if (r.toiletType) parts.push(`🚽 ${r.toiletType}`);
+    const clean = cleanlinessLabel(r);
+    if (clean) parts.push(`✨ ${clean}`);
+    if (r.parking) parts.push(`🚗 ${r.parking}`);
+    if (parts.length === 0) return "";
+    return `<div class="god-extra">${parts.map((p) => `<span class="god-extra__item">${p}</span>`).join("")}</div>`;
+  }
+
+  function sponsorCardClass(r) {
+    if (r.sponsorTier === "premium") return "card--premium";
+    if (r.sponsorTier === "partner") return "card--partner";
+    return "";
+  }
+
+  // PREMIUM sponsor cards get a distinct, larger layout (crown header, big photo, store's
+  // own intro/PR text, featured product, social links). Nothing renders unless a real
+  // sponsor record sets these fields - there is no demo/fake data wired in here.
+  function renderPremiumCard(r, number) {
+    const card = document.createElement("div");
+    card.className = "card card--premium";
+    const photoHtml = r.photo_url
+      ? `<img class="premium-card__photo" src="${r.photo_url}" alt="">`
+      : `<div class="premium-card__photo premium-card__photo--placeholder">${categoryIcon(r.category)}</div>`;
+    const socialLinks = [];
+    if (r.storeMapUrl) socialLinks.push(`<a href="${r.storeMapUrl}" target="_blank" rel="noopener">${t().goShort}</a>`);
+    if (r.storeInstagram) socialLinks.push(`<a href="${r.storeInstagram}" target="_blank" rel="noopener">Instagram</a>`);
+    if (r.storeX) socialLinks.push(`<a href="${r.storeX}" target="_blank" rel="noopener">X</a>`);
+    card.innerHTML = `
+      <div class="premium-card__header">👑 ${t().sponsorPremium} ${r.premiumNo ? `No.${r.premiumNo}` : ""} ${r.isGodToilet ? `｜🏆 ${t().godBadgeText}` : ""}</div>
+      ${photoHtml}
+      <div class="premium-card__body">
+        <div class="premium-card__name">${displayName(r)}</div>
+        ${r.storeIntro ? `<div class="premium-card__intro">${r.storeIntro}</div>` : ""}
+        ${r.storePR ? `<div class="premium-card__pr">${r.storePR}</div>` : ""}
+        ${r.featuredProduct ? `<div class="premium-card__product">🌟 ${r.featuredProduct}</div>` : ""}
+        <div class="card__meta">${extraTagsHtml(r)}</div>
+        ${socialLinks.length ? `<div class="premium-card__links">${socialLinks.join("")}</div>` : ""}
+      </div>
+      <a class="card__go" href="${navUrl(r)}" target="_blank" rel="noopener">📍 ${t().goShort}</a>
+    `;
+    card.querySelector(".card__go").addEventListener("click", (e) => {
+      e.stopPropagation();
+      trackEvent("sponsor_cta_click", { id: r.id, tier: "premium" });
+    });
+    card.addEventListener("click", () => openDetail(r));
+    return card;
+  }
+
   function renderCard(r, dist, number, opts) {
     const showTypeBadge = opts && opts.showTypeBadge;
     const card = document.createElement("div");
-    card.className = "card";
+    const isGod = r.isGodToilet === true;
+    card.className = ["card", isGod ? "godcard" : "", sponsorCardClass(r)].filter(Boolean).join(" ");
     const distLabel = dist != null ? ` ｜ 🚶 徒歩${walkMinutes(dist)}分（${Math.round(dist)}m）` : "";
     const isFav = state.favorites.has(r.id);
     const typeBadgeHtml = showTypeBadge
       ? `<span class="type-badge ${typeBadgeClass(r.category)}">${buildingTypeLabel(r.category)}</span>`
       : "";
     const secondLine = r.address || r.area_tag || "";
+    const godBadgeHtml = isGod ? `<div class="god-badge">🏆 ${t().godBadgeText}</div>` : "";
+    const sponsorBadgeHtml =
+      r.sponsorTier === "premium"
+        ? `<div class="sponsor-badge sponsor-badge--premium">${t().sponsorPremium}</div>`
+        : r.sponsorTier === "partner"
+        ? `<div class="sponsor-badge sponsor-badge--partner">${t().sponsorPartner}</div>`
+        : "";
+    const partnerExtraHtml =
+      r.sponsorTier === "partner"
+        ? `<div class="partner-extra">
+            ${r.storeIntro ? `<div class="partner-extra__intro">${r.storeIntro}</div>` : ""}
+            ${r.storePR ? `<div class="partner-extra__pr">${r.storePR}</div>` : ""}
+            ${r.featuredProduct ? `<div class="partner-extra__product">🌟 ${r.featuredProduct}</div>` : ""}
+          </div>`
+        : "";
     card.innerHTML = `
+      ${godBadgeHtml}
+      ${sponsorBadgeHtml}
       <div class="card__badge">${number}</div>
       ${photoHtmlSmall(r)}
       <div class="card__body">
@@ -439,6 +558,8 @@
           <span>${(r.open_hours || "-")}${distLabel}</span>
           ${extraTagsHtml(r)}
         </div>
+        ${isGod ? godToiletExtrasHtml(r) : ""}
+        ${partnerExtraHtml}
       </div>
       <a class="card__go" href="${navUrl(r)}" target="_blank" rel="noopener">📍 ${t().goShort}</a>
     `;
@@ -448,7 +569,10 @@
       card.querySelector(".card__fav").textContent = state.favorites.has(r.id) ? "★" : "☆";
       if (state.activeTab === "favorites") renderList();
     });
-    card.querySelector(".card__go").addEventListener("click", (e) => e.stopPropagation());
+    card.querySelector(".card__go").addEventListener("click", (e) => {
+      e.stopPropagation();
+      trackEvent("map_click", { id: r.id, source: "list" });
+    });
     card.addEventListener("click", () => openDetail(r));
     return card;
   }
@@ -539,15 +663,37 @@
 
     ranked.forEach((r, idx) => {
       const row = document.createElement("div");
-      row.className = "rank-card";
+      row.className = "rank-card" + (r.isGodToilet ? " rank-card--god" : "");
       const medalClass = idx === 0 ? " rank-medal--1" : idx === 1 ? " rank-medal--2" : idx === 2 ? " rank-medal--3" : "";
+
+      const detailRows = [];
+      detailRows.push(
+        `<div class="rank-detail__row"><span class="rank-detail__label">${T.rankSLabel}</span><span>${r.emergency_rank || T.rankNoData}</span></div>`
+      );
+      detailRows.push(
+        `<div class="rank-detail__row"><span class="rank-detail__label">${T.rankEntranceLabel}</span><span>${
+          r.entrance_seconds != null ? `${r.entrance_seconds}${T.secondsUnit}` : T.rankNoData
+        }</span></div>`
+      );
+      detailRows.push(
+        `<div class="rank-detail__row"><span class="rank-detail__label">${T.rankCongestionLabel}</span><span>${
+          r.women_congestion_note || T.rankNoData
+        }</span></div>`
+      );
+      detailRows.push(
+        `<div class="rank-detail__row"><span class="rank-detail__label">${T.rankTestimonialLabel}</span><span>${
+          r.user_field_note || T.rankNoTestimonial
+        }</span></div>`
+      );
+
       row.innerHTML = `
         <div class="rank-medal${medalClass}">${idx + 1}</div>
         ${photoHtmlSmall(r)}
         <div class="card__body">
-          <div class="rank-card__name">${displayName(r)}</div>
+          <div class="rank-card__name">${r.isGodToilet ? "🏆 " : ""}${displayName(r)}</div>
           <div class="rank-card__meta">${(r.open_hours || "-")}</div>
           <div class="card__meta">${extraTagsHtml(r)}</div>
+          <div class="rank-detail">${detailRows.join("")}</div>
         </div>
       `;
       row.addEventListener("click", () => openDetail(r));
@@ -557,8 +703,46 @@
     el.listContainer.appendChild(frag);
   }
 
+  const QUICK_REPORT_TAGS = ["clean", "quickEntry", "hadPaper", "crowded", "closed", "entranceHere"];
+
+  function loadReports(id) {
+    try {
+      const all = JSON.parse(localStorage.getItem("ttf_reports") || "{}");
+      return all[id] || [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveReport(id, tag) {
+    let all = {};
+    try {
+      all = JSON.parse(localStorage.getItem("ttf_reports") || "{}");
+    } catch (e) {
+      all = {};
+    }
+    if (!all[id]) all[id] = [];
+    all[id].push({ tag, ts: new Date().toISOString() });
+    localStorage.setItem("ttf_reports", JSON.stringify(all));
+  }
+
+  function quickReportHtml(r) {
+    const T = t();
+    const buttons = QUICK_REPORT_TAGS.map((tag) => `<button class="quick-report__btn" type="button" data-tag="${tag}">${T.quickReportTags[tag]}</button>`).join("");
+    const counts = loadReports(r.id);
+    return `
+      <div class="quick-report">
+        <div class="quick-report__title">${T.quickReportTitle}</div>
+        <div class="quick-report__note">${T.quickReportLocalNote}</div>
+        <div class="quick-report__buttons">${buttons}</div>
+        <div class="quick-report__count" id="quickReportCount">${T.quickReportSavedCount(counts.length)}</div>
+      </div>
+    `;
+  }
+
   function openDetail(r) {
     const T = t();
+    trackEvent("card_view", { id: r.id, city: r.city });
     const rows = [];
     rows.push([T.detailCategory, categoryLabel(r.category)]);
     rows.push([T.detailHours, r.open_hours || "-"]);
@@ -566,6 +750,8 @@
     if (r.address) rows.push([T.detailAddress, r.address]);
     if (r.emergency_rank) rows.push([T.detailRank, r.emergency_rank]);
     if (r.source) rows.push([T.detailSource, r.source]);
+    if (r.verifiedAt) rows.push([T.detailVerifiedAt, r.verifiedAt]);
+    if (r.sourceType) rows.push([T.detailSourceType, r.sourceType]);
     const dist = distanceOf(r);
     if (dist != null) rows.push([state.lang === "ja" ? "現在地から" : "From you", `${Math.round(dist)}m / ${walkMinutes(dist)} min`]);
 
@@ -585,6 +771,7 @@
       ${photoHtml}
       <div class="card__meta" style="margin-bottom:10px;">${badges}</div>
       ${rowsHtml}
+      ${r.isGodToilet ? godToiletExtrasHtml(r) : ""}
       <div class="detail-memo">
         <strong>${T.detailMemoTitle}</strong><br>
         ${r.ai_hunter_memo || T.noMemo}
@@ -593,9 +780,21 @@
         <strong>${T.detailUserTitle}</strong><br>
         ${r.user_field_note || T.noUserNote}
       </div>
+      ${quickReportHtml(r)}
       <p style="font-size:11px;color:var(--ink-soft);margin-top:8px;">${T.heuristicNote}</p>
       <a class="detail-go" href="${navUrl(r)}" target="_blank" rel="noopener">${T.goWalk}</a>
     `;
+    el.detailContent.querySelectorAll(".quick-report__btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        saveReport(r.id, btn.dataset.tag);
+        btn.classList.add("quick-report__btn--done");
+        const countEl = document.getElementById("quickReportCount");
+        if (countEl) countEl.textContent = T.quickReportSavedCount(loadReports(r.id).length);
+      });
+    });
+    el.detailContent.querySelector(".detail-go").addEventListener("click", () => {
+      trackEvent("map_click", { id: r.id, source: "detail" });
+    });
     el.detailSheet.classList.remove("hidden");
   }
 
@@ -631,10 +830,13 @@
     el.emergencyResults.innerHTML = `<div class="sos-status${isError ? " sos-status--error" : ""}">${text}</div>`;
   }
 
-  // Emergency priority: dept stores/commercial > stations > parks > public facilities.
-  // Convenience stores and venues with unclear usage conditions are pushed to the bottom
-  // (they still show up in the normal browse list, just not favored during an SOS search).
-  function sosPriority(category) {
+  // Emergency priority: an explicit `isSOS` flag (manually verified, never AI-guessed) always
+  // wins; otherwise we fall back to a category heuristic - dept stores/commercial > stations >
+  // parks > public facilities. Convenience stores and venues with unclear usage conditions are
+  // pushed to the bottom (they still show up in the normal browse list, just not favored here).
+  function sosPriority(r) {
+    if (r.isSOS === true) return 0;
+    const category = r.category;
     if (category === "dept_commercial" || category === "commercial") return 1;
     if (category === "station") return 2;
     if (category === "park") return 3;
@@ -656,6 +858,7 @@
     safeVibrate();
     playSosFlash();
     showSosStatus(t().sosSearching);
+    trackEvent("sos_used", { city: state.city });
 
     // Search the ENTIRE dataset (all cities), not just the currently selected city tab,
     // since emergency-ready venues near the user's real GPS position may be outside the active tab.
@@ -666,14 +869,32 @@
     }
 
     const finish = () => {
-      const withMeta = candidates.map((r) => ({ r, dist: distanceOf(r) }));
+      let withMeta = candidates.map((r) => ({ r, dist: distanceOf(r) }));
+
+      // Emergency search must stay geographically relevant. When GPS is available,
+      // never let a far-away department store beat a nearby station/park just because
+      // its category has a higher global priority.
+      if (state.geo) {
+        const nearby = withMeta.filter((x) => x.dist != null && x.dist <= 3000);
+        if (nearby.length) withMeta = nearby;
+      }
+
       withMeta.sort((a, b) => {
-        const pd = sosPriority(a.r.category) - sosPriority(b.r.category);
+        if (a.dist != null && b.dist != null) {
+          // First compare rough distance bands, then facility suitability, then exact distance.
+          // This preserves SOS quality without sending the user across Tokyo.
+          const bandA = Math.floor(a.dist / 500);
+          const bandB = Math.floor(b.dist / 500);
+          if (bandA !== bandB) return bandA - bandB;
+          const pd = sosPriority(a.r) - sosPriority(b.r);
+          if (pd !== 0) return pd;
+          return a.dist - b.dist;
+        }
+        if (a.dist != null) return -1;
+        if (b.dist != null) return 1;
+        const pd = sosPriority(a.r) - sosPriority(b.r);
         if (pd !== 0) return pd;
-        if (a.dist == null && b.dist == null) return rankScore(b.r.emergency_rank) - rankScore(a.r.emergency_rank);
-        if (a.dist == null) return 1;
-        if (b.dist == null) return -1;
-        return a.dist - b.dist;
+        return rankScore(b.r.emergency_rank) - rankScore(a.r.emergency_rank);
       });
       renderSosList(withMeta.slice(0, 8));
     };
@@ -692,6 +913,36 @@
     );
   }
 
+  function approxWalkPhrase(meters) {
+    const seconds = Math.round((meters / 80) * 60);
+    if (seconds < 60) return `${t().walkApprox}${Math.max(5, seconds)}${t().secondsUnit}`;
+    return `${t().walkApprox}${Math.max(1, Math.round(seconds / 60))}${t().minutesUnit}`;
+  }
+
+  // Short, reassuring SOS card - deliberately minimal per spec (name, why it's suggested,
+  // an approximate walk time only when we actually have one, and a single action button).
+  // Never implies the venue has agreed to help or that toilet-only entry is guaranteed.
+  function renderSosCard(r, dist) {
+    const card = document.createElement("div");
+    card.className = "sos-mini-card";
+    const reassure = dist != null ? `${t().sosReassurePrefix}${approxWalkPhrase(dist)}${t().sosReassureSuffix}` : "";
+    card.innerHTML = `
+      <span class="type-badge ${typeBadgeClass(r.category)}">${buildingTypeLabel(r.category)}</span>
+      <div class="sos-mini-card__name">${displayName(r)}</div>
+      ${reassure ? `<div class="sos-mini-card__reassure">${reassure}</div>` : ""}
+      <a class="sos-mini-card__go" href="${navUrl(r)}" target="_blank" rel="noopener">📍 ${t().sosGoNowBtn}</a>
+    `;
+    card.querySelector("a").addEventListener("click", (e) => {
+      e.stopPropagation();
+      trackEvent("map_click", { id: r.id, source: "sos" });
+    });
+    card.addEventListener("click", (e) => {
+      if (e.target.closest(".sos-mini-card__go")) return;
+      openDetail(r);
+    });
+    return card;
+  }
+
   function renderSosList(items) {
     const T = t();
     if (items.length === 0) {
@@ -708,12 +959,12 @@
         <span class="sos-banner-note__pill">${T.sosOnlyPill}</span>
       </div>
       <button id="sosCloseBtn" class="sos-close-btn" type="button">${T.sosClose}</button>
-      <div id="sosCardList" class="list-container"></div>
+      <div id="sosCardList"></div>
     `;
 
     const listEl = document.getElementById("sosCardList");
-    items.forEach(({ r, dist }, idx) => {
-      listEl.appendChild(renderCard(r, dist, idx + 1, { showTypeBadge: true }));
+    items.forEach(({ r, dist }) => {
+      listEl.appendChild(renderSosCard(r, dist));
     });
 
     document.getElementById("sosCloseBtn").addEventListener("click", closeSosResults);
@@ -784,6 +1035,13 @@
     el.tabHomeLabel.textContent = T.tabHome;
     el.tabMapLabel.textContent = T.tabMap;
     el.tabFavoritesLabel.textContent = T.tabFavorites;
+    el.tabRankingLabel.textContent = T.tabRanking;
+    el.sponsorInfoLinkLabel.textContent = T.sponsorInfoLinkLabel;
+    el.sponsorInfoTitle.textContent = T.sponsorInfoTitle;
+    el.sponsorInfoLead.textContent = T.sponsorInfoLead;
+    el.sponsorInfoPricing.textContent = T.sponsorInfoPricing;
+    el.sponsorDemoHeading.textContent = T.sponsorDemoHeading;
+    el.sponsorInfoDisclaimer.textContent = T.sponsorInfoDisclaimer;
     el.footerNote.textContent = T.footerNote;
     el.installText.textContent = T.installText;
     el.installBtn.textContent = T.installBtn;
@@ -792,10 +1050,19 @@
     document.documentElement.lang = state.lang;
   }
 
+  function setActiveTab(tab) {
+    state.activeTab = tab;
+    el.tabHome.dataset.active = String(tab === "home");
+    el.tabMap.dataset.active = String(tab === "map");
+    el.tabFavorites.dataset.active = String(tab === "favorites");
+    el.tabRanking.dataset.active = String(tab === "ranking");
+  }
+
   function switchView(view) {
     state.view = view;
     el.viewBrowse.dataset.active = String(view === "browse");
     el.viewRanking.dataset.active = String(view === "ranking");
+    setActiveTab(view === "ranking" ? "ranking" : "home");
     closeSideMenu();
     renderMain();
   }
@@ -811,6 +1078,52 @@
   }
   function closeFilterSheetFn() {
     el.filterSheet.classList.add("hidden");
+  }
+
+  // Demo sponsor tiers/card shown in the "掲載・スポンサーについて" sheet. This is a fictional
+  // sample record for layout purposes only - it is never merged into state.all / data_master.json
+  // and no real venue is ever assigned a sponsor tier here.
+  const SPONSOR_DEMO_RECORD = {
+    id: "__sponsor_demo__",
+    name_ja: "サンプル店舗（デモ）",
+    name_en: "Sample Store (Demo)",
+    city: "asakusa",
+    area_tag: "デモ表示専用",
+    category: "cafe",
+    is_24h: false,
+    open_hours: "10:00〜19:00（デモ）",
+    address: "実在の住所ではありません",
+    lat: null,
+    lng: null,
+    photo_url: null,
+    isGodToilet: false,
+    sponsorTier: "premium",
+    premiumNo: "DEMO",
+    storeIntro: "これはPREMIUM枠のレイアウト見本です。実在の契約店舗ではありません。",
+    storePR: "店舗ご自身の言葉でPR文を掲載できます（掲載店舗の入力を想定）。",
+    featuredProduct: "看板商品の例",
+  };
+
+  function populateSponsorInfoSheet() {
+    const T = t();
+    const listEl = (id, items) => {
+      const ul = document.getElementById(id);
+      ul.innerHTML = items.map((i) => `<li>${i}</li>`).join("");
+    };
+    listEl("sponsorPlanFreeList", T.sponsorPlanFree);
+    listEl("sponsorPlanPartnerList", T.sponsorPlanPartner);
+    listEl("sponsorPlanPremiumList", T.sponsorPlanPremium);
+    el.sponsorDemoCard.innerHTML = "";
+    el.sponsorDemoCard.appendChild(renderPremiumCard(SPONSOR_DEMO_RECORD, 0));
+  }
+
+  function openSponsorInfoFn() {
+    closeSideMenu();
+    populateSponsorInfoSheet();
+    el.sponsorInfoSheet.classList.remove("hidden");
+  }
+  function closeSponsorInfoFn() {
+    el.sponsorInfoSheet.classList.add("hidden");
   }
 
   function requestGeoOnce(onDone) {
@@ -844,6 +1157,22 @@
     el.filterSheet.addEventListener("click", (e) => {
       if (e.target === el.filterSheet) closeFilterSheetFn();
     });
+
+    el.openSponsorInfo.addEventListener("click", openSponsorInfoFn);
+    el.sponsorInfoClose.addEventListener("click", closeSponsorInfoFn);
+    el.sponsorInfoSheet.addEventListener("click", (e) => {
+      if (e.target === el.sponsorInfoSheet) closeSponsorInfoFn();
+    });
+    // The demo sponsor card is a static layout sample only - block all interaction on it so
+    // it can never open a fake detail view, fire a fake map click, or log a fake event.
+    el.sponsorDemoCard.addEventListener(
+      "click",
+      (e) => {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      },
+      true
+    );
 
     el.nearMeBtn.addEventListener("click", () => {
       state.sortNearest = true;
@@ -891,35 +1220,45 @@
       renderList();
     });
 
+    function resetTransientOverlays() {
+      closeSosResults();
+      closeDetail();
+      closeFilterSheetFn();
+      closeSideMenu();
+      closeSponsorInfoFn();
+    }
+
     el.tabHome.addEventListener("click", () => {
-      state.activeTab = "home";
-      el.tabHome.dataset.active = "true";
-      el.tabMap.dataset.active = "false";
-      el.tabFavorites.dataset.active = "false";
+      setActiveTab("home");
+      state.view = "browse";
       el.mapSection.classList.remove("map-section--expanded");
       state.visibleCount = 8;
-      closeSosResults();
+      resetTransientOverlays();
       renderMain();
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
     el.tabMap.addEventListener("click", () => {
-      state.activeTab = "map";
-      el.tabHome.dataset.active = "false";
-      el.tabMap.dataset.active = "true";
-      el.tabFavorites.dataset.active = "false";
+      setActiveTab("map");
+      state.view = "browse";
       el.mapSection.classList.add("map-section--expanded");
-      closeSosResults();
+      resetTransientOverlays();
       renderMain();
       el.mapSection.scrollIntoView({ behavior: "smooth", block: "start" });
     });
     el.tabFavorites.addEventListener("click", () => {
-      state.activeTab = "favorites";
-      el.tabHome.dataset.active = "false";
-      el.tabMap.dataset.active = "false";
-      el.tabFavorites.dataset.active = "true";
+      setActiveTab("favorites");
+      state.view = "browse";
       el.mapSection.classList.remove("map-section--expanded");
       state.visibleCount = 8;
-      closeSosResults();
+      resetTransientOverlays();
+      renderMain();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    el.tabRanking.addEventListener("click", () => {
+      setActiveTab("ranking");
+      state.view = "ranking";
+      el.mapSection.classList.remove("map-section--expanded");
+      resetTransientOverlays();
       renderMain();
       window.scrollTo({ top: 0, behavior: "smooth" });
     });

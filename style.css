@@ -406,6 +406,117 @@ body {
   cursor: pointer;
 }
 
+.sos-mini-card {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+}
+.sos-mini-card__name { font-weight: 700; font-size: 15px; margin-top: 6px; }
+.sos-mini-card__reassure { font-size: 12.5px; color: var(--teal-deep); font-weight: 600; margin-top: 4px; }
+.sos-mini-card__go {
+  display: block;
+  text-align: center;
+  margin-top: 10px;
+  background: #1A73E8;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 10px;
+  border-radius: 999px;
+  text-decoration: none;
+}
+.sos-mini-card__go:active { background: #1558B0; }
+
+/* ---------- One-tap quick report ---------- */
+.quick-report {
+  background: var(--teal-tint);
+  border-radius: var(--radius-s);
+  padding: 12px 14px;
+  margin-top: 10px;
+}
+.quick-report__title { font-weight: 800; font-size: 13px; color: var(--teal-deep); }
+.quick-report__note { font-size: 10.5px; color: var(--ink-soft); margin: 4px 0 10px; line-height: 1.5; }
+.quick-report__buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+.quick-report__btn {
+  border: 1px solid var(--teal);
+  background: var(--paper-raised);
+  color: var(--teal-deep);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.quick-report__btn--done { background: var(--teal); color: #fff; }
+.quick-report__count { font-size: 10.5px; color: var(--ink-soft); margin-top: 8px; }
+
+/* ---------- Premium sponsor card ---------- */
+.card--premium {
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid #C9A227;
+  box-shadow: 0 4px 16px rgba(201,162,39,0.4), var(--shadow-card);
+}
+.premium-card__header {
+  background: linear-gradient(90deg, #141414, #2B2B2B 55%, #141414);
+  color: #F0CD6B;
+  font-weight: 800;
+  font-size: 12px;
+  padding: 8px 14px;
+}
+.premium-card__photo { width: 100%; height: 160px; object-fit: cover; display: block; }
+.premium-card__photo--placeholder {
+  width: 100%; height: 160px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 40px;
+  background: var(--teal-tint);
+  color: var(--teal-deep);
+}
+.premium-card__body { padding: 14px; }
+.premium-card__name { font-weight: 800; font-size: 17px; margin-bottom: 6px; }
+.premium-card__intro { font-size: 13px; color: var(--ink); margin-bottom: 6px; line-height: 1.5; }
+.premium-card__pr { font-size: 12.5px; color: var(--ink-soft); margin-bottom: 6px; line-height: 1.5; }
+.premium-card__product { font-size: 12.5px; color: var(--gold); font-weight: 700; margin-bottom: 8px; }
+.premium-card__links { display: flex; gap: 10px; margin-top: 8px; }
+.premium-card__links a { font-size: 12px; color: var(--teal); font-weight: 700; text-decoration: none; }
+
+/* ---------- Sponsor info sheet ---------- */
+.sponsor-info__lead { font-size: 13px; color: var(--ink); line-height: 1.6; margin-bottom: 16px; }
+.sponsor-plan {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+.sponsor-plan--partner { border-color: #1A73E8; }
+.sponsor-plan--premium { border-color: #C9A227; background: linear-gradient(180deg, #FFFDF6, #fff); }
+.sponsor-plan__name { font-weight: 800; font-size: 13px; margin-bottom: 6px; }
+.sponsor-plan--partner .sponsor-plan__name { color: #1A73E8; }
+.sponsor-plan--premium .sponsor-plan__name { color: #8A6116; }
+.sponsor-plan__list { margin: 0; padding-left: 18px; font-size: 12px; color: var(--ink-soft); line-height: 1.7; }
+.sponsor-info__pricing {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  background: var(--teal-tint);
+  border-radius: var(--radius-s);
+  padding: 10px 12px;
+  margin: 6px 0 18px;
+  line-height: 1.6;
+}
+.sponsor-info__disclaimer {
+  font-size: 11px;
+  color: var(--ink-soft);
+  margin-top: 10px;
+  line-height: 1.6;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+
 .type-badge {
   display: inline-block;
   font-weight: 800;
@@ -658,6 +769,66 @@ body {
   text-decoration: none;
 }
 .card__go:active { background: #1558B0; }
+
+/* ---------- God-toilet certification (black x gold) ---------- */
+.card.godcard {
+  border: 2px solid #C9A227;
+  box-shadow: 0 3px 12px rgba(201,162,39,0.35), var(--shadow-card);
+  padding-top: 34px;
+}
+.card.godcard .card__badge { top: 26px; }
+.god-badge {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  background: linear-gradient(90deg, #141414, #2B2B2B 55%, #141414);
+  color: #F0CD6B;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  padding: 6px 14px;
+  border-radius: calc(var(--radius-m) - 1px) calc(var(--radius-m) - 1px) 0 0;
+  border-bottom: 1px solid #C9A227;
+}
+.god-extra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+}
+.god-extra__item {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+/* ---------- Sponsor tiers (future use; no current data sets these) ---------- */
+.sponsor-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  z-index: 1;
+}
+.sponsor-badge--partner { background: #1A73E8; color: #fff; }
+.sponsor-badge--premium { background: linear-gradient(90deg, #C9A227, #F0CD6B); color: #141414; }
+.card--partner { border: 1px solid #1A73E8; }
+.partner-extra {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+}
+.partner-extra__intro { font-size: 12.5px; color: var(--ink); margin-bottom: 4px; line-height: 1.5; }
+.partner-extra__pr { font-size: 12px; color: var(--ink-soft); margin-bottom: 4px; line-height: 1.5; }
+.partner-extra__product { font-size: 12px; color: var(--gold); font-weight: 700; }
+/* .card--premium's actual layout is defined near the premium-card__* rules below,
+   since PREMIUM cards use a dedicated markup structure rather than the standard .card. */
+
 .card__top {
   display: flex;
   justify-content: space-between;
@@ -860,6 +1031,17 @@ body {
 .rank-medal--3 { background: #E3B48B; color: #5A3418; }
 .rank-card__name { font-weight: 700; font-size: 14.5px; }
 .rank-card__meta { font-size: 12px; color: var(--ink-soft); margin-top: 3px; }
+.rank-card--god { border: 2px solid #C9A227; box-shadow: 0 3px 12px rgba(201,162,39,0.3), var(--shadow-card); }
+.rank-detail {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.rank-detail__row { display: flex; justify-content: space-between; gap: 10px; font-size: 11.5px; }
+.rank-detail__label { color: var(--ink-soft); flex: 0 0 auto; }
 .app-footer {
   display: none; /* replaced by .side-menu__footnote */
 }
