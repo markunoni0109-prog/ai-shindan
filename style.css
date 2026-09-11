@@ -231,6 +231,33 @@ body {
   color: #fff;
 }
 
+
+.city-bar--horizontal {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 10px 16px 6px;
+  background: var(--paper);
+}
+.city-bar--horizontal::-webkit-scrollbar { display: none; }
+.city-bar--horizontal .city-btn {
+  flex: 0 0 auto;
+  padding: 9px 13px;
+  border: 1px solid var(--line);
+  background: var(--paper-raised);
+}
+.city-bar--horizontal .city-btn[data-active="true"] {
+  background: var(--teal);
+  color: #fff;
+  border-color: var(--teal);
+}
+@media (max-width: 600px) {
+  .city-bar--horizontal { padding-left: 10px; padding-right: 10px; }
+  .city-bar--horizontal .city-btn { padding: 8px 11px; font-size: 12.5px; }
+}
+
 /* ---------- God-toilet banner (round button, primary position) ---------- */
 .god-banner {
   display: grid;

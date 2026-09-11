@@ -51,7 +51,6 @@
   <div class="side-menu__panel">
     <button id="sideMenuClose" class="side-menu__close" type="button" aria-label="Close">✕</button>
     <h3 class="side-menu__heading" id="sideMenuAreaHeading">エリアを選ぶ</h3>
-    <nav class="city-bar city-bar--vertical" id="cityBar" aria-label="City selector"></nav>
     <h3 class="side-menu__heading">🏆 <span id="viewRankingLabel">神トイレランキング</span></h3>
     <div class="chip-row" id="viewModeChips">
       <button id="viewBrowse" class="chip" type="button" data-active="true">📋 一覧</button>
@@ -129,6 +128,8 @@
   </section>
 
   <section id="godResults" class="god-results hidden" aria-live="polite"></section>
+
+  <nav class="city-bar city-bar--horizontal" id="cityBar" aria-label="City selector"></nav>
 
   <div class="filter-bar">
     <button id="sortNearest" class="filter-pill" data-active="true" type="button">
