@@ -800,7 +800,6 @@
     rows.push([T.detailHours, r.open_hours || "-"]);
     if (r.nearest_station) rows.push([T.detailStation, r.nearest_station]);
     if (r.address) rows.push([T.detailAddress, r.address]);
-    if (r.emergency_rank) rows.push([T.detailRank, r.emergency_rank]);
     if (r.source) rows.push([T.detailSource, r.source]);
     if (r.verifiedAt) rows.push([T.detailVerifiedAt, r.verifiedAt]);
     if (r.sourceType) rows.push([T.detailSourceType, r.sourceType]);
@@ -843,7 +842,9 @@
       heroHtml = photoHtml;
     }
 
+    el.detailSheet.classList.toggle("detail-sheet--god", isGod);
     el.detailContent.innerHTML = `
+      ${isGod ? `<div class="god-detail-kicker">👑 AI HUNTER 神トイレ</div>` : ""}
       <div class="detail-name">${displayName(r)}</div>
       ${r.name_en && state.lang === "ja" ? `<div class="detail-name-en">${r.name_en}</div>` : ""}
       ${heroHtml}
@@ -854,13 +855,8 @@
         <strong>${T.detailMemoTitle}</strong><br>
         ${r.ai_hunter_memo || T.noMemo}
       </div>
-      <div class="detail-memo detail-memo--user">
-        <strong>${T.detailUserTitle}</strong><br>
-        ${r.user_field_note || T.noUserNote}
-      </div>
-      ${quickReportHtml(r)}
-      <p style="font-size:11px;color:var(--ink-soft);margin-top:8px;">${T.heuristicNote}</p>
-      <a class="detail-go" href="${navUrl(r)}" target="_blank" rel="noopener">${T.goWalk}</a>
+      ${isGod ? "" : `<div class="detail-memo detail-memo--user"><strong>${T.detailUserTitle}</strong><br>${r.user_field_note || T.noUserNote}</div>${quickReportHtml(r)}<p style="font-size:11px;color:var(--ink-soft);margin-top:8px;">${T.heuristicNote}</p>`}
+      <a class="detail-go${isGod ? " detail-go--god" : ""}" href="${navUrl(r)}" target="_blank" rel="noopener">${T.goWalk}</a>
     `;
     el.detailContent.querySelectorAll(".quick-report__btn").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -878,6 +874,7 @@
 
   function closeDetail() {
     el.detailSheet.classList.add("hidden");
+    el.detailSheet.classList.remove("detail-sheet--god");
   }
 
   // --- 神トイレ (God Toilet): shows only isGodToilet === true venues. No distance-band
