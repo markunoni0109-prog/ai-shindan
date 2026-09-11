@@ -1,7 +1,7 @@
 {
   "name": "AI HUNTER TOILET SOS",
   "short_name": "TOILET SOS",
-  "description": "Googleより詳しい、旅行者向け東京トイレデータベース。漏れそうな時に、いちばん近いトイレへ。",
+  "description": "Googleより詳しい、旅行者向け東京トイレデータベース。AI HUNTERが確認した『本当に使いたいトイレ＝神トイレ』を選んで探せます。",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

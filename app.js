@@ -28,6 +28,9 @@
     favorites: new Set(JSON.parse(localStorage.getItem("ttf_favorites") || "[]")),
     map: null,
     mapMarkersLayer: null,
+    godMarkersLayer: null,
+    meMarkersLayer: null,
+    _mapCenteredOnUser: false,
   };
 
   const el = {
@@ -64,13 +67,12 @@
     tabFavorites: document.getElementById("tabFavorites"),
     tabRanking: document.getElementById("tabRanking"),
     headerTagline: document.getElementById("headerTagline"),
-    emergencyBtn: document.getElementById("emergencyBtn"),
-    emergencyLabel: document.getElementById("emergencyLabel"),
-    emergencyHint: document.getElementById("emergencyHint"),
-    emergencyResults: document.getElementById("emergencyResults"),
-    sosPushLabel: document.getElementById("sosPushLabel"),
-    sosDescLabel: document.getElementById("sosDescLabel"),
-    sosNoteSmall: document.getElementById("sosNoteSmall"),
+    godToiletBtn: document.getElementById("godToiletBtn"),
+    godBannerTitle: document.getElementById("godBannerTitle"),
+    godBannerSub: document.getElementById("godBannerSub"),
+    godResults: document.getElementById("godResults"),
+    godPushLabel: document.getElementById("godPushLabel"),
+    godDescLabel: document.getElementById("godDescLabel"),
     searchInput: document.getElementById("searchInput"),
     areaSelect: document.getElementById("areaSelect"),
     viewBrowse: document.getElementById("viewBrowse"),
@@ -167,17 +169,7 @@
   }
 
   // Composite score for the "God-tier ranking" view: rank first, then 24h, memo presence, accessibility.
-  function godScore(r) {
-    return (
-      (r.isGodToilet ? 1000 : 0) +
-      rankScore(r.emergency_rank) * 10 +
-      (r.is_24h ? 3 : 0) +
-      (r.ai_hunter_memo ? 2 : 0) +
-      (isHiddenGem(r) ? 1 : 0) +
-      (r.wheelchair === true ? 1 : 0) +
-      (r.baby_bed === true || r.baby_chair === true ? 1 : 0)
-    );
-  }
+
 
   async function loadMaster() {
     // This build ships data_master.json flat at the repo root (see the delivered
@@ -226,8 +218,8 @@
     el.filter24h.dataset.active = "false";
     el.filterWheelchair.dataset.active = "false";
     el.filterBaby.dataset.active = "false";
-    el.emergencyResults.classList.add("hidden");
-    el.emergencyResults.innerHTML = "";
+    el.godResults.classList.add("hidden");
+    el.godResults.innerHTML = "";
     renderCityBar();
     state.current = state.byCity[city] || [];
     renderAreaSelect();
@@ -351,7 +343,7 @@
         if (b.dist == null) return -1;
         if (a.dist !== b.dist) return a.dist - b.dist;
       }
-      // 3. SOS-ready venues (already carry an emergency rank) come next.
+      // 3. Venues that already carry a rank (emergency_rank: S/A/B) come next.
       const rankDiff = rankScore(b.r.emergency_rank) - rankScore(a.r.emergency_rank);
       if (rankDiff !== 0) return rankDiff;
       // 4. Everything else keeps its original relative order.
@@ -388,7 +380,6 @@
     const T = t();
     const tags = [];
     if (r.emergency_rank) tags.push(`<span class="tag tag--rank">${r.emergency_rank.replace("（ユーザー指定）", "")}</span>`);
-    if (r.isSOS === true) tags.push(`<span class="tag tag--sos">🚨 ${T.sosCandidateTag}</span>`);
     if (r.is_24h) tags.push(`<span class="tag tag--24h">24h</span>`);
     if (r.wheelchair === true) tags.push(`<span class="tag tag--24h">♿</span>`);
     if (r.paper === true) tags.push(`<span class="tag tag--24h">🧻 ${T.paperTag}</span>`);
@@ -444,7 +435,9 @@
     el.listContainer.appendChild(frag);
 
     el.showMoreBtn.classList.toggle("hidden", sorted.length <= visible.length);
-    updateMap(visible.map((v) => v.r));
+    // The map shows every matching, geocoded venue (not just the paginated card list) so it
+    // works as the primary "what's around me" view; clustering (see updateMap) keeps it readable.
+    updateMap(sorted.map((v) => v.r));
   }
 
   function typeBadgeClass(category) {
@@ -453,6 +446,15 @@
     if (category === "park") return "type-badge--park";
     if (category === "government") return "type-badge--gov";
     return "type-badge--other";
+  }
+
+  function buildingTypeLabel(category) {
+    const T = t();
+    if (category === "dept_commercial" || category === "commercial") return T.buildingTypeDept;
+    if (category === "station") return T.buildingTypeStation;
+    if (category === "park") return T.buildingTypePark;
+    if (category === "government") return T.buildingTypeGov;
+    return categoryLabel(category);
   }
 
   // Cleanliness word: prefers the canonical `cleanLevel` string field (きれい/普通/汚い),
@@ -597,15 +599,36 @@
       attribution: "&copy; OpenStreetMap contributors",
     }).addTo(state.map);
     L.control.zoom({ position: "bottomright" }).addTo(state.map);
-    state.mapMarkersLayer = L.layerGroup().addTo(state.map);
+    // Normal pins are clustered for readability once many venues are on screen at once;
+    // 👑 god-toilet pins are kept on a separate, never-clustered layer so they always stand
+    // out individually, even zoomed out (this is purely visual - it never changes which
+    // venues count as isGodToilet).
+    state.mapMarkersLayer =
+      typeof L.markerClusterGroup === "function"
+        ? L.markerClusterGroup({ maxClusterRadius: 55, spiderfyOnMaxZoom: true, showCoverageOnHover: false })
+        : L.layerGroup();
+    state.mapMarkersLayer.addTo(state.map);
+    state.godMarkersLayer = L.layerGroup().addTo(state.map);
+    state.meMarkersLayer = L.layerGroup().addTo(state.map);
   }
 
-  function numberedPinIcon(n) {
+  function pinIcon(r) {
+    if (r.isGodToilet === true) {
+      return L.divIcon({
+        className: "",
+        html: `<div class="pin-marker pin-marker--god">👑</div>`,
+        iconSize: [42, 42],
+        iconAnchor: [21, 40],
+      });
+    }
+    const badges = [];
+    if (r.is_24h) badges.push(`<span class="pin-marker__badge pin-marker__badge--24h">24</span>`);
+    if (r.wheelchair === true) badges.push(`<span class="pin-marker__badge pin-marker__badge--wheel">♿</span>`);
     return L.divIcon({
       className: "",
-      html: `<div class="pin-marker pin-marker--numbered"><span>${n}</span></div>`,
-      iconSize: [34, 34],
-      iconAnchor: [17, 32],
+      html: `<div class="pin-marker pin-marker--normal">🚻${badges.join("")}</div>`,
+      iconSize: [30, 30],
+      iconAnchor: [15, 28],
     });
   }
 
@@ -623,22 +646,34 @@
     if (!state.map) initMap();
     if (!state.map) return;
     state.mapMarkersLayer.clearLayers();
+    state.godMarkersLayer.clearLayers();
+    state.meMarkersLayer.clearLayers();
 
     const bounds = [];
     if (state.geo) {
-      L.marker([state.geo.lat, state.geo.lng], { icon: meMarkerIcon(), zIndexOffset: 1000 })
-        .addTo(state.mapMarkersLayer);
+      L.marker([state.geo.lat, state.geo.lng], { icon: meMarkerIcon(), zIndexOffset: 1000 }).addTo(state.meMarkersLayer);
       bounds.push([state.geo.lat, state.geo.lng]);
     }
-    items.forEach((r, idx) => {
+    items.forEach((r) => {
       if (!r.lat || !r.lng) return;
-      const marker = L.marker([r.lat, r.lng], { icon: numberedPinIcon(idx + 1) }).addTo(state.mapMarkersLayer);
+      const marker = L.marker([r.lat, r.lng], { icon: pinIcon(r) });
       marker.bindPopup(`<strong>${displayName(r)}</strong><br>${r.open_hours || ""}`);
       marker.on("click", () => openDetail(r));
+      if (r.isGodToilet === true) {
+        marker.addTo(state.godMarkersLayer);
+      } else {
+        marker.addTo(state.mapMarkersLayer);
+      }
       bounds.push([r.lat, r.lng]);
     });
 
-    if (bounds.length > 0) {
+    // First real GPS fix: snap tightly to the user so they immediately see "what's around
+    // me". After that, follow normal fit-to-bounds so switching city/filters still shows
+    // the relevant pins (still including the user's dot when known).
+    if (state.geo && !state._mapCenteredOnUser) {
+      state.map.setView([state.geo.lat, state.geo.lng], 15);
+      state._mapCenteredOnUser = true;
+    } else if (bounds.length > 0) {
       if (bounds.length === 1) {
         state.map.setView(bounds[0], 16);
       } else {
@@ -649,16 +684,28 @@
     setTimeout(() => state.map && state.map.invalidateSize(), 60);
   }
 
+  // 👑 神トイレランキング: strictly isGodToilet === true, searched across all cities.
+  // No blended score, no AI/heuristic auto-certification - distance is the only tiebreaker,
+  // and only when we actually have a real GPS fix.
   function renderRanking() {
     const T = t();
-    const pool = state.current.filter((r) => r.category !== "unusable");
+    const pool = state.all.filter((r) => r.isGodToilet === true);
+
     if (pool.length === 0) {
       el.resultMeta.textContent = "";
-      el.listContainer.innerHTML = `<div class="empty-state">${T.rankingEmpty}</div>`;
+      el.listContainer.innerHTML = `<div class="empty-state">${T.godEmptyArea}</div>`;
+      updateMap([]);
       return;
     }
-    const ranked = [...pool].sort((a, b) => godScore(b) - godScore(a)).slice(0, 15);
-    el.resultMeta.textContent = t().resultCount(ranked.length);
+
+    const withMeta = pool.map((r) => ({ r, dist: distanceOf(r) }));
+    withMeta.sort((a, b) => {
+      if (a.dist == null && b.dist == null) return 0;
+      if (a.dist == null) return 1;
+      if (b.dist == null) return -1;
+      return a.dist - b.dist;
+    });
+    el.resultMeta.textContent = t().resultCount(withMeta.length);
 
     const frag = document.createDocumentFragment();
     const note = document.createElement("div");
@@ -666,39 +713,20 @@
     note.textContent = T.rankingNote;
     frag.appendChild(note);
 
-    ranked.forEach((r, idx) => {
+    withMeta.forEach(({ r, dist }, idx) => {
       const row = document.createElement("div");
-      row.className = "rank-card" + (r.isGodToilet ? " rank-card--god" : "");
+      row.className = "rank-card rank-card--god";
       const medalClass = idx === 0 ? " rank-medal--1" : idx === 1 ? " rank-medal--2" : idx === 2 ? " rank-medal--3" : "";
-
-      const detailRows = [];
-      detailRows.push(
-        `<div class="rank-detail__row"><span class="rank-detail__label">${T.rankSLabel}</span><span>${r.emergency_rank || T.rankNoData}</span></div>`
-      );
-      detailRows.push(
-        `<div class="rank-detail__row"><span class="rank-detail__label">${T.rankEntranceLabel}</span><span>${
-          r.entrance_seconds != null ? `${r.entrance_seconds}${T.secondsUnit}` : T.rankNoData
-        }</span></div>`
-      );
-      detailRows.push(
-        `<div class="rank-detail__row"><span class="rank-detail__label">${T.rankCongestionLabel}</span><span>${
-          r.women_congestion_note || T.rankNoData
-        }</span></div>`
-      );
-      detailRows.push(
-        `<div class="rank-detail__row"><span class="rank-detail__label">${T.rankTestimonialLabel}</span><span>${
-          r.user_field_note || T.rankNoTestimonial
-        }</span></div>`
-      );
-
+      const distLabel = dist != null ? `🚶 徒歩${walkMinutes(dist)}分（${Math.round(dist)}m）` : "";
       row.innerHTML = `
         <div class="rank-medal${medalClass}">${idx + 1}</div>
         ${photoHtmlSmall(r)}
         <div class="card__body">
-          <div class="rank-card__name">${r.isGodToilet ? "🏆 " : ""}${displayName(r)}</div>
-          <div class="rank-card__meta">${(r.open_hours || "-")}</div>
+          <div class="rank-card__name">👑 ${displayName(r)}</div>
+          <div class="rank-card__meta">${[r.open_hours, distLabel].filter(Boolean).join(" ｜ ")}</div>
           <div class="card__meta">${extraTagsHtml(r)}</div>
-          <div class="rank-detail">${detailRows.join("")}</div>
+          ${detailExtrasHtml(r, true)}
+          ${r.user_field_note ? `<div class="rank-testimonial">💬 ${r.user_field_note}</div>` : ""}
         </div>
       `;
       row.addEventListener("click", () => openDetail(r));
@@ -706,6 +734,7 @@
     });
     el.listContainer.innerHTML = "";
     el.listContainer.appendChild(frag);
+    updateMap(pool);
   }
 
   const QUICK_REPORT_TAGS = ["clean", "quickEntry", "hadPaper", "crowded", "closed", "entranceHere"];
@@ -757,6 +786,11 @@
     if (r.source) rows.push([T.detailSource, r.source]);
     if (r.verifiedAt) rows.push([T.detailVerifiedAt, r.verifiedAt]);
     if (r.sourceType) rows.push([T.detailSourceType, r.sourceType]);
+    if (r.gender) rows.push([T.detailGender, r.gender]);
+    if (r.ostomate === true) rows.push([T.detailOstomate, T.yesLabel]);
+    if (r.baby_bed === true) rows.push([T.detailBabyBed, T.yesLabel]);
+    if (r.baby_chair === true) rows.push([T.detailBabyChair, T.yesLabel]);
+    if (r.suitcase === true) rows.push([T.detailSuitcase, T.yesLabel]);
     const dist = distanceOf(r);
     if (dist != null) rows.push([state.lang === "ja" ? "現在地から" : "From you", `${Math.round(dist)}m / ${walkMinutes(dist)} min`]);
 
@@ -771,6 +805,7 @@
     const badges = extraTagsHtml(r);
 
     el.detailContent.innerHTML = `
+      ${r.isGodToilet === true ? `<div class="god-badge god-badge--detail">👑 ${T.godBadgeText}</div>` : ""}
       <div class="detail-name">${displayName(r)}</div>
       ${r.name_en && state.lang === "ja" ? `<div class="detail-name-en">${r.name_en}</div>` : ""}
       ${photoHtml}
@@ -807,197 +842,61 @@
     el.detailSheet.classList.add("hidden");
   }
 
-  // --- SOS: vibration + flash + geolocation + prioritized emergency-ready list ---
+  // --- 神トイレ (God Toilet): shows only isGodToilet === true venues. No distance-band
+  // prioritization, no auto-generated "entrance seconds" etc. isGodToilet is set only by
+  // manual AI HUNTER verification - never inferred here.
   function walkTimeLabel(meters) {
     const seconds = Math.round((meters / 80) * 60);
     if (seconds < 60) return `徒歩${Math.max(5, seconds)}秒`;
     return `徒歩${Math.max(1, Math.round(seconds / 60))}分`;
   }
 
-  function safeVibrate() {
-    try {
-      if (navigator.vibrate) navigator.vibrate([120, 80, 120]);
-    } catch (e) {
-      /* unsupported device: no-op */
-    }
-  }
-
-  function playSosFlash() {
-    el.emergencyBtn.classList.remove("is-triggered");
-    // force reflow so the animation can restart on repeated taps
-    void el.emergencyBtn.offsetWidth;
-    el.emergencyBtn.classList.add("is-triggered");
-    setTimeout(() => el.emergencyBtn.classList.remove("is-triggered"), 850);
-  }
-
-  function showSosStatus(text, isError) {
-    el.emergencyResults.classList.remove("hidden");
-    el.emergencyResults.innerHTML = `<div class="sos-status${isError ? " sos-status--error" : ""}">${text}</div>`;
-  }
-
-  // Emergency priority: an explicit `isSOS` flag (manually verified, never AI-guessed) always
-  // wins; otherwise we fall back to a category heuristic - dept stores/commercial > stations >
-  // parks > public facilities. Convenience stores and venues with unclear usage conditions are
-  // pushed to the bottom (they still show up in the normal browse list, just not favored here).
-  function sosPriority(r) {
-    if (r.isSOS === true) return 0;
-    const category = r.category;
-    if (category === "dept_commercial" || category === "commercial") return 1;
-    if (category === "station") return 2;
-    if (category === "park") return 3;
-    if (category === "government") return 4;
-    if (category === "convenience" || category === "unknown" || category === "unknown_conflict") return 9;
-    return 6;
-  }
-
-  function buildingTypeLabel(category) {
-    const T = t();
-    if (category === "dept_commercial" || category === "commercial") return T.buildingTypeDept;
-    if (category === "station") return T.buildingTypeStation;
-    if (category === "park") return T.buildingTypePark;
-    if (category === "government") return T.buildingTypeGov;
-    return categoryLabel(category);
-  }
-
-  function triggerSOS() {
-    safeVibrate();
-    playSosFlash();
-    showSosStatus(t().sosSearching);
-    trackEvent("sos_used", { city: state.city });
+  function triggerGodToilet() {
+    playGodPulse();
+    trackEvent("god_toilet_used", { city: state.city });
 
     // Search the ENTIRE dataset (all cities), not just the currently selected city tab,
-    // since emergency-ready venues near the user's real GPS position may be outside the active tab.
-    const basePool = state.all.filter((r) => r.category !== "unusable");
-    if (basePool.length === 0) {
-      showSosStatus(t().emergencyNoData, true);
-      return;
-    }
-
-    // Evaluation order once we have a real GPS fix: (1) within ~3km, preferring a tight
-    // ~500m band, (2) SOS suitability (explicit isSOS flag, else category heuristic),
-    // (3) actual distance. A nearby station/public toilet must never lose to a department
-    // store that is merely "the right category" but several km away - so distance banding
-    // is checked BEFORE category priority, not after.
-    const NEAR_BAND_M = 500;
-    const MAX_RADIUS_M = 3000;
-    function distanceBand(distMeters) {
-      if (distMeters <= NEAR_BAND_M) return 0;
-      if (distMeters <= MAX_RADIUS_M) return 1;
-      return 2;
-    }
-
-    const finishWithGeo = () => {
-      // Only venues with real, verified coordinates can be evaluated for proximity - venues
-      // without coordinates are excluded here rather than shown with a guessed distance.
-      const withCoords = basePool
-        .filter((r) => r.lat && r.lng)
-        .map((r) => ({ r, dist: distanceOf(r) }));
-
-      let pool = withCoords.filter((x) => x.dist <= MAX_RADIUS_M);
-      if (pool.length === 0) {
-        // Nothing within 3km - fall back to whatever geocoded venues exist at all,
-        // still ranked nearest-first, rather than showing an unhelpful empty result.
-        pool = withCoords;
-      }
-
-      pool.sort((a, b) => {
-        const bandDiff = distanceBand(a.dist) - distanceBand(b.dist);
-        if (bandDiff !== 0) return bandDiff;
-        const pd = sosPriority(a.r) - sosPriority(b.r);
-        if (pd !== 0) return pd;
-        return a.dist - b.dist;
-      });
-
-      renderSosList(pool.slice(0, 8));
-    };
-
-    // No GPS fix available: we cannot evaluate real distance at all, so we fall back to
-    // SOS suitability only, and the card renderer will not display any distance/walk-time
-    // claim for these (see renderSosCard - it only shows a time when `dist` is a real number).
-    const finishWithoutGeo = () => {
-      const withMeta = basePool.map((r) => ({ r, dist: null }));
-      withMeta.sort((a, b) => {
-        const pd = sosPriority(a.r) - sosPriority(b.r);
-        if (pd !== 0) return pd;
-        return rankScore(b.r.emergency_rank) - rankScore(a.r.emergency_rank);
-      });
-      renderSosList(withMeta.slice(0, 8));
-    };
-
-    if (!navigator.geolocation) {
-      finishWithoutGeo();
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        state.geo = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        finishWithGeo();
-      },
-      () => finishWithoutGeo(),
-      { timeout: 8000, enableHighAccuracy: true }
-    );
+    // since AI HUNTER-certified venues are rare and worth surfacing regardless of tab.
+    const pool = state.all.filter((r) => r.isGodToilet === true);
+    renderGodToiletResults(pool);
   }
 
-  function approxWalkPhrase(meters) {
-    const seconds = Math.round((meters / 80) * 60);
-    if (seconds < 60) return `${t().walkApprox}${Math.max(5, seconds)}${t().secondsUnit}`;
-    return `${t().walkApprox}${Math.max(1, Math.round(seconds / 60))}${t().minutesUnit}`;
+  function playGodPulse() {
+    el.godToiletBtn.classList.remove("is-pressed");
+    void el.godToiletBtn.offsetWidth;
+    el.godToiletBtn.classList.add("is-pressed");
+    setTimeout(() => el.godToiletBtn.classList.remove("is-pressed"), 300);
   }
 
-  // Short, reassuring SOS card - deliberately minimal per spec (name, why it's suggested,
-  // an approximate walk time only when we actually have one, and a single action button).
-  // Never implies the venue has agreed to help or that toilet-only entry is guaranteed.
-  function renderSosCard(r, dist) {
-    const card = document.createElement("div");
-    card.className = "sos-mini-card";
-    const reassure = dist != null ? `${t().sosReassurePrefix}${approxWalkPhrase(dist)}${t().sosReassureSuffix}` : "";
-    card.innerHTML = `
-      <span class="type-badge ${typeBadgeClass(r.category)}">${buildingTypeLabel(r.category)}</span>
-      <div class="sos-mini-card__name">${displayName(r)}</div>
-      ${reassure ? `<div class="sos-mini-card__reassure">${reassure}</div>` : ""}
-      <a class="sos-mini-card__go" href="${navUrl(r)}" target="_blank" rel="noopener">📍 ${t().sosGoNowBtn}</a>
-    `;
-    card.querySelector("a").addEventListener("click", (e) => {
-      e.stopPropagation();
-      trackEvent("map_click", { id: r.id, source: "sos" });
-    });
-    card.addEventListener("click", (e) => {
-      if (e.target.closest(".sos-mini-card__go")) return;
-      openDetail(r);
-    });
-    return card;
-  }
-
-  function renderSosList(items) {
+  function renderGodToiletResults(items) {
     const T = t();
+    el.godResults.classList.remove("hidden");
+
     if (items.length === 0) {
-      showSosStatus(T.sosEmptyList, true);
+      el.godResults.innerHTML = `<div class="god-status">${T.godEmptyArea}</div>`;
       return;
     }
 
-    el.emergencyResults.innerHTML = `
-      <div class="sos-banner-note">
-        <div class="sos-banner-note__text">
-          <div class="sos-banner-note__title">${T.sosBannerTitle}</div>
-          <div class="sos-banner-note__sub">${T.sosBannerSub}</div>
-        </div>
-        <span class="sos-banner-note__pill">${T.sosOnlyPill}</span>
-      </div>
-      <button id="sosCloseBtn" class="sos-close-btn" type="button">${T.sosClose}</button>
-      <div id="sosCardList"></div>
-    `;
-
-    const listEl = document.getElementById("sosCardList");
-    items.forEach(({ r, dist }) => {
-      listEl.appendChild(renderSosCard(r, dist));
+    const withMeta = items.map((r) => ({ r, dist: distanceOf(r) }));
+    withMeta.sort((a, b) => {
+      if (a.dist == null && b.dist == null) return 0;
+      if (a.dist == null) return 1;
+      if (b.dist == null) return -1;
+      return a.dist - b.dist;
     });
 
-    document.getElementById("sosCloseBtn").addEventListener("click", closeSosResults);
+    el.godResults.innerHTML = `
+      <button id="godCloseBtn" class="god-close-btn" type="button">${T.godClose}</button>
+      <div id="godCardList"></div>
+    `;
+    const listEl = document.getElementById("godCardList");
+    withMeta.forEach((entry, idx) => listEl.appendChild(renderCard(entry.r, entry.dist, idx + 1)));
+    document.getElementById("godCloseBtn").addEventListener("click", closeGodResults);
   }
 
-  function closeSosResults() {
-    el.emergencyResults.classList.add("hidden");
-    el.emergencyResults.innerHTML = "";
+  function closeGodResults() {
+    el.godResults.classList.add("hidden");
+    el.godResults.innerHTML = "";
   }
 
   // --- PWA: install prompt + offline banner ---
@@ -1039,11 +938,10 @@
   function applyLangToStaticUI() {
     const T = t();
     el.headerTagline.textContent = T.headerTagline;
-    el.emergencyLabel.textContent = T.emergencyLabel;
-    el.emergencyHint.textContent = T.emergencyHint;
-    el.sosPushLabel.textContent = T.sosPushLabel;
-    el.sosDescLabel.textContent = T.sosDescLabel;
-    el.sosNoteSmall.textContent = T.sosNoteSmall;
+    el.godBannerTitle.textContent = T.godBannerTitle;
+    el.godBannerSub.textContent = T.godBannerSub;
+    el.godPushLabel.textContent = T.godPushLabel;
+    el.godDescLabel.textContent = T.godDescLabel;
     el.nearMeLabel.textContent = T.nearMeLabel;
     el.sortNearestLabel.textContent = T.sortNearestLabel;
     el.searchInput.placeholder = T.searchPlaceholder;
@@ -1159,6 +1057,7 @@
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         state.geo = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        state._mapCenteredOnUser = false; // re-center the map on the new fix once
         onDone(true);
       },
       () => onDone(false),
@@ -1167,7 +1066,7 @@
   }
 
   function bindEvents() {
-    el.emergencyBtn.addEventListener("click", triggerSOS);
+    el.godToiletBtn.addEventListener("click", triggerGodToilet);
 
     el.menuBtn.addEventListener("click", openSideMenu);
     el.sideMenuClose.addEventListener("click", closeSideMenu);
@@ -1246,7 +1145,7 @@
     });
 
     function resetTransientOverlays() {
-      closeSosResults();
+      closeGodResults();
       closeDetail();
       closeFilterSheetFn();
       closeSideMenu();
@@ -1315,6 +1214,26 @@
     renderRankChips();
     renderCategoryChips();
     renderMain();
+
+    // Home screen is map-first: try to center on the user's real location right away so
+    // nearby toilets are visible on the map without an extra tap. If permission is denied
+    // or geolocation is unavailable, this silently no-ops and area/city browsing still works
+    // exactly as before.
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          state.geo = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          state._mapCenteredOnUser = false;
+          el.sortNearest.dataset.active = "true";
+          state.sortNearest = true;
+          renderMain();
+        },
+        () => {
+          /* denied/unavailable: existing area search remains fully usable */
+        },
+        { timeout: 8000, enableHighAccuracy: true }
+      );
+    }
 
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("sw.js").catch(() => {});

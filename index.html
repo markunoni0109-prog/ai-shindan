@@ -9,12 +9,14 @@
 <meta name="apple-mobile-web-app-title" content="TOILET SOS">
 <meta name="mobile-web-app-capable" content="yes">
 <title>AI HUNTER TOILET SOS</title>
-<meta name="description" content="AI HUNTER TOILET SOS｜Googleより詳しい、旅行者向け東京トイレデータベース。漏れそうな時に、いちばん近いトイレへ。">
+<meta name="description" content="AI HUNTER TOILET SOS｜Googleより詳しい、旅行者向け東京トイレデータベース。AI HUNTERが確認した『本当に使いたいトイレ＝神トイレ』を選んで探せます。">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="icon" href="icon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -110,27 +112,23 @@
 
 <main id="app">
 
-  <section id="emergencyZone" class="sos-banner">
-    <div class="sos-banner__left">
-      <div class="sos-banner__title" id="emergencyLabel">漏れそう!?</div>
-      <span class="sos-banner__badge" id="emergencyHint">緊急時用！</span>
+  <section id="godZone" class="god-banner">
+    <div class="god-banner__left">
+      <div class="god-banner__title" id="godBannerTitle">👑 神トイレ</div>
+      <div class="god-banner__sub" id="godBannerSub">AI HUNTER確認済み</div>
     </div>
-    <div class="sos-circle-wrap">
-      <button id="emergencyBtn" class="sos-circle" type="button">
-        <span class="sos-circle__ring" aria-hidden="true"></span>
-        <span class="sos-circle__ring sos-circle__ring--2" aria-hidden="true"></span>
-        <span class="sos-flash" id="sosFlash" aria-hidden="true"></span>
-        <span class="sos-circle__label">SOS</span>
+    <div class="god-circle-wrap">
+      <button id="godToiletBtn" class="god-circle" type="button">
+        <span class="god-circle__label">👑</span>
       </button>
     </div>
-    <div class="sos-banner__right">
-      <div class="sos-banner__push" id="sosPushLabel">押すだけ</div>
-      <div class="sos-banner__desc" id="sosDescLabel">緊急のトイレ情報を表示</div>
-      <div class="sos-banner__note-small" id="sosNoteSmall">※今すぐ利用できるトイレだけを表示（デパート・駅・公園など）</div>
+    <div class="god-banner__right">
+      <div class="god-banner__push" id="godPushLabel">押すだけ</div>
+      <div class="god-banner__desc" id="godDescLabel">厳選トイレを表示</div>
     </div>
   </section>
 
-  <section id="emergencyResults" class="emergency-results hidden" aria-live="assertive"></section>
+  <section id="godResults" class="god-results hidden" aria-live="polite"></section>
 
   <div class="filter-bar">
     <button id="sortNearest" class="filter-pill" data-active="true" type="button">
@@ -184,6 +182,7 @@
 </nav>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="i18n.js"></script>
 <script src="app.js"></script>
 </body>
