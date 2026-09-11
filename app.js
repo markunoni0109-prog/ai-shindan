@@ -774,6 +774,24 @@
     `;
   }
 
+  function godAmenityStrip(r) {
+    const items = [];
+    if (r.is_24h) items.push({ icon: "🕐", label: t().filter24h, tone: "teal" });
+    if (r.wheelchair === true) items.push({ icon: "♿", label: t().filterWheelchair, tone: "blue" });
+    if (r.washlet === true) items.push({ icon: "🚿", label: t().washletTag, tone: "gray" });
+    if (r.paper === true) items.push({ icon: "🧻", label: t().paperTag, tone: "gray" });
+    if (items.length === 0) return "";
+    return `<div class="god-amenity-strip">${items
+      .map(
+        (i) => `
+      <div class="god-amenity">
+        <div class="god-amenity__icon god-amenity__icon--${i.tone}">${i.icon}</div>
+        <div class="god-amenity__label">${i.label}</div>
+      </div>`
+      )
+      .join("")}</div>`;
+  }
+
   function openDetail(r) {
     const T = t();
     trackEvent("card_view", { id: r.id, city: r.city });
@@ -803,15 +821,35 @@
       : `<div class="photo-placeholder">${T.noPhoto}</div>`;
 
     const badges = extraTagsHtml(r);
+    const isGod = r.isGodToilet === true;
+
+    // God-toilet detail screens get a premium black/gold hero treatment. If the venue has no
+    // real photo yet, we show an illustrative AI-generated visual instead of the plain "photo
+    // coming soon" box - always clearly captioned as AI-generated, never presented as a real
+    // photo of this specific venue.
+    let heroHtml;
+    if (isGod) {
+      const usingPlaceholder = !r.photo_url;
+      const heroSrc = r.photo_url || "god-toilet-visual.jpg";
+      heroHtml = `
+        <div class="god-hero">
+          <img class="god-hero__img" src="${heroSrc}" alt="${displayName(r)}">
+          <div class="god-hero__badge">👑 <span class="god-hero__badge-ja">${T.godBadgeText}</span><span class="god-hero__badge-en">${T.godHeroBadgeEn}</span></div>
+        </div>
+        ${usingPlaceholder ? `<p class="god-hero__disclaimer">${T.aiImageDisclaimer}</p>` : ""}
+        ${godAmenityStrip(r)}
+      `;
+    } else {
+      heroHtml = photoHtml;
+    }
 
     el.detailContent.innerHTML = `
-      ${r.isGodToilet === true ? `<div class="god-badge god-badge--detail">👑 ${T.godBadgeText}</div>` : ""}
       <div class="detail-name">${displayName(r)}</div>
       ${r.name_en && state.lang === "ja" ? `<div class="detail-name-en">${r.name_en}</div>` : ""}
-      ${photoHtml}
+      ${heroHtml}
       <div class="card__meta" style="margin-bottom:10px;">${badges}</div>
       ${rowsHtml}
-      ${detailExtrasHtml(r, r.isGodToilet === true)}
+      ${detailExtrasHtml(r, isGod)}
       <div class="detail-memo">
         <strong>${T.detailMemoTitle}</strong><br>
         ${r.ai_hunter_memo || T.noMemo}

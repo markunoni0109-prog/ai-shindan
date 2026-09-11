@@ -1,4 +1,4 @@
-const CACHE_NAME = "ttf-cache-v7";
+const CACHE_NAME = "ttf-cache-v8";
 const APP_SHELL = [
   "./",
   "index.html",
@@ -12,6 +12,7 @@ const APP_SHELL = [
   "icon-180.png",
   "icon-192.png",
   "icon-512.png",
+  "god-toilet-visual.jpg",
   "icon-1024.png",
 ];
 
