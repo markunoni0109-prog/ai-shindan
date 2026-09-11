@@ -330,23 +330,22 @@
   function sortForDisplay(items) {
     const withMeta = items.map((r) => ({ r, dist: distanceOf(r) }));
     withMeta.sort((a, b) => {
-      // 0. PREMIUM sponsor placements may surface first in area results (clearly badged as
-      //    sponsored - see the god-badge/sponsor-badge markup; never silently blended in).
-      const premiumDiff = (b.r.sponsorTier === "premium" ? 1 : 0) - (a.r.sponsorTier === "premium" ? 1 : 0);
-      if (premiumDiff !== 0) return premiumDiff;
-      // 1. AI HUNTER-certified "god toilets" always float to the top.
-      const godDiff = (b.r.isGodToilet ? 1 : 0) - (a.r.isGodToilet ? 1 : 0);
-      if (godDiff !== 0) return godDiff;
-      // 2. Distance (only meaningful while "近い順" is active and we have a fix).
+      // 0. Paid sponsor facilities may surface first in area results. This is the paid
+      //    placement product: the facility itself is the sponsor, and the placement stays
+      //    clearly badged. Public/non-sponsored God Toilets do NOT jump the queue.
+      const sponsorDiff = (b.r.sponsorTier ? 1 : 0) - (a.r.sponsorTier ? 1 : 0);
+      if (sponsorDiff !== 0) return sponsorDiff;
+      // 1. Distance is the normal browsing rule. God Toilets remain visually prominent on
+      //    the map/list with the black-gold crown, but do not override nearest-first order.
       if (state.sortNearest && (a.dist != null || b.dist != null)) {
         if (a.dist == null) return 1;
         if (b.dist == null) return -1;
         if (a.dist !== b.dist) return a.dist - b.dist;
       }
-      // 3. Venues that already carry a rank (emergency_rank: S/A/B) come next.
+      // 2. Venues that already carry a rank (emergency_rank: S/A/B) come next only when distance cannot decide.
       const rankDiff = rankScore(b.r.emergency_rank) - rankScore(a.r.emergency_rank);
       if (rankDiff !== 0) return rankDiff;
-      // 4. Everything else keeps its original relative order.
+      // 3. Everything else keeps its original relative order.
       return 0;
     });
     return withMeta;
