@@ -1134,3 +1134,66 @@ body[data-active-tab="ranking"] .browse-zone { display: block; }
   .ths-logo__tagline { font-size: 9.5px; }
   .map-section, .map-section.map-section--expanded { min-height: 0; }
 }
+
+/* ===== v19: true map-only home + detail overlay fix ===== */
+/* Home means map. No branding/explanation/filter/navigation chrome over it. */
+.ths-header,
+#godZone,
+.god-banner,
+#godResults,
+.city-bar--horizontal,
+.filter-bar,
+.browse-zone,
+.bottom-tabs,
+#openSponsorInfo,
+#sponsorInfoSheet {
+  display: none !important;
+}
+
+main {
+  width: 100%;
+  max-width: none !important;
+  height: 100dvh;
+  padding: 0;
+  margin: 0;
+}
+
+.map-section,
+.map-section.map-section--expanded {
+  width: 100%;
+  max-width: none !important;
+  height: 100dvh;
+  min-height: 0;
+  margin: 0;
+  border: 0;
+}
+
+@supports not (height: 100dvh) {
+  main,
+  .map-section,
+  .map-section.map-section--expanded { height: 100vh; }
+}
+
+/* Leaflet uses z-index values up to the hundreds. Details must always sit above the map. */
+.detail-sheet { z-index: 5000; }
+.detail-sheet__close { z-index: 5010; }
+.detail-sheet--god .detail-sheet__close { z-index: 5010; }
+
+/* God Toilet detail: readable on desktop as well as iPhone. */
+@media (min-width: 700px) {
+  .detail-sheet--god { align-items: center; justify-content: center; padding: 24px; }
+  .detail-sheet--god .detail-sheet__panel {
+    width: min(760px, calc(100vw - 48px));
+    max-width: 760px;
+    height: min(92dvh, 920px);
+    max-height: 92dvh;
+    border-radius: 20px;
+    overflow-y: auto;
+  }
+  .detail-sheet--god .god-hero__img {
+    width: 100%;
+    max-height: 420px;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+}
