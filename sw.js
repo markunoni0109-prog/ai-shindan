@@ -1,4 +1,4 @@
-const CACHE_NAME = "ttf-cache-v14";
+const CACHE_NAME = "ttf-cache-v15";
 const APP_SHELL = [
   "./",
   "index.html",
