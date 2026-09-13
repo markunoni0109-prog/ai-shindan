@@ -1009,6 +1009,7 @@
 
   function setActiveTab(tab) {
     state.activeTab = tab;
+    document.body.dataset.activeTab = tab;
     el.tabHome.dataset.active = String(tab === "home");
     el.tabMap.dataset.active = String(tab === "map");
     el.tabFavorites.dataset.active = String(tab === "favorites");
@@ -1243,7 +1244,10 @@
     setupPwaExtras();
     await loadMaster();
     renderCityBar();
-    state.current = state.byCity[state.city] || [];
+    // v18: city buttons were removed from the home screen. Search the full Tokyo dataset.
+    state.current = state.all;
+    state.area = "all";
+    document.body.dataset.activeTab = state.activeTab;
     renderAreaSelect();
     renderRankChips();
     renderCategoryChips();

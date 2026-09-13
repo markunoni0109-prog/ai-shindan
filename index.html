@@ -58,7 +58,7 @@
     </div>
     <h3 class="side-menu__heading">Language</h3>
     <button id="langToggle" class="lang-toggle" type="button" aria-label="Switch language">EN</button>
-    <button id="openSponsorInfo" class="lang-toggle" type="button" style="background:#1a1a1a;color:#F0CD6B;margin-top:10px;">📢 <span id="sponsorInfoLinkLabel">掲載・スポンサーについて</span></button>
+    <button id="openSponsorInfo" class="lang-toggle hidden" type="button" aria-hidden="true" tabindex="-1"><span id="sponsorInfoLinkLabel">掲載・スポンサーについて</span></button>
     <p class="side-menu__footnote" id="footerNote">AI HUNTER FACTORY100｜データは有志収集ベース（COMMUNITY）。営業時間・設備は現地で要確認。</p>
   </div>
 </div>
@@ -79,7 +79,7 @@
 </div>
 
 <!-- Sponsor info sheet: concept + FREE/PARTNER/PREMIUM plans + one clearly-labeled demo card -->
-<div id="sponsorInfoSheet" class="detail-sheet hidden">
+<div id="sponsorInfoSheet" class="detail-sheet hidden" aria-hidden="true">
   <div class="detail-sheet__panel">
     <button id="sponsorInfoClose" class="detail-sheet__close" type="button" aria-label="Close">✕</button>
     <h3 class="side-menu__heading" id="sponsorInfoTitle">AI HUNTER TOILET SOSとは</h3>
