@@ -598,14 +598,9 @@
       attribution: "&copy; OpenStreetMap contributors",
     }).addTo(state.map);
     L.control.zoom({ position: "bottomright" }).addTo(state.map);
-    // Normal pins are clustered for readability once many venues are on screen at once;
-    // 👑 god-toilet pins are kept on a separate, never-clustered layer so they always stand
-    // out individually, even zoomed out (this is purely visual - it never changes which
-    // venues count as isGodToilet).
-    state.mapMarkersLayer =
-      typeof L.markerClusterGroup === "function"
-        ? L.markerClusterGroup({ maxClusterRadius: 55, spiderfyOnMaxZoom: true, showCoverageOnHover: false })
-        : L.layerGroup();
+    // Show every normal toilet as an individual pin from the start.
+    // No clustering: users can immediately see the actual toilet density on the map.
+    state.mapMarkersLayer = L.layerGroup();
     state.mapMarkersLayer.addTo(state.map);
     state.godMarkersLayer = L.layerGroup().addTo(state.map);
     state.meMarkersLayer = L.layerGroup().addTo(state.map);
