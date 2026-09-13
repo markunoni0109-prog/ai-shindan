@@ -774,21 +774,64 @@
   }
 
   function godAmenityStrip(r) {
-    const items = [];
-    if (r.is_24h) items.push({ icon: "🕐", label: t().filter24h, tone: "teal" });
-    if (r.wheelchair === true) items.push({ icon: "♿", label: t().filterWheelchair, tone: "blue" });
-    if (r.washlet === true) items.push({ icon: "🚿", label: t().washletTag, tone: "gray" });
-    if (r.paper === true) items.push({ icon: "🧻", label: t().paperTag, tone: "gray" });
-    if (items.length === 0) return "";
-    return `<div class="god-amenity-strip">${items
-      .map(
-        (i) => `
-      <div class="god-amenity">
-        <div class="god-amenity__icon god-amenity__icon--${i.tone}">${i.icon}</div>
+    const T = t();
+    const items = [
+      { ok: r.wheelchair === true, icon: "♿", label: T.filterWheelchair || "バリアフリー" },
+      { ok: r.washlet === true, icon: "🚿", label: T.washletTag || "ウォシュレット" },
+      { ok: r.ostomate === true, icon: "🧑‍🦽", label: T.detailOstomate || "オストメイト" },
+      { ok: r.baby_bed === true, icon: "👶", label: T.detailBabyBed || "ベビーシート" },
+      { ok: r.baby_chair === true, icon: "🪑", label: T.detailBabyChair || "ベビーチェア" },
+      { ok: r.is_24h === true, icon: "🌙", label: T.filter24h || "24時間" }
+    ];
+    return `<div class="god-amenity-strip god-amenity-strip--lux">${items.map((i) => `
+      <div class="god-amenity ${i.ok ? 'god-amenity--yes' : 'god-amenity--unknown'}">
+        <div class="god-amenity__icon">${i.icon}</div>
         <div class="god-amenity__label">${i.label}</div>
-      </div>`
-      )
-      .join("")}</div>`;
+        <div class="god-amenity__state">${i.ok ? '確認済み' : '未確認'}</div>
+      </div>`).join("")}</div>`;
+  }
+
+  function godGalleryHtml(r) {
+    const T = t();
+    const src = r.photo_url || r.god_ai_image || "";
+    if (!src) {
+      return `<div class="god-gallery-empty"><div class="god-gallery-empty__icon">📷</div><strong>写真は準備中</strong><span>公式画像の掲載許諾または現地撮影後に追加します</span></div>`;
+    }
+    const ai = !r.photo_url;
+    return `
+      <div class="god-gallery" data-gallery-src="${src}" data-gallery-alt="${displayName(r)}">
+        <button class="god-gallery__tile god-gallery__tile--main" type="button" data-gallery-pos="center" aria-label="画像を拡大">
+          <img src="${src}" alt="${displayName(r)} ${ai ? 'AI生成イメージ' : ''}">
+          <span class="god-gallery__zoom">⌕ 拡大</span>
+        </button>
+        <button class="god-gallery__tile god-gallery__tile--sub god-gallery__tile--left" type="button" data-gallery-pos="left" aria-label="画像を拡大">
+          <img src="${src}" alt="${displayName(r)} ${ai ? 'AI生成イメージ' : ''}">
+        </button>
+        <button class="god-gallery__tile god-gallery__tile--sub god-gallery__tile--right" type="button" data-gallery-pos="right" aria-label="画像を拡大">
+          <img src="${src}" alt="${displayName(r)} ${ai ? 'AI生成イメージ' : ''}">
+        </button>
+        <div class="god-gallery__badge">👑 <span>${T.godBadgeText}</span><small>${T.godHeroBadgeEn}</small></div>
+      </div>
+      ${ai ? `<p class="god-hero__disclaimer">${T.aiImageDisclaimer}</p>` : ""}
+    `;
+  }
+
+  function openGodLightbox(src, alt, pos) {
+    let box = document.getElementById("godLightbox");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "godLightbox";
+      box.className = "god-lightbox hidden";
+      box.innerHTML = `<button class="god-lightbox__close" type="button" aria-label="Close">✕</button><img class="god-lightbox__img" alt=""><div class="god-lightbox__caption">AI HUNTER 神トイレ</div>`;
+      document.body.appendChild(box);
+      box.querySelector(".god-lightbox__close").addEventListener("click", () => box.classList.add("hidden"));
+      box.addEventListener("click", (e) => { if (e.target === box) box.classList.add("hidden"); });
+    }
+    const img = box.querySelector(".god-lightbox__img");
+    img.src = src;
+    img.alt = alt || "神トイレ画像";
+    img.style.objectPosition = pos || "center";
+    box.classList.remove("hidden");
   }
 
   function openDetail(r) {
@@ -796,17 +839,13 @@
     trackEvent("card_view", { id: r.id, city: r.city });
     const rows = [];
     rows.push([T.detailCategory, categoryLabel(r.category)]);
-    rows.push([T.detailHours, r.open_hours || "-"]);
+    rows.push([T.detailHours, r.open_hours || "未確認"]);
     if (r.nearest_station) rows.push([T.detailStation, r.nearest_station]);
     if (r.address) rows.push([T.detailAddress, r.address]);
     if (r.source) rows.push([T.detailSource, r.source]);
     if (r.verifiedAt) rows.push([T.detailVerifiedAt, r.verifiedAt]);
     if (r.sourceType) rows.push([T.detailSourceType, r.sourceType]);
     if (r.gender) rows.push([T.detailGender, r.gender]);
-    if (r.ostomate === true) rows.push([T.detailOstomate, T.yesLabel]);
-    if (r.baby_bed === true) rows.push([T.detailBabyBed, T.yesLabel]);
-    if (r.baby_chair === true) rows.push([T.detailBabyChair, T.yesLabel]);
-    if (r.suitcase === true) rows.push([T.detailSuitcase, T.yesLabel]);
     const dist = distanceOf(r);
     if (dist != null) rows.push([state.lang === "ja" ? "現在地から" : "From you", `${Math.round(dist)}m / ${walkMinutes(dist)} min`]);
 
@@ -821,42 +860,38 @@
     const badges = extraTagsHtml(r);
     const isGod = r.isGodToilet === true;
 
-    // God-toilet detail screens get a premium black/gold hero treatment. If the venue has no
-    // real photo yet, we show an illustrative AI-generated visual instead of the plain "photo
-    // coming soon" box - always clearly captioned as AI-generated, never presented as a real
-    // photo of this specific venue.
     let heroHtml;
     if (isGod) {
-      const usingPlaceholder = !r.photo_url;
-      const heroSrc = r.photo_url || "god-toilet-visual.jpg";
-      heroHtml = `
-        <div class="god-hero">
-          <img class="god-hero__img" src="${heroSrc}" alt="${displayName(r)}">
-          <div class="god-hero__badge">👑 <span class="god-hero__badge-ja">${T.godBadgeText}</span><span class="god-hero__badge-en">${T.godHeroBadgeEn}</span></div>
-        </div>
-        ${usingPlaceholder ? `<p class="god-hero__disclaimer">${T.aiImageDisclaimer}</p>` : ""}
-        ${godAmenityStrip(r)}
-      `;
+      heroHtml = `${godGalleryHtml(r)}${godAmenityStrip(r)}`;
     } else {
       heroHtml = photoHtml;
     }
 
     el.detailSheet.classList.toggle("detail-sheet--god", isGod);
     el.detailContent.innerHTML = `
-      ${isGod ? `<div class="god-detail-kicker">👑 AI HUNTER 神トイレ</div>` : ""}
+      ${isGod ? `<div class="god-detail-topline"><div class="god-detail-kicker">👑 AI HUNTER 神トイレ</div><div class="god-detail-verified">AI HUNTER VERIFIED</div></div>` : ""}
       <div class="detail-name">${displayName(r)}</div>
       ${r.name_en && state.lang === "ja" ? `<div class="detail-name-en">${r.name_en}</div>` : ""}
+      ${isGod && r.designer ? `<div class="god-designer">DESIGN <strong>${r.designer}</strong></div>` : ""}
       ${heroHtml}
-      <div class="card__meta" style="margin-bottom:10px;">${badges}</div>
-      ${rowsHtml}
+      ${isGod ? `<div class="god-section-title">基本情報</div><div class="god-info-grid">${rowsHtml}</div>` : `<div class="card__meta" style="margin-bottom:10px;">${badges}</div>${rowsHtml}`}
+      ${isGod ? `<div class="god-section-title">確認済み設備</div>` : ""}
       ${detailExtrasHtml(r, isGod)}
-      <div class="detail-memo">
-        <strong>${T.detailMemoTitle}</strong><br>
+      <div class="detail-memo ${isGod ? 'detail-memo--god' : ''}">
+        <strong>${isGod ? 'AI HUNTER NOTE' : T.detailMemoTitle}</strong><br>
         ${r.ai_hunter_memo || T.noMemo}
       </div>
+      ${isGod && r.operation_note ? `<div class="god-operation-note"><strong>運用メモ</strong><br>${r.operation_note}</div>` : ""}
       ${isGod ? "" : `<div class="detail-memo detail-memo--user"><strong>${T.detailUserTitle}</strong><br>${r.user_field_note || T.noUserNote}</div>${quickReportHtml(r)}<p style="font-size:11px;color:var(--ink-soft);margin-top:8px;">${T.heuristicNote}</p>`}
       <a class="detail-go${isGod ? " detail-go--god" : ""}" href="${navUrl(r)}" target="_blank" rel="noopener">${T.goWalk}</a>
     `;
+
+    el.detailContent.querySelectorAll(".god-gallery__tile").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const gallery = btn.closest(".god-gallery");
+        openGodLightbox(gallery.dataset.gallerySrc, gallery.dataset.galleryAlt, btn.dataset.galleryPos);
+      });
+    });
     el.detailContent.querySelectorAll(".quick-report__btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         saveReport(r.id, btn.dataset.tag);
@@ -865,9 +900,8 @@
         if (countEl) countEl.textContent = T.quickReportSavedCount(loadReports(r.id).length);
       });
     });
-    el.detailContent.querySelector(".detail-go").addEventListener("click", () => {
-      trackEvent("map_click", { id: r.id, source: "detail" });
-    });
+    const go = el.detailContent.querySelector(".detail-go");
+    if (go) go.addEventListener("click", () => trackEvent("map_click", { id: r.id, source: "detail" }));
     el.detailSheet.classList.remove("hidden");
   }
 
