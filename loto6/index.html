@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>AI HUNTER | LOTO6 AI PREDICTION</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="stage-dim" id="stageDim"></div>
+
+<main class="screen">
+
+  <div class="wordmark">
+    <span class="wordmark__eyebrow">AI HUNTER</span>
+    <h1 class="wordmark__title">LOTO6<br /><span>AI PREDICTION</span></h1>
+  </div>
+
+  <div class="meta">
+    <p class="meta__draw" id="drawNumberLabel">第○○回 ロト6</p>
+    <p class="meta__note">
+      本サービスはロト6の当選を保証するものではありません。
+      AIによる研究・娯楽目的の予測サービスです。
+    </p>
+  </div>
+
+  <div class="price">
+    <span class="price__label">1 PREDICTION</span>
+    <span class="price__value">¥300</span>
+  </div>
+
+  <section class="stage" id="stage">
+    <button class="generate-btn" id="generateBtn" type="button">
+      AI予測を生成
+    </button>
+
+    <p class="analysing" id="analysingLabel">AI解析中<span class="analysing__dots" id="analysingDots"></span></p>
+
+    <div class="balls" id="ballRow" aria-live="polite">
+      <div class="ball" data-slot="0"></div>
+      <div class="ball" data-slot="1"></div>
+      <div class="ball" data-slot="2"></div>
+      <div class="ball" data-slot="3"></div>
+      <div class="ball" data-slot="4"></div>
+      <div class="ball" data-slot="5"></div>
+    </div>
+
+    <div class="error-msg" id="errorMsg">
+      予測を生成できませんでした。時間をおいてもう一度お試しください。
+    </div>
+
+    <div class="result" id="result">
+      <div class="result__row">
+        <span id="resultDraw">第○○回 ロト6</span>
+        <span id="resultId">予測ID #000000</span>
+      </div>
+      <div class="result__row">
+        <span id="resultTime">生成日時 —</span>
+        <span></span>
+      </div>
+      <div class="result__locked">
+        ✓ この予測は保存されました
+      </div>
+    </div>
+  </section>
+
+  <a class="history-link" href="history/index.html">予測履歴を見る →</a>
+
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
