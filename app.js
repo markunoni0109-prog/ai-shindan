@@ -56,7 +56,22 @@
 
     const points = rows.filter(validCoord);
     const layer = (typeof L.markerClusterGroup === 'function')
-      ? L.markerClusterGroup({ chunkedLoading: true, chunkInterval: 100, chunkDelay: 30, maxClusterRadius: 45 })
+      ? L.markerClusterGroup({
+          chunkedLoading: true,
+          chunkInterval: 100,
+          chunkDelay: 30,
+          maxClusterRadius: 45,
+          iconCreateFunction(cluster) {
+            const count = cluster.getChildCount();
+            const size = count >= 100 ? 48 : count >= 10 ? 44 : 40;
+            return L.divIcon({
+              className: 'ths-cluster-marker-wrap',
+              html: `<div style="width:${size}px;height:${size}px;border-radius:50% 50% 50% 10%;transform:rotate(-45deg);background:#fff;border:3px solid #ff6b42;box-shadow:0 2px 7px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;position:relative"><span style="transform:rotate(45deg);font-size:${count >= 100 ? 14 : 16}px;font-weight:900;color:#0b5d5d;line-height:1">${count}</span><span style="position:absolute;right:-7px;top:-7px;width:20px;height:20px;border-radius:50%;background:#1a73e8;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;transform:rotate(45deg);border:2px solid #fff">🚻</span></div>`,
+              iconSize: [size, size],
+              iconAnchor: [Math.round(size / 2), Math.round(size * 0.88)]
+            });
+          }
+        })
       : L.layerGroup();
 
     for (const r of points) {
