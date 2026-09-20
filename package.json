@@ -1,0 +1,19 @@
+{
+  "name": "step2a",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.132.0"
+  }
+}

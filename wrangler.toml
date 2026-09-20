@@ -1,0 +1,14 @@
+name = "ai-hunter-loto6-api"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ai_hunter_loto6"
+database_id = "REPLACE_WITH_REAL_D1_DATABASE_ID"
+
+[vars]
+# 秘密ではない設定値。Secretsは `wrangler secret put` で別途設定する
+# （STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET。README参照）。
+FRONTEND_BASE_URL = "https://ai-hunter.jp"
+ALLOWED_ORIGINS = "https://ai-hunter.jp"
