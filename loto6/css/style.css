@@ -580,3 +580,60 @@ button {
   .nexus-balls{gap:3px}
   .nexus-balls .ball{width:49px;height:49px;font-size:17px}
 }
+
+
+/* ===== LOTO6 NEXUS premium CTA v3 / mobile safe-area ===== */
+.nexus-stage .nexus-generate-btn{
+  position:relative;
+  isolation:isolate;
+  display:grid;
+  grid-template-columns:54px minmax(0,1fr) 54px;
+  align-items:center;
+  gap:10px;
+  width:min(94%,680px);
+  max-width:680px;
+  min-height:96px;
+  padding:12px 14px;
+  border:2px solid rgba(255,218,112,.92);
+  border-radius:999px;
+  color:#fff;
+  background:linear-gradient(105deg,rgba(0,105,224,.96),rgba(7,49,112,.98) 48%,rgba(39,22,93,.98));
+  box-shadow:0 0 0 3px rgba(83,185,255,.42),0 0 24px rgba(26,137,255,.62),0 0 36px rgba(255,193,62,.25),inset 0 2px 0 rgba(255,255,255,.45),inset 0 -12px 24px rgba(0,0,0,.28);
+  overflow:hidden;
+}
+.nexus-stage .nexus-generate-btn::before{
+  content:"";position:absolute;z-index:-1;inset:5px;border-radius:inherit;
+  border:1px solid rgba(132,220,255,.48);
+  background:linear-gradient(115deg,rgba(29,166,255,.22),transparent 42%,rgba(255,190,45,.12));
+}
+.nexus-stage .nexus-generate-btn::after{
+  content:"";position:absolute;left:8%;right:8%;top:0;height:2px;
+  background:linear-gradient(90deg,transparent,#fff2b3,transparent);box-shadow:0 0 15px #ffd45f;
+}
+.generate-btn__icon,.generate-btn__arrow{
+  display:grid!important;place-items:center;float:none!important;width:50px;height:50px;border-radius:50%;
+}
+.generate-btn__icon{font-size:29px!important;color:#7dd8ff;border:1px solid rgba(89,206,255,.85);box-shadow:0 0 18px rgba(0,159,255,.75),inset 0 0 15px rgba(0,119,255,.38)}
+.generate-btn__arrow{font-size:42px!important;line-height:1!important;color:#fff4bd;background:radial-gradient(circle,rgba(255,188,47,.42),rgba(110,61,0,.16) 65%,transparent 68%);border:1px solid rgba(255,211,100,.88);box-shadow:0 0 18px rgba(255,180,31,.72),inset 0 0 14px rgba(255,194,58,.28)}
+.generate-btn__copy{display:flex!important;float:none!important;flex-direction:column;align-items:center;justify-content:center;line-height:1.08}
+.generate-btn__copy small{font-size:11px;color:#ffd86a;font-weight:800;letter-spacing:.05em;margin-bottom:5px}
+.generate-btn__copy strong{font-size:24px;color:#fff;font-weight:900;letter-spacing:.02em;text-shadow:0 0 16px rgba(255,255,255,.2)}
+.generate-btn__copy em{margin-top:7px;font-size:11px;color:#c8dcf7;font-style:normal;font-weight:500;letter-spacing:.06em}
+.generate-btn__copy b{font-size:16px;color:#ffd765;margin-left:7px}
+.nexus-stage .nexus-generate-btn:active{transform:translateY(2px) scale(.985);box-shadow:0 0 0 2px rgba(83,185,255,.32),0 0 16px rgba(26,137,255,.45),inset 0 4px 18px rgba(0,0,0,.34)}
+
+@media(max-width:760px){
+  .hero{min-height:690px}
+  .nexus-stage{min-height:390px;justify-content:flex-end;padding-bottom:76px}
+  .nexus-stage .nexus-generate-btn{width:96%;min-height:88px;grid-template-columns:46px minmax(0,1fr) 46px;padding:10px 12px;margin-top:4px}
+  .generate-btn__icon,.generate-btn__arrow{width:43px;height:43px}
+  .generate-btn__icon{font-size:25px!important}.generate-btn__arrow{font-size:36px!important}
+  .generate-btn__copy small{font-size:10px}.generate-btn__copy strong{font-size:21px}.generate-btn__copy em{font-size:10px}.generate-btn__copy b{font-size:15px}
+  .nexus-stage:has(.ball.is-shown){padding-bottom:24px;min-height:430px}
+}
+@media(max-width:380px){
+  .nexus-stage{padding-bottom:68px}
+  .nexus-stage .nexus-generate-btn{grid-template-columns:40px minmax(0,1fr) 40px;min-height:82px}
+  .generate-btn__icon,.generate-btn__arrow{width:38px;height:38px}
+  .generate-btn__copy strong{font-size:19px}.generate-btn__copy small{font-size:9px}
+}
