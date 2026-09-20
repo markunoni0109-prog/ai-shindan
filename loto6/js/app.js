@@ -26,8 +26,8 @@
   const impactWord = document.getElementById('impactWord');
   const drawNumberLabel = document.getElementById('drawNumberLabel');
 
-  const drawNumber = window.LotoConfig.CURRENT_DRAW_NUMBER;
-  drawNumberLabel.textContent = `第${drawNumber}回 ロト6`;
+  const drawNumber = window.LotoConfig.PREDICTION_SCOPE || 'PERMANENT_TRACKING';
+  drawNumberLabel.textContent = 'PERMANENT TRACKING';
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -126,7 +126,7 @@
 
     stageDim.classList.remove('is-active');
 
-    resultDraw.textContent = `第${record.drawNumber}回 ロト6`;
+    resultDraw.textContent = 'PERMANENT TRACKING';
     resultId.textContent = `予測ID ${record.predictionId}`;
     resultTime.textContent = `生成日時 ${formatTimestamp(record.generatedAt)}`;
     result.classList.add('is-visible');
