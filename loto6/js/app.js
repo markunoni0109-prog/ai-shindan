@@ -23,6 +23,7 @@
   const resultDraw = document.getElementById('resultDraw');
   const resultId = document.getElementById('resultId');
   const resultTime = document.getElementById('resultTime');
+  const impactWord = document.getElementById('impactWord');
   const drawNumberLabel = document.getElementById('drawNumberLabel');
 
   const drawNumber = window.LotoConfig.CURRENT_DRAW_NUMBER;
@@ -74,11 +75,17 @@
   }
 
   async function revealBalls(numbers) {
-    const delays = [0, 400, 400, 400, 400, 1000]; // 各球出現までの待機（仕様§6）
+    const delays = [0, 1000, 1000, 1000, 1000, 1800]; // 6球目を焦らして全体約8〜10秒
     for (let i = 0; i < numbers.length; i++) {
       await sleep(delays[i]);
       ballEls[i].textContent = String(numbers[i]).padStart(2, '0');
       ballEls[i].classList.add('is-shown');
+      ballEls[i].classList.toggle('is-impact', i === numbers.length - 1);
+      if (impactWord) {
+        impactWord.classList.remove('pop');
+        void impactWord.offsetWidth;
+        impactWord.classList.add('pop');
+      }
     }
     ballRow.classList.add('is-complete');
   }
@@ -111,7 +118,7 @@
 
     // ここから先は保存成功が確定している → 演出開始してよい
     // 「AI解析中」は短い待機の間も表示したままにする（仕様§6の順序どおり）
-    await sleep(300); // 短い待機
+    await sleep(1800); // 解析の溜めを作る
     stopAnalysingDots();
     analysingLabel.classList.remove('is-active');
 

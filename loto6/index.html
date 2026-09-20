@@ -3,75 +3,58 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>AI HUNTER | LOTO6 AI PREDICTION</title>
+<title>AI HUNTER | LOTO6 NEXUS</title>
+<meta name="description" content="AI HUNTER LOTO6 NEXUS。AIが6つの数字を生成し、予測を事前保存。研究・娯楽目的の予測サービスです。" />
 <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
-
+<body class="home-body">
 <div class="stage-dim" id="stageDim"></div>
+<main class="screen home-screen">
+  <header class="nexus-header">
+    <div class="brand"><span class="brand__mark">◎</span><div><strong>AI HUNTER</strong><small>データで遊ぶ。未来を楽しむ。</small></div></div>
+    <a class="top-history" href="history/index.html">↶ 過去の予測</a>
+  </header>
 
-<main class="screen">
-
-  <div class="wordmark">
-    <span class="wordmark__eyebrow">AI HUNTER</span>
-    <h1 class="wordmark__title">LOTO6<br /><span>AI PREDICTION</span></h1>
-  </div>
-
-  <div class="meta">
-    <p class="meta__draw" id="drawNumberLabel">第○○回 ロト6</p>
-    <p class="meta__note">
-      本サービスはロト6の当選を保証するものではありません。
-      AIによる研究・娯楽目的の予測サービスです。
-    </p>
-  </div>
-
-  <div class="price">
-    <span class="price__label">1 PREDICTION</span>
-    <span class="price__value">¥300</span>
-  </div>
-
-  <section class="stage" id="stage">
-    <button class="generate-btn" id="generateBtn" type="button">
-      AI予測を生成
-    </button>
-
-    <p class="analysing" id="analysingLabel">AI解析中<span class="analysing__dots" id="analysingDots"></span></p>
-
-    <div class="balls" id="ballRow" aria-live="polite">
-      <div class="ball" data-slot="0"></div>
-      <div class="ball" data-slot="1"></div>
-      <div class="ball" data-slot="2"></div>
-      <div class="ball" data-slot="3"></div>
-      <div class="ball" data-slot="4"></div>
-      <div class="ball" data-slot="5"></div>
+  <section class="hero">
+    <div class="hero__orbit" aria-hidden="true"></div>
+    <div class="wordmark nexus-wordmark">
+      <span class="wordmark__eyebrow">AI HUNTER</span>
+      <h1 class="wordmark__title">LOTO<span>6</span></h1>
+      <p class="nexus-sub">NEXUS · AI PREDICTION</p>
+      <p class="nexus-copy">数字が導く、もうひとつのワクワクを。</p>
     </div>
 
-    <div class="error-msg" id="errorMsg">
-      予測を生成できませんでした。時間をおいてもう一度お試しください。
+    <div class="meta nexus-meta">
+      <p class="meta__draw" id="drawNumberLabel">第○○回 ロト6</p>
+      <div class="price"><span class="price__label">1 PREDICTION</span><span class="price__value">¥300</span></div>
     </div>
 
-    <div class="result" id="result">
-      <div class="result__row">
-        <span id="resultDraw">第○○回 ロト6</span>
-        <span id="resultId">予測ID #000000</span>
+    <section class="stage nexus-stage" id="stage">
+      <button class="generate-btn" id="generateBtn" type="button">AI予測を生成 <span>›</span></button>
+      <p class="analysing" id="analysingLabel">AI解析中<span class="analysing__dots" id="analysingDots"></span></p>
+      <p class="reveal-title" id="revealTitle">AIが予測した <strong>6</strong>つの数字</p>
+      <div class="balls nexus-balls" id="ballRow" aria-live="polite">
+        <div class="ball" data-slot="0"></div><div class="ball" data-slot="1"></div><div class="ball" data-slot="2"></div>
+        <div class="ball" data-slot="3"></div><div class="ball" data-slot="4"></div><div class="ball" data-slot="5"></div>
       </div>
-      <div class="result__row">
-        <span id="resultTime">生成日時 —</span>
-        <span></span>
+      <div class="impact-word" id="impactWord" aria-hidden="true">ボヨン!</div>
+      <div class="error-msg" id="errorMsg">予測を生成できませんでした。時間をおいてもう一度お試しください。</div>
+      <div class="result" id="result">
+        <div class="result__row"><span id="resultDraw">第○○回 ロト6</span><span id="resultId">予測ID #000000</span></div>
+        <div class="result__row"><span id="resultTime">生成日時 —</span><span></span></div>
+        <div class="result__locked">✓ この予測は保存されました</div>
       </div>
-      <div class="result__locked">
-        ✓ この予測は保存されました
-      </div>
-    </div>
+    </section>
   </section>
 
-  <a class="history-link" href="history/index.html">予測履歴を見る →</a>
-
+  <nav class="action-grid" aria-label="予測メニュー">
+    <a href="history/index.html">▣<span>この結果を保存</span></a>
+    <a href="history/index.html">▥<span>過去全履歴と照合</span></a>
+    <a href="predictions/index.html">☷<span>予測履歴を見る</span></a>
+  </nav>
+  <p class="meta__note footer-note">※本サービスはロト6の当選を保証するものではありません。AIによる研究・娯楽目的の予測サービスです。</p>
+  <footer class="nexus-footer"><span>AI HUNTER　|　LOTO6 NEXUS</span><em>No Loto, No Life.</em></footer>
 </main>
-
-<script src="js/config.js"></script>
-<script src="js/engine.js"></script>
-<script src="js/storage.js"></script>
-<script src="js/app.js"></script>
+<script src="js/config.js"></script><script src="js/engine.js"></script><script src="js/storage.js"></script><script src="js/app.js"></script>
 </body>
 </html>
