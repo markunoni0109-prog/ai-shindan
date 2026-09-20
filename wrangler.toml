@@ -5,7 +5,7 @@ compatibility_date = "2026-09-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "ai_hunter_loto6"
-database_id = "REPLACE_WITH_REAL_D1_DATABASE_ID"
+database_id = "2b45deec-2e47-4da1-9724-8a909e409029"
 
 [vars]
 # 秘密ではない設定値。Secretsは `wrangler secret put` で別途設定する
