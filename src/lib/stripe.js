@@ -37,17 +37,15 @@ function toFormBody(params, prefix = '') {
   }
   return pairs;
 }
+
 function toFormBodyEntries(obj, prefix) {
   return toFormBody(obj, prefix);
 }
+
 function encodeForm(params) {
   return toFormBody(params).join('&');
 }
 
-/**
- * Checkout Sessionを作成する。金額・商品名はここで固定し、呼び出し元
- * （HTTPハンドラ）からクライアント指定の金額を一切受け取らない。
- */
 export async function createCheckoutSession(
   env,
   { intentPublicId, successUrl, cancelUrl }
@@ -59,7 +57,7 @@ export async function createCheckoutSession(
     'payment_method_types[0]': 'card',
     'line_items[0][quantity]': 1,
     'line_items[0][price_data][currency]': 'jpy',
-    'line_items[0][price_data][unit_amount]': 300, // サーバー側固定。クライアント値は使わない
+    'line_items[0][price_data][unit_amount]': 300,
     'line_items[0][price_data][product_data][name]': 'LOTO6 AI PREDICTION（1予測）',
     success_url: successUrl,
     cancel_url: cancelUrl,
@@ -78,16 +76,12 @@ export async function createCheckoutSession(
 
   const data = await res.json();
   if (!res.ok) {
-    // Stripe側のエラー詳細をそのまま外部に返さない。ログにも秘密情報は出さない。
     throw new Error(`stripe_checkout_session_create_failed:${data?.error?.type || 'unknown'}`);
   }
+
   return { id: data.id, url: data.url };
 }
 
-/**
- * Webhook署名を検証する。生のリクエストボディ文字列(rawBody)が必須
- * （JSON.parse後の再シリアライズ文字列を使うと署名が一致しない）。
- */
 export async function verifyStripeSignature(rawBody, sigHeader, secret, now = Date.now()) {
   if (!sigHeader) return { valid: false, reason: 'missing_header' };
 
@@ -97,16 +91,22 @@ export async function verifyStripeSignature(rawBody, sigHeader, secret, now = Da
       return [kv.slice(0, idx), kv.slice(idx + 1)];
     })
   );
+
   const timestamp = parts.t;
   const v1 = parts.v1;
-  if (!timestamp || !v1) return { valid: false, reason: 'invalid_header' };
 
-  const nowSeconds = Math.floor(now / 300);
+  if (!timestamp || !v1) {
+    return { valid: false, reason: 'invalid_header' };
+  }
+
+  const nowSeconds = Math.floor(now / 1000);
+
   if (Math.abs(nowSeconds - Number(timestamp)) > SIGNATURE_TOLERANCE_SECONDS) {
     return { valid: false, reason: 'timestamp_expired' };
   }
 
   const signedPayload = `${timestamp}.${rawBody}`;
+
   const key = await crypto.subtle.importKey(
     'raw',
     new TextEncoder().encode(secret),
@@ -114,20 +114,32 @@ export async function verifyStripeSignature(rawBody, sigHeader, secret, now = Da
     false,
     ['sign']
   );
-  const sigBuffer = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(signedPayload));
+
+  const sigBuffer = await crypto.subtle.sign(
+    'HMAC',
+    key,
+    new TextEncoder().encode(signedPayload)
+  );
+
   const expectedHex = Array.from(new Uint8Array(sigBuffer))
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
 
   const valid = timingSafeEqualHex(expectedHex, v1);
-  return valid ? { valid: true } : { valid: false, reason: 'signature_mismatch' };
+
+  return valid
+    ? { valid: true }
+    : { valid: false, reason: 'signature_mismatch' };
 }
 
 function timingSafeEqualHex(a, b) {
   if (a.length !== b.length) return false;
+
   let diff = 0;
+
   for (let i = 0; i < a.length; i++) {
     diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
   }
+
   return diff === 0;
 }
