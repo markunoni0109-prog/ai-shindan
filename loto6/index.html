@@ -5,6 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>AI HUNTER | LOTO6 NEXUS</title>
 <meta name="description" content="AI HUNTER LOTO6 NEXUS。AIが6つの数字を生成し、予測を事前保存。研究・娯楽目的の予測サービスです。" />
+<script>
+/* iOS Safariは下部ツールバーの表示/非表示でビューポート高さが動的に変わり、
+   100dvhだけでは反映タイミングにズレが出ることがある。window.visualViewport
+   から実際に見えている高さをその都度取得し、CSS変数--app-vhへ反映して
+   .screenのmin-heightに使う（CTAの位置だけを守るための最小限の対策）。
+   visualViewport非対応ブラウザではこの変数は未設定のままとなり、
+   CSS側のフォールバック（100dvh→100vh）がそのまま使われる。 */
+(function () {
+  function setAppVh() {
+    var h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+    document.documentElement.style.setProperty('--app-vh', h + 'px');
+  }
+  setAppVh();
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', setAppVh);
+    window.visualViewport.addEventListener('scroll', setAppVh);
+  }
+  window.addEventListener('orientationchange', setAppVh);
+  window.addEventListener('pageshow', setAppVh);
+})();
+</script>
 <link rel="stylesheet" href="css/style.css" />
 </head>
 <body class="home-body">
@@ -60,5 +81,59 @@
   <footer class="nexus-footer"><span>AI HUNTER　|　LOTO6 NEXUS</span><em>No Loto, No Life.</em></footer>
 </main>
 <script src="js/api-config.js"></script><script src="js/app.js"></script>
+<script>
+/* 【CTA位置 無料QAモード】
+   ?qa=1 を付けて開いたときだけ、CTAボタンの実測値（visualViewportの高さ、
+   --app-vh、safe-area-inset-bottom、ボタンの画面内収まり具合）を小さな
+   読み取り専用パネルで表示する。実決済・実生成には一切触れない
+   （generateBtnのクリックイベントも増やさない、値を読むだけ）。
+   ?qa=1 が無い通常アクセスでは、このスクリプトは何もしない
+   （＝一般ユーザーがQAを起動することはない）。 */
+(function () {
+  if (new URLSearchParams(location.search).get('qa') !== '1') return;
+
+  var btn = document.getElementById('generateBtn');
+  var panel = document.createElement('div');
+  panel.id = 'qaCtaPanel';
+  panel.style.cssText = [
+    'position:fixed', 'left:8px', 'right:8px', 'top:8px', 'z-index:99999',
+    'background:rgba(0,0,0,.85)', 'color:#7dffb0', 'font:11px/1.5 monospace',
+    'padding:8px 10px', 'border-radius:8px', 'border:1px solid #2a6',
+    'white-space:pre-wrap', 'pointer-events:none',
+  ].join(';');
+  document.body.appendChild(panel);
+  if (btn) btn.style.outline = '2px dashed #ffd94a';
+
+  function update() {
+    var vv = window.visualViewport;
+    var vh = (vv && vv.height) || window.innerHeight;
+    var appVh = getComputedStyle(document.documentElement).getPropertyValue('--app-vh').trim();
+    var safeBottom = getComputedStyle(document.body).paddingBottom;
+    var lines = ['[QAモード：CTA位置確認 / 実決済なし]'];
+    lines.push('window.innerHeight=' + window.innerHeight + 'px');
+    lines.push('visualViewport.height=' + vh + 'px');
+    lines.push('--app-vh=' + (appVh || '(未設定)'));
+    lines.push('body computed padding-bottom=' + safeBottom);
+    if (btn) {
+      var r = btn.getBoundingClientRect();
+      var fullyVisible = r.top >= 0 && r.bottom <= vh;
+      lines.push('CTA top=' + Math.round(r.top) + ' bottom=' + Math.round(r.bottom));
+      lines.push('CTAが画面内に完全表示=' + (fullyVisible ? 'OK' : 'NG(隠れている可能性)'));
+    } else {
+      lines.push('CTA要素が見つかりません');
+    }
+    panel.textContent = lines.join('\n');
+  }
+
+  update();
+  window.addEventListener('resize', update);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', update);
+    window.visualViewport.addEventListener('scroll', update);
+  }
+  window.addEventListener('orientationchange', update);
+  setInterval(update, 500);
+})();
+</script>
 </body>
 </html>
