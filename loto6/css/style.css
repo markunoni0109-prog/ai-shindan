@@ -59,6 +59,7 @@ body {
   margin: 0 auto;
   min-height: 100vh;
   min-height: 100dvh; /* 同上：100vhはSafariのツールバー分を含み、CTAが隠れる原因になるため */
+  min-height: var(--app-vh, 100dvh); /* JS(visualViewport)で測った実際の高さがあれば最優先で使う */
   padding: 28px 20px calc(40px + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
@@ -211,6 +212,11 @@ button {
   opacity: 0;
   transition: opacity 0.3s ease;
   height: 18px;
+  /* <p>要素のブラウザ既定マージン（約1em分、上下で30px超）が非表示中も
+     レイアウト幅を食っていた。見た目は元々opacity:0で見えないため、
+     margin:0にしても表示上の変化は無い（縦が低い端末でCTAが隠れる
+     一因になっていたための修正）。 */
+  margin: 0;
   position: relative;
   z-index: 6;
 }
@@ -674,5 +680,90 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .balls.zun-once {
     animation: none;
+  }
+}
+
+/* ===== LOTO6 NEXUS CTA視認性 最終補正（縦が低い端末専用） =====
+   iPhone SE(320×568)など「縦が低い」端末では、.heroの固定min-height
+   （「premium CTA v3」ブロックで690px、@media max-width:760px時）が
+   実際に見えている高さそのものを超えてしまい、100dvh/safe-area/
+   visualViewport対応をしても、初期表示でCTAが画面外（要スクロール）に
+   なってしまうケースがあった。原因はビューポート単位の対応漏れではなく、
+   .hero自体の最低の高さが画面より大きいことだったため、ここでは
+   「縦が低いビューポート」専用に.hero/.nexus-stageの最低の高さと
+   余白だけを画面の高さに追従させる。
+   CTAボタン自体のデザイン・文言・色・サイズ指定（.nexus-generate-btn系）
+   はここでは一切変更しない。幅（320/375/390px）ではなく高さ
+   （max-height）だけで判定するため、通常の高さのiPhoneやPC表示には
+   一切影響しない。 */
+@media (max-height: 700px) {
+  .hero {
+    /* --app-vh はJS(visualViewport)が実測して都度更新する実際の高さ。
+       iOS Safariのツールバー出入りで見える高さが変わっても、この値に
+       連動して.heroの最低の高さも追従する（100dvh/vhだけだとブラウザに
+       よって更新タイミングがずれることがあるため、より確実な--app-vhを
+       優先し、未対応環境向けに90dvh/90vhもフォールバックとして残す）。 */
+    min-height: min(690px, calc(var(--app-vh, 90vh) * 0.9), 90dvh, 90vh);
+  }
+}
+@media (max-height: 620px) {
+  .hero {
+    min-height: min(420px, calc(var(--app-vh, 70vh) * 0.7), 70dvh, 70vh);
+  }
+  .nexus-wordmark {
+    margin-top: 6px;
+  }
+  .nexus-wordmark .wordmark__title {
+    font-size: 40px;
+  }
+  .nexus-sub {
+    margin-top: 4px;
+  }
+  .nexus-copy {
+    margin-top: 4px;
+    font-size: 10px;
+  }
+  .nexus-meta {
+    margin-top: 8px;
+  }
+  .nexus-stage {
+    min-height: 220px;
+    padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  }
+  .nexus-stage:has(.ball.is-shown) {
+    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    min-height: 300px;
+  }
+  /* .reveal-title（生成前は非表示のリード文）と.nexus-ballsの上下余白は、
+     通常の高さの端末では問題にならないが、縦が低い端末では非表示中でも
+     場所を取ってCTAを押し下げる要因になっていた。ボール演出が始まる前
+     （.ball.is-shownが1つも無い間）だけ.reveal-titleの高さを0に折りたたみ、
+     .nexus-ballsの上下余白を詰める。演出開始後（is-shownが付いた瞬間）は
+     このルールの対象外になり、元の余白・表示に完全に戻る＝演出そのものは
+     一切変更しない。 */
+  .nexus-stage:not(:has(.ball.is-shown)) .reveal-title {
+    height: 0;
+    margin: 0;
+    overflow: hidden;
+  }
+  .nexus-stage:not(:has(.ball.is-shown)) .nexus-balls {
+    padding-top: 6px;
+    padding-bottom: 10px;
+    min-height: 0;
+  }
+  /* 結果カード(.result)はopacity:0で見えないだけで、レイアウト上の高さは
+     常に確保されており（既存仕様、通常の高さの端末では問題にならない）、
+     縦が低い端末ではこの「見えない予約スペース」がCTAを画面外へ押し出す
+     直接の原因になっていた。まだ結果が出ていない（is-visibleが付く前）
+     間だけ高さを0に折りたたみ、予測が生成されis-visibleが付いた時点で
+     即座に元の表示（このルールの対象外になる）へ戻す。結果カードの見た目・
+     表示内容・is-visible時の挙動は一切変更しない。 */
+  .nexus-stage .result:not(.is-visible) {
+    height: 0;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    overflow: hidden;
   }
 }
