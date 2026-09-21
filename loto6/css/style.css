@@ -51,13 +51,15 @@ body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+  min-height: 100dvh; /* iOS Safariのツールバー分をdvhで正しく確保（CTA隠れ対策） */
 }
 
 .screen {
   max-width: var(--max-w);
   margin: 0 auto;
   min-height: 100vh;
-  padding: 28px 20px 40px;
+  min-height: 100dvh; /* 同上：100vhはSafariのツールバー分を含み、CTAが隠れる原因になるため */
+  padding: 28px 20px calc(40px + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
 }
@@ -624,16 +626,42 @@ button {
 
 @media(max-width:760px){
   .hero{min-height:690px}
-  .nexus-stage{min-height:390px;justify-content:flex-end;padding-bottom:76px}
+  .nexus-stage{min-height:390px;justify-content:flex-end;padding-bottom:calc(76px + env(safe-area-inset-bottom, 0px))}
   .nexus-stage .nexus-generate-btn{width:96%;min-height:88px;grid-template-columns:46px minmax(0,1fr) 46px;padding:10px 12px;margin-top:4px}
   .generate-btn__icon,.generate-btn__arrow{width:43px;height:43px}
   .generate-btn__icon{font-size:25px!important}.generate-btn__arrow{font-size:36px!important}
   .generate-btn__copy small{font-size:10px}.generate-btn__copy strong{font-size:21px}.generate-btn__copy em{font-size:10px}.generate-btn__copy b{font-size:15px}
-  .nexus-stage:has(.ball.is-shown){padding-bottom:24px;min-height:430px}
+  .nexus-stage:has(.ball.is-shown){padding-bottom:calc(24px + env(safe-area-inset-bottom, 0px));min-height:430px}
 }
 @media(max-width:380px){
-  .nexus-stage{padding-bottom:68px}
+  .nexus-stage{padding-bottom:calc(68px + env(safe-area-inset-bottom, 0px))}
   .nexus-stage .nexus-generate-btn{grid-template-columns:40px minmax(0,1fr) 40px;min-height:82px}
   .generate-btn__icon,.generate-btn__arrow{width:38px;height:38px}
   .generate-btn__copy strong{font-size:19px}.generate-btn__copy small{font-size:9px}
+}
+
+/* ===== LOTO6 NEXUS 決済後リザルト演出（result/専用、他画面へは影響しない） ===== */
+.result-hold {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 12.5px;
+  margin-top: 10px;
+  min-height: 16px;
+}
+
+/* 6球全体を一度だけ強く「ズンッ」と強調する（個々のボールのボヨーン演出とは別レイヤー） */
+@keyframes resultZun {
+  0% { transform: scale(1); }
+  32% { transform: scale(1.16); }
+  58% { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+.balls.zun-once {
+  animation: resultZun 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .balls.zun-once {
+    animation: none;
+  }
 }
