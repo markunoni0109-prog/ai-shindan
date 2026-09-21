@@ -27,7 +27,7 @@
   <section class="stage" id="stage">
     <p class="analysing is-active" id="statusLabel">決済を確認しています<span class="analysing__dots" id="statusDots"></span></p>
 
-    <div class="balls" id="ballRow" aria-live="polite">
+    <div class="balls nexus-balls" id="ballRow" aria-live="polite">
       <div class="ball" data-slot="0"></div>
       <div class="ball" data-slot="1"></div>
       <div class="ball" data-slot="2"></div>
@@ -37,6 +37,7 @@
     </div>
 
     <p style="text-align:center; color:var(--text-dim); font-size:13px;" id="progressLabel"></p>
+    <p class="result-hold" id="redirectNote"></p>
 
     <div class="error-msg" id="errorMsg"></div>
   </section>
