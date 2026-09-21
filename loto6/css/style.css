@@ -649,6 +649,17 @@ button {
   min-height: 16px;
 }
 
+/* 決済後リザルト画面では、ホーム画面用に用意された小幅ブレークポイント
+   （@media max-width:760px/380pxの.nexus-balls .ball指定）を継承すると
+   320〜375px幅でボールが小さいまま（46px）になってしまう。ホーム画面側の
+   指定はそのまま残し、.result-stage配下だけ上書きして「大きく表示」を
+   保証する（セレクタ詳細度3 > 2なのでmedia query内の指定にも勝つ）。 */
+.result-stage .nexus-balls .ball {
+  width: clamp(58px, 16vw, 112px);
+  height: clamp(58px, 16vw, 112px);
+  font-size: clamp(20px, 6.2vw, 38px);
+}
+
 /* 6球全体を一度だけ強く「ズンッ」と強調する（個々のボールのボヨーン演出とは別レイヤー） */
 @keyframes resultZun {
   0% { transform: scale(1); }
