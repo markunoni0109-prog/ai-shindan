@@ -17,6 +17,15 @@
  * ないため）。Stripe/Webhook/DB/生成/保存/Permanent Trackingの
  * ロジックには一切手を入れていない（claimPredictions/pollPurchaseStatus
  * は変更なし）。
+ *
+ * 【無料QAモード（実決済不要）】
+ * URLに ?qa=1 を付けて開くと、pollPurchaseStatus/claimPredictionsの
+ * fetchを一切実行せず（＝Stripe/Webhook/D1へは何も通信しない）、
+ * その場で作ったダミーの1口ぶんの数字だけを使い、実際の演出コード
+ * （revealOne〜8秒保持〜/loto6/への自動遷移）をそのまま通しで実行する。
+ * 実際の予測データ・決済状態には一切触れないため、本番のStripe/Webhook/
+ * D1/生成/保存/Permanent Trackingに影響しない。
+ * 例：https://ai-hunter.jp/loto6/result/index.html?qa=1
  * ------------------------------------------------------------------
  */
 (function () {
@@ -56,6 +65,15 @@
 
   function getSessionId() {
     return new URLSearchParams(location.search).get('session_id');
+  }
+
+  function isQaMode() {
+    return new URLSearchParams(location.search).get('qa') === '1';
+  }
+
+  // QA専用のダミーデータ。実APIには一切触れない。
+  function buildQaPredictions() {
+    return [{ display_id: '#QA0001', numbers: [7, 13, 18, 24, 35, 42] }];
   }
 
   function showError(message) {
@@ -149,71 +167,85 @@
   }
 
   async function main() {
-    const sessionId = getSessionId();
-    const claimToken = getClaimToken();
+    const qaMode = isQaMode();
 
-    if (!sessionId || !claimToken) {
-      showError('購入情報を確認できませんでした。購入ページからやり直してください。');
-      return;
-    }
+    let predictions;
+    if (qaMode) {
+      // QAモード：ネットワーク通信を一切行わない（fetchを1回も呼ばない）。
+      // Stripe/Webhook/D1/生成/保存/Permanent Trackingには何の影響もない。
+      predictions = buildQaPredictions();
+      progressLabel.textContent = '';
+    } else {
+      const sessionId = getSessionId();
+      const claimToken = getClaimToken();
 
-    stageDim.classList.add('is-active');
-    startDots();
+      if (!sessionId || !claimToken) {
+        showError('購入情報を確認できませんでした。購入ページからやり直してください。');
+        return;
+      }
 
-    let ready;
-    try {
-      ready = await pollPurchaseStatus(sessionId);
-    } catch {
-      ready = null;
-    }
+      stageDim.classList.add('is-active');
+      startDots();
 
-    if (ready === false) {
+      let ready;
+      try {
+        ready = await pollPurchaseStatus(sessionId);
+      } catch {
+        ready = null;
+      }
+
+      if (ready === false) {
+        stopDots();
+        showError('決済が完了しませんでした。購入ページからやり直してください。');
+        return;
+      }
+      if (ready === null) {
+        stopDots();
+        showError('決済確認に時間がかかっています。少し待ってからこのページを再読み込みしてください。');
+        return;
+      }
+
+      statusLabel.textContent = 'AI解析中';
+      let claimResult;
+      try {
+        claimResult = await claimPredictions(claimToken);
+      } catch {
+        stopDots();
+        showError('予測の取得に失敗しました。時間をおいてもう一度お試しください。');
+        return;
+      }
+
       stopDots();
-      showError('決済が完了しませんでした。購入ページからやり直してください。');
-      return;
-    }
-    if (ready === null) {
-      stopDots();
-      showError('決済確認に時間がかかっています。少し待ってからこのページを再読み込みしてください。');
-      return;
-    }
+      statusLabel.classList.remove('is-active');
 
-    statusLabel.textContent = 'AI解析中';
-    let claimResult;
-    try {
-      claimResult = await claimPredictions(claimToken);
-    } catch {
-      stopDots();
-      showError('予測の取得に失敗しました。時間をおいてもう一度お試しください。');
-      return;
-    }
+      predictions = claimResult.predictions;
+      stripClaimFragment();
 
-    stopDots();
-    statusLabel.classList.remove('is-active');
-
-    const predictions = claimResult.predictions;
-    stripClaimFragment();
-
-    const replayKey = `loto6_result_shown:${sessionId}`;
-    const alreadyShown = sessionStorage.getItem(replayKey) === '1';
-    if (alreadyShown) {
-      // リロード時は既存仕様どおり即座に復元するだけで、演出も自動遷移もしない。
-      predictions.forEach(appendResultCard);
-      stageDim.classList.remove('is-active');
-      progressLabel.textContent = `全${predictions.length}口 保存が完了しました`;
-      resetBalls();
-      return;
+      const replayKey = `loto6_result_shown:${sessionId}`;
+      const alreadyShown = sessionStorage.getItem(replayKey) === '1';
+      if (alreadyShown) {
+        // リロード時は既存仕様どおり即座に復元するだけで、演出も自動遷移もしない。
+        predictions.forEach(appendResultCard);
+        stageDim.classList.remove('is-active');
+        progressLabel.textContent = `全${predictions.length}口 保存が完了しました`;
+        resetBalls();
+        return;
+      }
     }
 
     for (let i = 0; i < predictions.length; i++) {
-      progressLabel.textContent = `${i + 1} / ${predictions.length} 口目`;
+      if (!qaMode) progressLabel.textContent = `${i + 1} / ${predictions.length} 口目`;
       await revealOne(predictions[i]);
       appendResultCard(predictions[i]);
     }
-    sessionStorage.setItem(replayKey, '1');
+    if (!qaMode) {
+      sessionStorage.setItem(`loto6_result_shown:${getSessionId()}`, '1');
+    }
 
     stageDim.classList.remove('is-active');
-    progressLabel.textContent = `全${predictions.length}口 保存が完了しました`;
+    progressLabel.textContent = qaMode
+      ? '【QAモード】演出テスト表示中（実際の保存・決済は行われていません）'
+      : `全${predictions.length}口 保存が完了しました`;
 
     // 完成した数字を約8秒間、大きく保持したままにする（初回演出時のみ）。
     if (redirectNote) redirectNote.textContent = 'まもなくトップへ戻ります…';
