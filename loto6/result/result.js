@@ -102,7 +102,7 @@
 
   function resetBalls() {
     ballEls.forEach((el) => {
-      el.classList.remove('is-shown');
+      el.classList.remove('is-shown', 'is-impact');
       el.textContent = '';
     });
     ballRow.classList.remove('is-complete', 'zun-once');
@@ -115,6 +115,13 @@
       await sleep(delays[i]);
       ballEls[i].textContent = String(prediction.numbers[i]).padStart(2, '0');
       ballEls[i].classList.add('is-shown'); // 1球ずつnexusBounce（ボヨーン）演出
+      if (i === 5) {
+        // 6球目だけは既存のnexusImpact（is-impact）を重ねて、他の5球より
+        // 明確に強い着地にする（is-shownのnexusBounceより後に定義されている
+        // is-impactのnexusImpactが同スコア優先度で上書きするため、クラスを
+        // 両方付けるだけで済む＝新しいアニメーションを追加していない）。
+        ballEls[i].classList.add('is-impact');
+      }
     }
     ballRow.classList.add('is-complete');
     // 6球目着地の瞬間、6球全体を一度だけ強く「ズンッ」と強調する。
