@@ -25,8 +25,12 @@
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ plan_code: 'single' }),
       });
-      if (!res.ok) throw new Error('checkout_create_failed');
-      const body = await res.json();
+      let body = null;
+      try { body = await res.json(); } catch (_) {}
+      if (!res.ok) {
+        const code = body && body.error && body.error.code ? body.error.code : `http_${res.status}`;
+        throw new Error(code);
+      }
       if (!body.checkout_url || !body.claim_token) throw new Error('invalid_checkout_response');
 
       // Temporary browser fallback only. The authoritative entitlement is server-side.
@@ -34,7 +38,8 @@
       location.assign(body.checkout_url);
     } catch (err) {
       console.error('Checkout start failed', err);
-      errorMsg.textContent = '決済ページを開けませんでした。時間をおいてもう一度お試しください。';
+      const safeCode = String(err && err.message || 'unknown').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 48);
+      errorMsg.textContent = `決済ページを開けませんでした（${safeCode}）。`;
       errorMsg.classList.add('is-visible');
       generateBtn.disabled = false;
       busy = false;

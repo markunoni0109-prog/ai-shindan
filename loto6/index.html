@@ -30,7 +30,11 @@
     </div>
 
     <section class="stage nexus-stage" id="stage">
-      <button class="generate-btn" id="generateBtn" type="button">AI予測を生成 <span>›</span></button>
+      <button class="generate-btn nexus-generate-btn" id="generateBtn" type="button" aria-label="300円でAI予測を1件生成">
+        <span class="generate-btn__icon" aria-hidden="true">◎</span>
+        <span class="generate-btn__copy"><small>AIが導く、もうひとつの可能性</small><strong>AI予測を生成</strong><em>1 PREDICTION <b>¥300</b></em></span>
+        <span class="generate-btn__arrow" aria-hidden="true">›</span>
+      </button>
       <p class="analysing" id="analysingLabel">AI解析中<span class="analysing__dots" id="analysingDots"></span></p>
       <p class="reveal-title" id="revealTitle">AIが予測した <strong>6</strong>つの数字</p>
       <div class="balls nexus-balls" id="ballRow" aria-live="polite">
