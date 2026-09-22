@@ -47,13 +47,20 @@
 
     <div class="meta nexus-meta">
       <p class="meta__draw" id="drawNumberLabel">PERMANENT TRACKING</p>
-      <div class="price"><span class="price__label">1 PREDICTION</span><span class="price__value">¥300</span></div>
+      <div class="price"><span class="price__label" id="priceLabel">1 PREDICTION</span><span class="price__value" id="priceValue">¥300</span></div>
+    </div>
+
+    <div class="plan-picker" id="planPicker" role="radiogroup" aria-label="購入する予測数を選択">
+      <button type="button" class="plan-chip is-selected" data-plan="single" data-amount="300" data-count="1" role="radio" aria-checked="true">1予測<em>¥300</em></button>
+      <button type="button" class="plan-chip" data-plan="pack10" data-amount="3000" data-count="10" role="radio" aria-checked="false">10予測<em>¥3,000</em></button>
+      <button type="button" class="plan-chip" data-plan="pack30" data-amount="9000" data-count="30" role="radio" aria-checked="false">30予測<em>¥9,000</em></button>
+      <button type="button" class="plan-chip" data-plan="pack50" data-amount="15000" data-count="50" role="radio" aria-checked="false">50予測<em>¥15,000</em></button>
     </div>
 
     <section class="stage nexus-stage" id="stage">
       <button class="generate-btn nexus-generate-btn" id="generateBtn" type="button" aria-label="300円でAI予測を1件生成">
         <span class="generate-btn__icon" aria-hidden="true">◎</span>
-        <span class="generate-btn__copy"><small>AIが導く、もうひとつの可能性</small><strong>AI予測を生成</strong><em>1 PREDICTION <b>¥300</b></em></span>
+        <span class="generate-btn__copy"><small>AIが導く、もうひとつの可能性</small><strong id="ctaTitle">AI予測を生成</strong><em>1 PREDICTION <b id="ctaAmount">¥300</b></em></span>
         <span class="generate-btn__arrow" aria-hidden="true">›</span>
       </button>
       <p class="analysing" id="analysingLabel">AI解析中<span class="analysing__dots" id="analysingDots"></span></p>

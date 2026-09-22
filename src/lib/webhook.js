@@ -15,6 +15,8 @@
  * ------------------------------------------------------------------
  */
 import { generatePublicId } from './tokens.js';
+import { PLAN_CATALOG, isValidPlanCode } from './plans.js';
+import { hashEmail } from './email.js';
 
 export class WebhookIgnored extends Error {
   constructor(reason) {
@@ -40,7 +42,7 @@ async function findEntitlementByPaymentId(db, paymentId) {
  * checkout.session.completed イベント1件を処理する。
  * 何回呼ばれても最終結果は「payment 1件・entitlement 1件」になる。
  */
-export async function handleCheckoutSessionCompleted(db, event) {
+export async function handleCheckoutSessionCompleted(db, event, env = {}) {
   const session = event.data?.object;
   if (!session) throw new WebhookIgnored('no_session_object');
 
@@ -61,6 +63,26 @@ export async function handleCheckoutSessionCompleted(db, event) {
     return { outcome: 'already_fulfilled' };
   }
 
+  // 【決済金額の検証】plan_codeはCheckout Session作成時にサーバー自身が
+  // 決めた値だが、Stripe側の実際の決済結果（session.amount_total）が
+  // その期待金額と一致することを、購入権を発行する前に必ず確認する。
+  // 一致しなければ購入権もpaymentも作らずfail-closeする（Stripe側の再送で
+  // 再検証されるだけで、二重に予測が発行されることはない）。
+  if (!isValidPlanCode(intent.plan_code)) {
+    throw new WebhookIgnored('unknown_plan_code');
+  }
+  const plan = PLAN_CATALOG[intent.plan_code];
+  const expectedAmount = plan.amount;
+  const paidAmount = Number(session.amount_total);
+  const paidCurrency = (session.currency || 'jpy').toLowerCase();
+  if (!Number.isFinite(paidAmount) || paidAmount !== expectedAmount || paidCurrency !== 'jpy') {
+    console.error(
+      'stripe webhook amount mismatch (fail-close, no entitlement issued):',
+      JSON.stringify({ sessionId: session.id, planCode: intent.plan_code, expectedAmount, paidAmount, paidCurrency })
+    );
+    throw new WebhookIgnored('amount_mismatch');
+  }
+
   let payment = await findPaymentByEventOrSession(db, {
     stripeEventId: event.id,
     stripeCheckoutSessionId: session.id,
@@ -69,22 +91,40 @@ export async function handleCheckoutSessionCompleted(db, event) {
   if (!payment) {
     const paymentPublicId = generatePublicId('pay');
     const now = new Date().toISOString();
+
+    // 【購入履歴の端末変更復旧用】Stripe Checkoutが収集したメールアドレスを
+    // ハッシュ化して記録する（生のメールは保存しない）。EMAIL_HASH_SECRET
+    // 未設定・メール未取得等どんな理由でも、ここで例外を投げて決済の
+    // 正常処理(payment/entitlement発行)を止めてはならない＝あくまで
+    // 付随的な機能として握りつぶし、customer_email_hashはNULLのままにする。
+    let customerEmailHash = null;
+    const customerEmail = session.customer_details?.email;
+    if (customerEmail) {
+      try {
+        customerEmailHash = await hashEmail(env, customerEmail);
+      } catch (err) {
+        console.error('customer email hashing failed (non-fatal, recovery feature only):', err.message);
+      }
+    }
+
     try {
       const insertRes = await db
         .prepare(
           `INSERT INTO payments
              (payment_public_id, stripe_checkout_session_id, stripe_payment_intent_id,
-              plan_code, amount, currency, payment_status, paid_at, stripe_event_id)
-           VALUES (?,?,?,?,?,'jpy','paid',?,?)`
+              plan_code, amount, currency, payment_status, paid_at, stripe_event_id, access_token_hash, customer_email_hash)
+           VALUES (?,?,?,?,?,'jpy','paid',?,?,?,?)`
         )
         .bind(
           paymentPublicId,
           session.id,
           typeof session.payment_intent === 'string' ? session.payment_intent : null,
           intent.plan_code,
-          300,
+          expectedAmount,
           now,
-          event.id
+          event.id,
+          intent.access_token_hash ?? null,
+          customerEmailHash
         )
         .run();
       payment = { id: insertRes.meta.last_row_id, payment_public_id: paymentPublicId };
@@ -109,9 +149,9 @@ export async function handleCheckoutSessionCompleted(db, event) {
             `INSERT INTO purchase_entitlements
                (entitlement_public_id, payment_id, purchase_intent_id, allowed_predictions,
                 status, claim_token_hash)
-             VALUES (?,?,?,1,'active',?)`
+             VALUES (?,?,?,?,'active',?)`
           )
-          .bind(entitlementPublicId, payment.id, intent.id, intent.claim_token_hash),
+          .bind(entitlementPublicId, payment.id, intent.id, plan.allowed_predictions, intent.claim_token_hash),
         db
           .prepare(`UPDATE purchase_intents SET status='fulfilled', payment_id=?, fulfilled_at=? WHERE id=?`)
           .bind(payment.id, new Date().toISOString(), intent.id),

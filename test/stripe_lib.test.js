@@ -36,7 +36,7 @@ test('verifyStripeSignature: ヘッダーなし・形式不正はinvalid', async
   assert.equal(r2.reason, 'invalid_header');
 });
 
-test('createCheckoutSession: サーバー側固定の金額・商品名でリクエストが組み立てられる', async () => {
+test('createCheckoutSession: 呼び出し元が渡した金額・商品名でリクエストが組み立てられる（single=300円）', async () => {
   let capturedBody = null;
   let capturedAuth = null;
   const fakeFetch = async (url, options) => {
@@ -50,6 +50,9 @@ test('createCheckoutSession: サーバー側固定の金額・商品名でリク
   const env = { STRIPE_SECRET_KEY: TEST_STRIPE_SECRET_KEY, __testFetch: fakeFetch };
   const result = await createCheckoutSession(env, {
     intentPublicId: 'intent_xyz',
+    planCode: 'single',
+    amount: 300,
+    productName: 'LOTO6 AI PREDICTION（1予測）',
     successUrl: 'https://ai-hunter.jp/loto6/result/?session_id={CHECKOUT_SESSION_ID}#claim=abc',
     cancelUrl: 'https://ai-hunter.jp/loto6/',
   });
@@ -57,10 +60,34 @@ test('createCheckoutSession: サーバー側固定の金額・商品名でリク
   assert.equal(result.id, 'cs_test_abc');
   assert.equal(capturedAuth, `Bearer ${TEST_STRIPE_SECRET_KEY}`);
   const decoded = decodeURIComponent(capturedBody.replace(/\+/g, ' '));
-  assert.ok(decoded.includes('[unit_amount]=300'), '金額はサーバー固定の300円');
+  assert.ok(decoded.includes('[unit_amount]=300'), '金額は呼び出し元(plan_code由来)の300円');
+  assert.ok(decoded.includes('[quantity]=1'), '数量は常に1（金額側で合計を表現する）');
   assert.ok(decoded.includes('mode=payment'));
   assert.ok(decoded.includes('client_reference_id=intent_xyz'));
   assert.ok(!capturedBody.includes(TEST_STRIPE_SECRET_KEY), '秘密鍵がbodyに含まれていない（Authorizationヘッダーのみ）');
+});
+
+test('createCheckoutSession: pack50（15,000円・50予測）でも金額がそのまま渡る', async () => {
+  let capturedBody = null;
+  const fakeFetch = async (url, options) => {
+    capturedBody = options.body;
+    return new Response(JSON.stringify({ id: 'cs_test_pack50', url: 'https://checkout.stripe.com/mock/pack50' }), {
+      status: 200,
+    });
+  };
+  const env = { STRIPE_SECRET_KEY: TEST_STRIPE_SECRET_KEY, __testFetch: fakeFetch };
+  await createCheckoutSession(env, {
+    intentPublicId: 'intent_pack50',
+    planCode: 'pack50',
+    amount: 15000,
+    productName: 'LOTO6 AI PREDICTION（50予測）',
+    successUrl: 'https://ai-hunter.jp/loto6/result/?session_id={CHECKOUT_SESSION_ID}#claim=abc',
+    cancelUrl: 'https://ai-hunter.jp/loto6/',
+  });
+  const decoded = decodeURIComponent(capturedBody.replace(/\+/g, ' '));
+  assert.ok(decoded.includes('[unit_amount]=15000'));
+  assert.ok(decoded.includes('[quantity]=1'));
+  assert.ok(decoded.includes('metadata[plan_code]=pack50'));
 });
 
 test('createCheckoutSession: Stripe側エラー時は例外を投げ、詳細をそのまま漏らさない構造', async () => {
@@ -69,7 +96,15 @@ test('createCheckoutSession: Stripe側エラー時は例外を投げ、詳細を
   const env = { STRIPE_SECRET_KEY: TEST_STRIPE_SECRET_KEY, __testFetch: fakeFetch };
 
   await assert.rejects(
-    () => createCheckoutSession(env, { intentPublicId: 'x', successUrl: 'https://a', cancelUrl: 'https://b' }),
+    () =>
+      createCheckoutSession(env, {
+        intentPublicId: 'x',
+        planCode: 'single',
+        amount: 300,
+        productName: 'x',
+        successUrl: 'https://a',
+        cancelUrl: 'https://b',
+      }),
     (err) => {
       assert.ok(!err.message.includes('sensitive detail'));
       return true;

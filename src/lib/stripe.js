@@ -45,12 +45,16 @@ function encodeForm(params) {
 }
 
 /**
- * Checkout Sessionを作成する。金額・商品名はここで固定し、呼び出し元
- * （HTTPハンドラ）からクライアント指定の金額を一切受け取らない。
+ * Checkout Sessionを作成する。金額・商品名はplanCodeからサーバー側
+ * （呼び出し元がsrc/lib/plans.jsのPLAN_CATALOGを引いて渡す）で決定し、
+ * クライアント指定の金額を一切受け取らない。1line_item・quantity=1に
+ * 固定し、まとめ買いの合計金額はunit_amount側に反映する
+ * （quantityを予測数に合わせると「10予測×10」のような二重計算の
+ * 事故要因になるため、常にquantity=1・unit_amount=プラン合計金額とする）。
  */
 export async function createCheckoutSession(
   env,
-  { intentPublicId, successUrl, cancelUrl }
+  { intentPublicId, planCode, amount, productName, successUrl, cancelUrl }
 ) {
   const fetchImpl = env.__testFetch || fetch;
   const body = encodeForm({
@@ -59,11 +63,11 @@ export async function createCheckoutSession(
     'payment_method_types[0]': 'card',
     'line_items[0][quantity]': 1,
     'line_items[0][price_data][currency]': 'jpy',
-    'line_items[0][price_data][unit_amount]': 300, // サーバー側固定。クライアント値は使わない
-    'line_items[0][price_data][product_data][name]': 'LOTO6 AI PREDICTION（1予測）',
+    'line_items[0][price_data][unit_amount]': amount, // サーバー側固定（PLAN_CATALOG由来）。クライアント値は使わない
+    'line_items[0][price_data][product_data][name]': productName,
     success_url: successUrl,
     cancel_url: cancelUrl,
-    metadata: { intent_public_id: intentPublicId },
+    metadata: { intent_public_id: intentPublicId, plan_code: planCode },
   });
 
   const res = await fetchImpl(`${STRIPE_API_BASE}/checkout/sessions`, {

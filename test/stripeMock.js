@@ -34,7 +34,7 @@ export function makeFakeStripeFetch({ shouldFail = false } = {}) {
 }
 
 /** 本物と同じアルゴリズムでStripe-Signatureヘッダーを作る（テスト用） */
-export async function signStripePayload(rawBody, secret, timestampSeconds = Math.floor(Date.now() / 300)) {
+export async function signStripePayload(rawBody, secret, timestampSeconds = Math.floor(Date.now() / 1000)) {
   const signedPayload = `${timestampSeconds}.${rawBody}`;
   const key = await crypto.subtle.importKey(
     'raw',
@@ -50,12 +50,19 @@ export async function signStripePayload(rawBody, secret, timestampSeconds = Math
   return `t=${timestampSeconds},v1=${hex}`;
 }
 
-/** checkout.session.completed イベントのペイロードを組み立てる */
+/**
+ * checkout.session.completed イベントのペイロードを組み立てる。
+ * amountTotal未指定時は既存テスト（plan_code:'single'=300円）と
+ * 互換性を保つため300をデフォルトにする。
+ */
 export function buildCheckoutSessionCompletedEvent({
   eventId,
   sessionId,
   paymentStatus = 'paid',
   paymentIntentId = 'pi_test_mock_1',
+  amountTotal = 300,
+  currency = 'jpy',
+  customerEmail,
 }) {
   return {
     id: eventId,
@@ -65,6 +72,9 @@ export function buildCheckoutSessionCompletedEvent({
         id: sessionId,
         payment_status: paymentStatus,
         payment_intent: paymentIntentId,
+        amount_total: amountTotal,
+        currency,
+        ...(customerEmail ? { customer_details: { email: customerEmail } } : {}),
       },
     },
   };

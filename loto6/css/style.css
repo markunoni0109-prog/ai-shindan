@@ -767,3 +767,84 @@ button {
     overflow: hidden;
   }
 }
+
+/* ===== LOTO6 NEXUS まとめ買いプラン選択（1/10/30/50予測） =====
+   既存CTA（.nexus-generate-btn）のデザイン・文言・サイズには一切触れず、
+   価格表示(.nexus-meta .price)とCTA直上に、選択式の小さなチップ行を
+   追加するだけに留める。デフォルト選択は"1予測"＝これまでと完全に同じ
+   金額・表示・挙動になる（何も選び直さなければ現行仕様のまま）。 */
+.plan-picker {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  margin: 10px auto 0;
+  max-width: 460px;
+  position: relative;
+  z-index: 8;
+  padding: 0 8px;
+}
+.plan-chip {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: rgba(6, 16, 32, 0.72);
+  border: 1px solid rgba(89, 130, 200, 0.35);
+  color: #b9cbe6;
+  border-radius: 12px;
+  padding: 6px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+.plan-chip em {
+  font-style: normal;
+  font-size: 10.5px;
+  color: #8ea4c4;
+}
+.plan-chip.is-selected {
+  background: linear-gradient(105deg, rgba(0, 105, 224, 0.9), rgba(100, 50, 255, 0.9));
+  border-color: rgba(255, 218, 112, 0.85);
+  color: #fff;
+}
+.plan-chip.is-selected em {
+  color: #ffe9a8;
+}
+.plan-chip:active {
+  transform: translateY(1px);
+}
+
+@media (max-width: 760px) {
+  .plan-picker {
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .plan-chip {
+    font-size: 10px;
+    padding: 5px 2px;
+  }
+  .plan-chip em {
+    font-size: 9.5px;
+  }
+}
+
+/* 縦が低い端末では、CTAが画面外に出ないよう他要素の余白を詰めているのと
+   同じ理由で、プラン選択チップも一段コンパクトにする（表示自体は消さない
+   ＝購入プランを選べることが分からなくなる事態を避ける）。 */
+@media (max-height: 620px) {
+  .plan-picker {
+    margin-top: 4px;
+  }
+  .plan-chip {
+    padding: 3px 2px;
+    font-size: 9.5px;
+  }
+  .plan-chip em {
+    font-size: 9px;
+  }
+}

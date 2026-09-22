@@ -20,6 +20,7 @@
  * ------------------------------------------------------------------
  */
 import { buildPredictionChain, GENESIS_HASH } from './engine.js';
+import { PLAN_CATALOG } from './plans.js';
 
 export const MAX_CLAIM_RETRIES = 10;
 
@@ -107,6 +108,18 @@ export async function claimEntitlement(
     return { outcome: 'existing', predictions, attempts: 0 };
   }
 
+  // 【発行予測数の検証】entitlement.allowed_predictionsはDBのCHECK制約
+  // (1,10,30,50) 以外を受け付けないが、ここでも防御的に二重チェックする。
+  // plan_code(payment_plan_code)とallowed_predictionsが商品カタログと
+  // 食い違っている場合は、生成せずfail-closeする(推測で発行しない)。
+  const catalogEntry = PLAN_CATALOG[entitlement.payment_plan_code];
+  if (!catalogEntry || catalogEntry.allowed_predictions !== entitlement.allowed_predictions) {
+    throw new ClaimError(
+      'internal',
+      `entitlement.allowed_predictions(${entitlement.allowed_predictions})がplan_code(${entitlement.payment_plan_code})のカタログ値と一致しません`
+    );
+  }
+
   let lastConflict = 'none';
   for (let attempt = 1; attempt <= MAX_CLAIM_RETRIES; attempt++) {
     const tip = await getChainTip(db);
@@ -126,6 +139,14 @@ export async function claimEntitlement(
       generatedAt,
       rng,
     });
+
+    // 発行件数がentitlementの権利数と必ず一致することを保存前に確認する。
+    if (chain.length !== entitlement.allowed_predictions) {
+      throw new ClaimError(
+        'internal',
+        `生成件数(${chain.length})がallowed_predictions(${entitlement.allowed_predictions})と一致しません`
+      );
+    }
 
     const updateStmt = db
       .prepare(
