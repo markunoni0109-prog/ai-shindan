@@ -1,182 +1,60 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#E60012">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="TOILET SOS">
-<meta name="mobile-web-app-capable" content="yes">
-<title>AI HUNTER TOILET SOS</title>
-<meta name="description" content="AI HUNTER TOILET SOS｜Googleより詳しい、旅行者向け東京トイレデータベース。AI HUNTERが確認した『本当に使いたいトイレ＝神トイレ』を選んで探せます。">
-<link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="icon" href="icon-32.png" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="icon-180.png">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
-<link rel="stylesheet" href="style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>LOTO6 予測結果 | AI HUNTER</title>
+<meta name="description" content="購入済みLOTO6 AI予測の生成・保存結果を表示します。" />
+<meta name="referrer" content="no-referrer" />
+<link rel="canonical" href="https://ai-hunter.jp/loto6/result/" />
+<meta property="og:title" content="LOTO6 予測結果 | AI HUNTER" />
+<meta property="og:description" content="購入済みLOTO6 AI予測の生成・保存結果を表示します。" />
+<meta property="og:url" content="https://ai-hunter.jp/loto6/result/" />
+<meta property="og:type" content="website" />
+<link rel="stylesheet" href="../css/style.css" />
 </head>
 <body>
 
-<header class="ths-header">
-  <button id="menuBtn" class="ths-icon-btn ths-icon-btn--menu" type="button" aria-label="Menu">☰</button>
-  <div class="ths-logo">
-    <img src="icon.svg" alt="AI HUNTER" class="ths-logo__icon">
-    <div class="ths-logo__text">
-      <span class="ths-logo__title">TOILET SOS</span>
-      <span class="ths-logo__tagline" id="headerTagline">今すぐ行けるトイレを見つける</span>
-    </div>
+<div class="stage-dim" id="stageDim"></div>
+
+<main class="screen">
+  <div class="wordmark">
+    <span class="wordmark__eyebrow">AI HUNTER</span>
+    <h1 class="wordmark__title">LOTO6<br /><span>AI PREDICTION</span></h1>
   </div>
-  <div class="ths-header__actions">
-    <button id="searchToggleBtn" class="ths-icon-btn" type="button" aria-label="Search">🔍</button>
-    <button id="nearMeBtn" class="ths-icon-btn ths-icon-btn--loc" type="button" aria-label="Current location">
-      <span class="ths-icon-btn__pin">📍</span><span class="ths-icon-btn__label" id="nearMeLabel">現在地</span>
+
+  <section class="stage result-stage" id="stage">
+    <p class="analysing is-active" id="statusLabel">決済を確認しています<span class="analysing__dots" id="statusDots"></span></p>
+
+    <div class="balls nexus-balls" id="ballRow" aria-live="polite">
+      <div class="ball" data-slot="0"></div>
+      <div class="ball" data-slot="1"></div>
+      <div class="ball" data-slot="2"></div>
+      <div class="ball" data-slot="3"></div>
+      <div class="ball" data-slot="4"></div>
+      <div class="ball" data-slot="5"></div>
+    </div>
+
+    <p style="text-align:center; color:var(--text-dim); font-size:13px;" id="progressLabel"></p>
+
+    <button id="skipBulkAnimation" hidden type="button"
+      style="margin:12px auto 0;display:block;max-width:280px;width:100%;padding:11px 14px;border:1px solid var(--hairline);border-radius:999px;background:var(--surface-raised);color:var(--text);font:inherit;cursor:pointer;">
+      演出をスキップして全件表示
     </button>
-  </div>
-</header>
 
-<div id="offlineBanner" class="offline-banner hidden">📡 オフラインです（保存済みデータを表示しています）</div>
-<div id="installBanner" class="install-banner hidden">
-  <span id="installText">ホーム画面に追加すると次から早く開けます</span>
-  <button id="installBtn" class="install-btn" type="button">追加する</button>
-  <button id="installDismiss" class="install-dismiss" type="button" aria-label="Dismiss">✕</button>
-</div>
-
-<!-- Slide-in menu: city/area selection, language, ranking view, about -->
-<div id="sideMenu" class="side-menu hidden">
-  <div class="side-menu__backdrop" id="sideMenuBackdrop"></div>
-  <div class="side-menu__panel">
-    <button id="sideMenuClose" class="side-menu__close" type="button" aria-label="Close">✕</button>
-    <h3 class="side-menu__heading" id="sideMenuAreaHeading">エリアを選ぶ</h3>
-    <h3 class="side-menu__heading">🏆 <span id="viewRankingLabel">神トイレランキング</span></h3>
-    <div class="chip-row" id="viewModeChips">
-      <button id="viewBrowse" class="chip" type="button" data-active="true">📋 一覧</button>
-      <button id="viewRanking" class="chip" type="button" data-active="false">🏆 ランキング</button>
-    </div>
-    <h3 class="side-menu__heading">Language</h3>
-    <button id="langToggle" class="lang-toggle" type="button" aria-label="Switch language">EN</button>
-    <button id="openSponsorInfo" class="lang-toggle hidden" type="button" aria-hidden="true" tabindex="-1"><span id="sponsorInfoLinkLabel">掲載・スポンサーについて</span></button>
-    <p class="side-menu__footnote" id="footerNote">AI HUNTER FACTORY100｜データは有志収集ベース（COMMUNITY）。営業時間・設備は現地で要確認。</p>
-  </div>
-</div>
-
-<!-- Slide-up filter sheet: search / area / category / rank / baby -->
-<div id="filterSheet" class="detail-sheet hidden">
-  <div class="detail-sheet__panel">
-    <button id="filterSheetClose" class="detail-sheet__close" type="button" aria-label="Close">✕</button>
-    <h3 class="side-menu__heading" id="filterSheetHeading">絞り込み</h3>
-    <input id="searchInput" class="search-input" type="search" placeholder="施設名・エリアで検索…" />
-    <select id="areaSelect" class="area-select area-select--full" aria-label="Area filter"></select>
-    <div class="chip-row" id="rankChips"></div>
-    <div class="chip-row" id="quickFiltersExtra">
-      <button id="filterBaby" class="chip" type="button" data-active="false">👶 ベビー設備</button>
-    </div>
-    <div id="categoryChips" class="chip-row" role="tablist" aria-label="Category filter"></div>
-  </div>
-</div>
-
-<!-- Sponsor info sheet: concept + FREE/PARTNER/PREMIUM plans + one clearly-labeled demo card -->
-<div id="sponsorInfoSheet" class="detail-sheet hidden" aria-hidden="true">
-  <div class="detail-sheet__panel">
-    <button id="sponsorInfoClose" class="detail-sheet__close" type="button" aria-label="Close">✕</button>
-    <h3 class="side-menu__heading" id="sponsorInfoTitle">AI HUNTER TOILET SOSとは</h3>
-    <p class="sponsor-info__lead" id="sponsorInfoLead">
-      トイレを探しているユーザーを、近隣の店舗・施設へ送客します。店舗PRから地図での誘導まで、ワンタップで完結します。
-    </p>
-    <div class="sponsor-plan">
-      <div class="sponsor-plan__name">FREE</div>
-      <ul class="sponsor-plan__list" id="sponsorPlanFreeList"></ul>
-    </div>
-    <div class="sponsor-plan sponsor-plan--partner">
-      <div class="sponsor-plan__name">PARTNER</div>
-      <ul class="sponsor-plan__list" id="sponsorPlanPartnerList"></ul>
-    </div>
-    <div class="sponsor-plan sponsor-plan--premium">
-      <div class="sponsor-plan__name">PREMIUM / 認定店</div>
-      <ul class="sponsor-plan__list" id="sponsorPlanPremiumList"></ul>
-    </div>
-    <p class="sponsor-info__pricing" id="sponsorInfoPricing">
-      料金は月額掲載モデルを想定しており、現時点では確定金額を掲載しておりません。詳細はお問い合わせください。
-    </p>
-    <h4 class="side-menu__heading" id="sponsorDemoHeading">掲載イメージ（デモ）</h4>
-    <div id="sponsorDemoCard"></div>
-    <p class="sponsor-info__disclaimer" id="sponsorInfoDisclaimer">
-      ※上記はレイアウトのサンプルであり、実在の店舗・契約・認定関係を示すものではありません。「スポンサー募集中」の枠です。
-    </p>
-  </div>
-</div>
-
-<main id="app">
-
-  <!-- God Toilet is intentionally NOT a top-screen button.
-       It stays integrated into the normal map/list via the black-gold crown marker,
-       while the separate ranking remains available from the bottom Ranking tab. -->
-  <section id="godZone" class="god-banner hidden" aria-hidden="true">
-    <button id="godToiletBtn" type="button" tabindex="-1" aria-hidden="true"></button>
-    <span id="godBannerTitle"></span><span id="godBannerSub"></span>
-    <span id="godPushLabel"></span><span id="godDescLabel"></span>
-  </section>
-  <section id="godResults" class="god-results hidden" aria-live="polite"></section>
-
-  <nav class="city-bar city-bar--horizontal" id="cityBar" aria-label="City selector"></nav>
-
-  <div class="filter-bar">
-    <button id="sortNearest" class="filter-pill" data-active="true" type="button">
-      <span class="filter-pill__icon">☰</span><span id="sortNearestLabel">近い順</span>
-    </button>
-    <button id="filter24h" class="filter-pill" type="button" data-active="false">
-      <span class="filter-pill__icon">🕐</span><span id="filter24hLabel">24時間</span>
-    </button>
-    <button id="filterWheelchair" class="filter-pill" type="button" data-active="false">
-      <span class="filter-pill__icon">♿</span><span id="filterWheelchairLabel">バリアフリー</span>
-    </button>
-    <button id="openFilterSheet" class="filter-pill filter-pill--ghost" type="button">
-      <span class="filter-pill__icon">⚙️</span><span id="openFilterSheetLabel">絞り込み</span>
-    </button>
-  </div>
-
-  <section id="mapSection" class="map-section">
-    <div id="leafletMap" class="leaflet-map"></div>
+    <p class="result-hold" id="redirectNote"></p>
+    <div class="error-msg" id="errorMsg"></div>
   </section>
 
-  <section class="browse-zone">
-    <div id="resultMeta" class="result-meta"></div>
-    <div id="listContainer" class="list-container"></div>
-    <button id="showMoreBtn" class="show-more-btn hidden" type="button">
-      <span id="showMoreLabel">もっと見る</span> <span aria-hidden="true">⌄</span>
-    </button>
-  </section>
+  <div id="resultsList"></div>
 
+  <a class="history-link" href="../predictions/">予測履歴を見る →</a>
+  <a class="history-link" href="../my/">マイ予測（購入した予測をいつでも見る） →</a>
+
+  <p class="meta__note" style="text-align:center">予測は娯楽。履歴はガチ。</p>
 </main>
 
-<div id="detailSheet" class="detail-sheet hidden">
-  <div class="detail-sheet__panel">
-    <button id="detailClose" class="detail-sheet__close" type="button" aria-label="Close">✕</button>
-    <div id="detailContent"></div>
-  </div>
-</div>
-
-<nav class="bottom-tabs">
-  <button class="bottom-tab" id="tabHome" data-active="true" type="button">
-    <span class="bottom-tab__icon">🏠</span><span id="tabHomeLabel">ホーム</span>
-  </button>
-  <button class="bottom-tab" id="tabMap" data-active="false" type="button">
-    <span class="bottom-tab__icon">🗺️</span><span id="tabMapLabel">地図</span>
-  </button>
-  <button class="bottom-tab" id="tabFavorites" data-active="false" type="button">
-    <span class="bottom-tab__icon">⭐</span><span id="tabFavoritesLabel">お気に入り</span>
-  </button>
-  <button class="bottom-tab" id="tabRanking" data-active="false" type="button">
-    <span class="bottom-tab__icon">🏆</span><span id="tabRankingLabel">ランキング</span>
-  </button>
-</nav>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-<script src="i18n.js"></script>
-<script src="app.js"></script>
+<script src="../js/api-config.js"></script>
+<script src="result.js"></script>
 </body>
 </html>
