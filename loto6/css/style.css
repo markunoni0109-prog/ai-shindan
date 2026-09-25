@@ -655,6 +655,29 @@ button {
   min-height: 16px;
 }
 
+/* まとめ買い(10/30/50予測)の演出を、その場で中断して残り全件を
+   即座に一覧表示するためのスキップボタン。演出中のみ表示する。 */
+.skip-btn {
+  display: none;
+  margin: 12px auto 0;
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.skip-btn.is-visible {
+  display: block;
+}
+
+.skip-btn:hover {
+  color: var(--text);
+  border-color: var(--accent-glow);
+}
+
 /* 決済後リザルト画面では、ホーム画面用に用意された小幅ブレークポイント
    （@media max-width:760px/380pxの.nexus-balls .ball指定）を継承すると
    320〜375px幅でボールが小さいまま（46px）になってしまう。ホーム画面側の
