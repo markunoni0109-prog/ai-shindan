@@ -1,6 +1,20 @@
 /**
  * LOTO6 NEXUS paid checkout launcher.
- * iPhone CTA layout fix included.
+ * The home CTA never generates numbers locally. It creates a server-side
+ * Checkout Session for the selected plan (single/pack10/pack30/pack50) and
+ * redirects to Stripe. Prediction generation happens only after a paid
+ * webhook has fulfilled the entitlement.
+ *
+ * 【プラン選択】画面上部の.plan-pickerで選んだプランのplan_codeをそのまま
+ * checkout/create へ送る。金額はサーバー側(PLAN_CATALOG)で決まるため、
+ * ここで送るamount/countは表示更新にしか使わない（サーバーは信用しない）。
+ *
+ * 【QAモードの安全設計】
+ * URLに ?qa=1 が付いている間は、CTAを押しても本番Stripeへは絶対に
+ * 進ませない（/api/checkout/createを一切呼ばない）。QAモードは
+ * 「実決済なしで演出を確認する」ためのものであり、実際にCTAを押すと
+ * 本番決済に進んでしまっていたのは事故のもとだったため、ここで
+ * 明示的に遮断し、代わりに無料QA用の結果演出プレビューへ誘導する。
  */
 (function () {
   const generateBtn = document.getElementById('generateBtn');
@@ -10,55 +24,7 @@
   const priceValue = document.getElementById('priceValue');
   const ctaTitle = document.getElementById('ctaTitle');
   const ctaAmount = document.getElementById('ctaAmount');
-  const ctaCopy = generateBtn && generateBtn.querySelector('.generate-btn__copy');
-  const ctaMeta = ctaCopy && ctaCopy.querySelector('em');
   let busy = false;
-
-  /* iPhone幅でまとめ買い文言が重ならないための限定補正。
-     PCや結果画面には影響させない。 */
-  const fixStyle = document.createElement('style');
-  fixStyle.textContent = `
-    @media (max-width: 430px) {
-      .nexus-stage .nexus-generate-btn {
-        grid-template-columns: 42px minmax(0,1fr) 42px;
-        gap: 7px;
-        padding-left: 10px;
-        padding-right: 10px;
-      }
-      .nexus-stage .nexus-generate-btn .generate-btn__copy {
-        min-width: 0;
-        width: 100%;
-      }
-      .nexus-stage .nexus-generate-btn .generate-btn__copy strong {
-        display: block;
-        width: 100%;
-        min-height: 44px;
-        font-size: 18px;
-        line-height: 1.22;
-        letter-spacing: 0;
-        text-align: center;
-        word-break: keep-all;
-        overflow-wrap: normal;
-      }
-      .nexus-stage .nexus-generate-btn .generate-btn__copy em {
-        display: block;
-        margin-top: 5px;
-        font-size: 10px;
-        line-height: 1.2;
-        white-space: nowrap;
-      }
-      .nexus-stage .nexus-generate-btn .generate-btn__copy b {
-        font-size: 14px;
-        margin-left: 5px;
-      }
-    }
-    @media (max-width: 380px) {
-      .nexus-stage .nexus-generate-btn .generate-btn__copy strong {
-        font-size: 17px;
-      }
-    }
-  `;
-  document.head.appendChild(fixStyle);
 
   function isQaMode() {
     return new URLSearchParams(location.search).get('qa') === '1';
@@ -73,27 +39,13 @@
     };
   }
 
-  function setCtaMeta(count, amountText) {
-    if (!ctaMeta) return;
-    while (ctaMeta.firstChild && ctaMeta.firstChild !== ctaAmount) {
-      ctaMeta.removeChild(ctaMeta.firstChild);
-    }
-    ctaMeta.insertBefore(
-      document.createTextNode(count === 1 ? '1 PREDICTION ' : `${count} PREDICTIONS `),
-      ctaAmount
-    );
-    ctaAmount.textContent = amountText;
-  }
-
   function updatePriceDisplay() {
     const { amount, count } = selectedPlan();
     const amountText = '¥' + amount.toLocaleString('ja-JP');
     if (priceLabel) priceLabel.textContent = count === 1 ? '1 PREDICTION' : `${count} PREDICTIONS`;
     if (priceValue) priceValue.textContent = amountText;
-    setCtaMeta(count, amountText);
-    if (ctaTitle) {
-      ctaTitle.textContent = count === 1 ? 'AI予測を生成' : `AI予測を${count}件まとめて生成`;
-    }
+    if (ctaAmount) ctaAmount.textContent = amountText;
+    if (ctaTitle) ctaTitle.textContent = count === 1 ? 'AI予測を生成' : `AI予測を${count}件まとめて生成`;
     if (generateBtn) generateBtn.setAttribute('aria-label', `${amountText}でAI予測を${count}件生成`);
   }
 
@@ -116,6 +68,8 @@
     if (busy) return;
 
     if (isQaMode()) {
+      // 【安全設計】QAモード中はCTAを押しても本番Stripeには一切進まない。
+      // 実決済なしで確認できる無料QA（結果演出プレビュー）へ誘導する。
       const { count } = selectedPlan();
       location.href = `result/index.html?qa=1&count=${count}`;
       return;
@@ -144,6 +98,7 @@
       }
       if (!body.checkout_url || !body.claim_token) throw new Error('invalid_checkout_response');
 
+      // Temporary browser fallback only. The authoritative entitlement is server-side.
       sessionStorage.setItem('loto6_claim_token', body.claim_token);
       if (body.access_token) sessionStorage.setItem('loto6_access_token', body.access_token);
       location.assign(body.checkout_url);
