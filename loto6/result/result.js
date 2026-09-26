@@ -256,11 +256,21 @@
     const statusLine = qaMode
       ? '（QA表示のみ・実際の保存は行われていません）'
       : '✓ この予測は保存されました';
+    // 履歴件数が増えても何口目のカードか一目で分かるよう連番を振る
+    // （resultsListに既に積まれているカード数から算出。表示専用の
+    // 連番であり、prediction_idそのものは書き換えない）。
+    // このカードは決済直後の一覧のみを目的とし、display_id等のID表示は
+    // 出さない方針（正本では内部ID・技術情報を通常表示しない）。
+    // 該当予測を後から特定したい場合は「予測履歴」「マイ予測」を使う。
+    const cardNo = resultsList.children.length + 1;
+    const ballsHtml = prediction.numbers
+      .map((n) => `<span class="result-ball">${String(n).padStart(2, '0')}</span>`)
+      .join('');
     el.innerHTML = `
-      <div class="result__row">
-        <span>${prediction.display_id}</span>
-        <span>${prediction.numbers.map((n) => String(n).padStart(2, '0')).join(' ')}</span>
+      <div class="result__head">
+        <span class="result__no">No.${cardNo}</span>
       </div>
+      <div class="result__balls">${ballsHtml}</div>
       <div class="result__locked">${statusLine}</div>
     `;
     resultsList.appendChild(el);
