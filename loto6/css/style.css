@@ -323,15 +323,23 @@ button {
   }
 }
 
-/* ---------- result card ---------- */
+/* ---------- result card ----------
+   予測履歴カード（#resultsListに1口ずつ積み上がるカード）。
+   件数が10〜50件に増えてもカード同士の境界がはっきり分かるよう、
+   枠線に加えて背景差・影を付け、6数字は「主役」として大きな球で
+   表示する（iPhone実機でも数字が一目で読めることを優先）。
+   ボヨーン演出本体（.ball / .nexus-balls 等）とは別クラスにして、
+   演出側のopacity/transformアニメーションと絶対に干渉させない。
+------------------------------------ */
 
 .result {
   width: 100%;
   border-radius: var(--radius);
   border: 1px solid var(--hairline);
-  background: var(--surface);
+  background: var(--surface-raised);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
   padding: 20px;
-  margin-top: 22px;
+  margin-top: 18px;
   opacity: 0;
   transform: translateY(6px);
   transition: opacity 0.4s ease, transform 0.4s ease;
@@ -342,26 +350,73 @@ button {
   transform: translateY(0);
 }
 
-.result__row {
+.result__head {
   display: flex;
-  justify-content: space-between;
   align-items: baseline;
-  font-size: 13px;
-  color: var(--text-dim);
-  margin-bottom: 4px;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.result__no {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+
+.result__balls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.result-ball {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, var(--surface-raised), var(--surface));
+  border: 1px solid rgba(108, 140, 255, 0.4);
+  box-shadow: 0 0 0 1px rgba(108, 140, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.3);
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
 }
 
 .result__locked {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-top: 14px;
+  margin-top: 16px;
   padding: 10px 14px;
   border-radius: var(--radius-sm);
   background: var(--locked-soft);
   color: var(--locked);
   font-size: 13px;
   font-weight: 500;
+}
+
+@media (min-width: 375px) {
+  .result-ball {
+    width: 50px;
+    height: 50px;
+    font-size: 18px;
+  }
+}
+
+@media (min-width: 440px) {
+  .result-ball {
+    width: 54px;
+    height: 54px;
+    font-size: 19px;
+  }
 }
 
 /* ---------- error ---------- */
