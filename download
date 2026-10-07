@@ -1,0 +1,4 @@
+node_modules/
+wrangler.deploy.toml
+.wrangler/
+wrangler.audit.toml
