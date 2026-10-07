@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>AI HUNTER | LOTO6 NEXUS</title>
-<meta name="description" content="AI HUNTER LOTO6 NEXUS。AIが6つの数字を生成し、予測を事前保存。研究・娯楽目的の予測サービスです。" />
+<meta name="description" content="AI HUNTER LOTO6 NEXUS。AIが6つの数字を分析・生成し、結果を事前保存。現在FREE PUBLIC BETA実施中、24時間に1回無料でご利用いただけます（研究・娯楽目的）。" />
 <script>
 /* iOS Safariは下部ツールバーの表示/非表示でビューポート高さが動的に変わり、
    100dvhだけでは反映タイミングにズレが出ることがある。window.visualViewport
@@ -47,20 +47,25 @@
 
     <div class="meta nexus-meta">
       <p class="meta__draw" id="drawNumberLabel">PERMANENT TRACKING</p>
-      <div class="price"><span class="price__label" id="priceLabel">1 PREDICTION</span><span class="price__value" id="priceValue">¥300</span></div>
+      <div class="price"><span class="price__label" id="priceLabel">FREE PUBLIC BETA</span><span class="price__value" id="priceValue">無料</span></div>
     </div>
+    <p class="meta__note" id="freeTierNote">24時間に1回、無料でAI数字分析を生成できます。</p>
 
+    <!-- 【FREE PUBLIC BETA】有料プラン選択UI(plan-picker)は削除せずコメントアウトのみで温存する。
+         有料再開時は下のコメントを外し、js/app.js側のStripe決済コード（同じくコメントアウトで温存済み）も
+         元に戻すだけで有料販売を再開できる（Stripe/Webhook/D1購入系は無変更。有料の正式料金は5予測¥300・10予測¥500・30予測¥1,000・50予測¥1,500）。
     <div class="plan-picker" id="planPicker" role="radiogroup" aria-label="購入する予測数を選択">
-      <button type="button" class="plan-chip is-selected" data-plan="single" data-amount="300" data-count="1" role="radio" aria-checked="true">1予測<em>¥300</em></button>
-      <button type="button" class="plan-chip" data-plan="pack10" data-amount="3000" data-count="10" role="radio" aria-checked="false">10予測<em>¥3,000</em></button>
-      <button type="button" class="plan-chip" data-plan="pack30" data-amount="9000" data-count="30" role="radio" aria-checked="false">30予測<em>¥9,000</em></button>
-      <button type="button" class="plan-chip" data-plan="pack50" data-amount="15000" data-count="50" role="radio" aria-checked="false">50予測<em>¥15,000</em></button>
+      <button type="button" class="plan-chip is-selected" data-plan="pack5" data-amount="300" data-count="5" role="radio" aria-checked="true">5予測<em>¥300</em></button>
+      <button type="button" class="plan-chip" data-plan="pack10" data-amount="500" data-count="10" role="radio" aria-checked="false">10予測<em>¥500</em></button>
+      <button type="button" class="plan-chip" data-plan="pack30" data-amount="1000" data-count="30" role="radio" aria-checked="false">30予測<em>¥1,000</em></button>
+      <button type="button" class="plan-chip" data-plan="pack50" data-amount="1500" data-count="50" role="radio" aria-checked="false">50予測<em>¥1,500</em></button>
     </div>
+    -->
 
     <section class="stage nexus-stage" id="stage">
-      <button class="generate-btn nexus-generate-btn" id="generateBtn" type="button" aria-label="300円でAI予測を1件生成">
+      <button class="generate-btn nexus-generate-btn" id="generateBtn" type="button" aria-label="無料でAI数字分析を生成">
         <span class="generate-btn__icon" aria-hidden="true">◎</span>
-        <span class="generate-btn__copy"><small>AIが導く、もうひとつの可能性</small><strong id="ctaTitle">AI予測を生成</strong><em>1 PREDICTION <b id="ctaAmount">¥300</b></em></span>
+        <span class="generate-btn__copy"><small>AIが導く、もうひとつの可能性</small><strong id="ctaTitle">無料でAI数字分析を生成</strong><em>FREE <b id="ctaAmount">24時間に1回</b></em></span>
         <span class="generate-btn__arrow" aria-hidden="true">›</span>
       </button>
       <p class="analysing" id="analysingLabel">AI解析中<span class="analysing__dots" id="analysingDots"></span></p>

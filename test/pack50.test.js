@@ -10,7 +10,7 @@ import {
 } from './stripeMock.js';
 
 /**
- * pack50（15,000円・50予測）専用の直接検証。
+ * pack50（1,500円・50予測）専用の直接検証。
  * bulk_purchase.test.jsの全プラン共通ループでも価格/件数/重複なし/
  * Permanent Tracking(features)対象はカバー済みだが、ユーザー指示により
  * pack50単体で「50件生成・50件保存・prediction_id/record_hash重複なし・
@@ -42,7 +42,7 @@ async function createPack50Session(env) {
   const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'pack50' }), env);
   assert.equal(createRes.status, 200);
   const createBody = await createRes.json();
-  assert.equal(createBody.amount, 15000);
+  assert.equal(createBody.amount, 1500);
   assert.equal(createBody.allowed_predictions, 50);
   const tokenHash = await hashClaimToken(createBody.claim_token);
   const intentRow = await env.DB.prepare(
@@ -61,7 +61,7 @@ test('pack50: 50件生成・50件D1保存・prediction_id/record_hash重複な�
   const event = buildCheckoutSessionCompletedEvent({
     eventId: 'evt_pack50_direct',
     sessionId,
-    amountTotal: 15000,
+    amountTotal: 1500,
     paymentIntentId: `pi_${sessionId}`,
   });
   const webhookRes = await sendSignedWebhook(env, event);
@@ -98,7 +98,7 @@ test('pack50: Permanent Tracking初期化（prediction_generation_features・pre
   const event = buildCheckoutSessionCompletedEvent({
     eventId: 'evt_pack50_tracking',
     sessionId,
-    amountTotal: 15000,
+    amountTotal: 1500,
     paymentIntentId: `pi_${sessionId}`,
   });
   await sendSignedWebhook(env, event);
@@ -127,7 +127,7 @@ test('pack50: Webhook冪等性（同一event_id・同一session_idの再送で�
   const event = buildCheckoutSessionCompletedEvent({
     eventId: 'evt_pack50_dup',
     sessionId,
-    amountTotal: 15000,
+    amountTotal: 1500,
     paymentIntentId: `pi_${sessionId}`,
   });
 

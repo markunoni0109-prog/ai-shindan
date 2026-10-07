@@ -58,6 +58,11 @@ async function purchasePlan(env, planCode, { amountTotalOverride } = {}) {
 }
 
 for (const [planCode, plan] of Object.entries(PLAN_CATALOG)) {
+  // 'free'(FREE PUBLIC BETA)とレガシー'single'(販売終了)はStripe決済の対象外
+  // (checkout/createはpurchasable:false を拒否する)。
+  // このループは「Stripeで購入できるプラン」の検証が目的のため対象外とする。
+  if (!plan.purchasable) continue;
+
   test(`${planCode}: 価格(¥${plan.amount})でCheckout Sessionが作られ、金額はサーバー固定`, async () => {
     const db = createTestDb();
     const env = createTestEnv(db);
@@ -112,7 +117,7 @@ test('Webhook冪等性: まとめ買い(pack30)でも同一event_id再送で予�
     .bind(tokenHash)
     .first();
   const sessionId = intentRow.stripe_checkout_session_id;
-  const event = buildCheckoutSessionCompletedEvent({ eventId: 'evt_pack30_dup', sessionId, amountTotal: 9000 });
+  const event = buildCheckoutSessionCompletedEvent({ eventId: 'evt_pack30_dup', sessionId, amountTotal: 1000 });
 
   const res1 = await sendSignedWebhook(env, event);
   const res2 = await sendSignedWebhook(env, event); // 完全に同じWebhookを再送
@@ -134,7 +139,7 @@ test('Webhook冪等性: まとめ買い(pack30)でも同一event_id再送で予�
 test('決済金額検証: session.amount_totalがplan_codeの期待金額と食い違う場合は購入権を発行しない(fail-close)', async () => {
   const db = createTestDb();
   const env = createTestEnv(db);
-  const { webhookRes } = await purchasePlan(env, 'pack10', { amountTotalOverride: 300 }); // 3000円のはずが300円しか払われていない体
+  const { webhookRes } = await purchasePlan(env, 'pack10', { amountTotalOverride: 499 }); // 500円のはずが499円しか払われていない体
   assert.equal(webhookRes.status, 200, 'Stripeへは200を返す(再送を止めるため)');
   const webhookBody = await webhookRes.json();
   assert.equal(webhookBody.ignored, 'amount_mismatch');
@@ -148,7 +153,7 @@ test('決済金額検証: session.amount_totalがplan_codeの期待金額と食�
 test('決済金額検証: 通貨がjpy以外の場合も発行しない(fail-close)', async () => {
   const db = createTestDb();
   const env = createTestEnv(db);
-  const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'single' }), env);
+  const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'pack5' }), env);
   const createBody = await createRes.json();
   const tokenHash = await hashClaimToken(createBody.claim_token);
   const intentRow = await env.DB.prepare(
@@ -179,7 +184,7 @@ test('マイ予測: access_tokenで購入日時・件数・6数字・prediction_
   assert.equal(res.status, 200);
   const body = await res.json();
   assert.equal(body.plan_code, 'pack10');
-  assert.equal(body.amount, 3000);
+  assert.equal(body.amount, 500);
   assert.equal(body.purchase_count, 10);
   assert.ok(typeof body.purchased_at === 'string' && body.purchased_at.length > 0, '購入日時が含まれる');
   assert.equal(body.predictions.length, 10);
@@ -194,7 +199,7 @@ test('マイ予測: access_tokenで購入日時・件数・6数字・prediction_
 test('マイ予測: 再閲覧は何度でもでき、内容は都度D1から一致した結果が返る（localStorage前提ではない）', async () => {
   const db = createTestDb();
   const env = createTestEnv(db);
-  const { createBody } = await purchasePlan(env, 'single');
+  const { createBody } = await purchasePlan(env, 'pack5');
   await worker.fetch(req('POST', '/api/predictions/claim', { claim_token: createBody.claim_token }), env);
 
   const res1 = await worker.fetch(req('POST', '/api/my-predictions', { access_token: createBody.access_token }), env);
@@ -219,7 +224,7 @@ test('マイ予測: 他人の購入へは推測・列挙でアクセスできな
 test('マイ予測: claim_tokenをaccess_tokenとして渡しても他人の予測は見えない（トークン種別の取り違え防止）', async () => {
   const db = createTestDb();
   const env = createTestEnv(db);
-  const { createBody } = await purchasePlan(env, 'single');
+  const { createBody } = await purchasePlan(env, 'pack5');
   await worker.fetch(req('POST', '/api/predictions/claim', { claim_token: createBody.claim_token }), env);
 
   // claim_tokenの平文をそのままaccess_tokenとして送っても、
@@ -231,7 +236,7 @@ test('マイ予測: claim_tokenをaccess_tokenとして渡しても他人の予�
 test('マイ予測: 別の購入者(別access_token)からは互いの予測が見えない', async () => {
   const db = createTestDb();
   const env = createTestEnv(db);
-  const purchaseA = await purchasePlan(env, 'single');
+  const purchaseA = await purchasePlan(env, 'pack5');
   const purchaseB = await purchasePlan(env, 'pack10');
   await worker.fetch(req('POST', '/api/predictions/claim', { claim_token: purchaseA.createBody.claim_token }), env);
   await worker.fetch(req('POST', '/api/predictions/claim', { claim_token: purchaseB.createBody.claim_token }), env);
@@ -241,7 +246,7 @@ test('マイ予測: 別の購入者(別access_token)からは互いの予測が�
     env
   );
   const bodyA = await resA.json();
-  assert.equal(bodyA.purchase_count, 1, 'Aは自分の1件しか見えない');
+  assert.equal(bodyA.purchase_count, 5, 'Aは自分の5件しか見えない');
 
   const resB = await worker.fetch(
     req('POST', '/api/my-predictions', { access_token: purchaseB.createBody.access_token }),
@@ -262,7 +267,7 @@ test('QAモード安全性: フロントの?qa=1相当のパラメータをサ�
   // 通常の本番Checkout Session作成と同じ経路にしかならないことを確認する
   // （サーバー側に「QA用に決済をスキップする」特別分岐が存在しないことの検証）。
   const res = await worker.fetch(
-    req('POST', '/api/checkout/create', { plan_code: 'single', qa: 1, test: true }),
+    req('POST', '/api/checkout/create', { plan_code: 'pack5', qa: 1, test: true }),
     env
   );
   assert.equal(res.status, 200);
@@ -270,24 +275,25 @@ test('QAモード安全性: フロントの?qa=1相当のパラメータをサ�
   assert.ok(body.checkout_url.startsWith('https://checkout.stripe.com/'), '常に本物のCheckout Session URLが返る');
 });
 
-test('既存300円1予測の回帰テスト: 従来どおり1件生成・claim・historyに反映される', async () => {
+test('5予測300円: 5件生成・claim・historyに全件反映される', async () => {
   const db = createTestDb();
   const env = createTestEnv(db);
-  const { createBody, webhookRes } = await purchasePlan(env, 'single');
+  const { createBody, webhookRes } = await purchasePlan(env, 'pack5');
   assert.equal(webhookRes.status, 200);
 
   const claimRes = await worker.fetch(req('POST', '/api/predictions/claim', { claim_token: createBody.claim_token }), env);
   const claimBody = await claimRes.json();
   assert.equal(claimBody.outcome, 'created');
-  assert.equal(claimBody.predictions.length, 1);
+  assert.equal(claimBody.predictions.length, 5);
 
   const histRes = await worker.fetch(req('GET', '/api/history'), env);
   const histBody = await histRes.json();
-  assert.equal(histBody.predictions.length, 1);
-  assert.equal(histBody.predictions[0].prediction_id, claimBody.predictions[0].prediction_id);
+  assert.equal(histBody.predictions.length, 5);
+  const histIds = new Set(histBody.predictions.map((p) => p.prediction_id));
+  for (const p of claimBody.predictions) assert.ok(histIds.has(p.prediction_id));
 
   const dbCount = await db.prepare('SELECT COUNT(*) AS c FROM predictions').first();
-  assert.equal(dbCount.c, 1);
+  assert.equal(dbCount.c, 5);
 });
 
 test('不正なplan_codeは引き続き400', async () => {

@@ -233,7 +233,7 @@ test('batch途中失敗：複数文batchの後続失敗で全ロールバック�
     drawNumber: '1850',
     paymentPublicId: 'probe',
     entitlementPublicId: 'probe',
-    planCode: 'single',
+    planCode: 'free',
     previousHash0: GENESIS_HASH,
     generatedAt: new Date().toISOString(),
   });
@@ -257,14 +257,14 @@ test('batch途中失敗：複数文batchの後続失敗で全ロールバック�
     `INSERT INTO predictions
        (prediction_id, display_sequence, draw_number, number_1,number_2,number_3,number_4,number_5,number_6,
         combination_key, generated_at, payment_id, entitlement_id, prediction_index, plan_code, algorithm_version, previous_hash, record_hash)
-     VALUES ('test-atomic-1', 999901, '1850', 1,2,3,4,5,6, 'atomic-test-combo-A', datetime('now'), 1, 1, 0, 'single','prototype-v1','P','R1')`
+     VALUES ('test-atomic-1', 999901, '1850', 1,2,3,4,5,6, 'atomic-test-combo-A', datetime('now'), 1, 1, 0, 'free','prototype-v1','P','R1')`
   );
   // 2文目はcombination_keyを1文目と衝突させて意図的に失敗させる
   const failStmt2 = db.prepare(
     `INSERT INTO predictions
        (prediction_id, display_sequence, draw_number, number_1,number_2,number_3,number_4,number_5,number_6,
         combination_key, generated_at, payment_id, entitlement_id, prediction_index, plan_code, algorithm_version, previous_hash, record_hash)
-     VALUES ('test-atomic-2', 999902, '1850', 7,8,9,10,11,12, 'atomic-test-combo-A', datetime('now'), 1, 1, 1, 'single','prototype-v1','P2','R2')`
+     VALUES ('test-atomic-2', 999902, '1850', 7,8,9,10,11,12, 'atomic-test-combo-A', datetime('now'), 1, 1, 1, 'free','prototype-v1','P2','R2')`
   );
 
   await assert.rejects(() => db.batch([okStmt1, failStmt2]));

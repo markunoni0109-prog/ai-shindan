@@ -62,7 +62,7 @@ test('復旧メール発行→リンク引き換えで新しいaccess_tokenが�
   const db = createTestDb();
   const { env, sentEmails } = testEnv(db);
 
-  const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'single' }), env);
+  const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'pack5' }), env);
   const createBody = await createRes.json();
   const tokenHash = await hashClaimToken(createBody.claim_token);
   const intentRow = await env.DB.prepare('SELECT stripe_checkout_session_id FROM purchase_intents WHERE claim_token_hash=?').bind(tokenHash).first();
@@ -96,15 +96,15 @@ test('復旧メール発行→リンク引き換えで新しいaccess_tokenが�
   const myPredRes = await worker.fetch(req('POST', '/api/my-predictions', { access_token: newAccessToken }), env);
   assert.equal(myPredRes.status, 200);
   const myPredBody = await myPredRes.json();
-  assert.equal(myPredBody.plan_code, 'single');
-  assert.equal(myPredBody.purchase_count, 1);
+  assert.equal(myPredBody.plan_code, 'pack5');
+  assert.equal(myPredBody.purchase_count, 5);
 });
 
 test('復旧トークンのローテーションにより、古いaccess_tokenは復旧後に無効になる', async () => {
   const db = createTestDb();
   const { env } = testEnv(db);
 
-  const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'single' }), env);
+  const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'pack5' }), env);
   const createBody = await createRes.json();
   const tokenHash = await hashClaimToken(createBody.claim_token);
   const intentRow = await env.DB.prepare('SELECT stripe_checkout_session_id FROM purchase_intents WHERE claim_token_hash=?').bind(tokenHash).first();
@@ -149,7 +149,7 @@ test('不正な形式のメールアドレスは400（列挙とは無関係な�
 test('復旧トークンは単回使用（2回目のredeemは404）', async () => {
   const db = createTestDb();
   const { env, sentEmails } = testEnv(db);
-  const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'single' }), env);
+  const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'pack5' }), env);
   const createBody = await createRes.json();
   const tokenHash = await hashClaimToken(createBody.claim_token);
   const intentRow = await env.DB.prepare('SELECT stripe_checkout_session_id FROM purchase_intents WHERE claim_token_hash=?').bind(tokenHash).first();
@@ -168,7 +168,7 @@ test('復旧トークンは単回使用（2回目のredeemは404）', async () =
 test('期限切れの復旧トークンは404（内部エラー詳細は漏らさない）', async () => {
   const db = createTestDb();
   const { env, sentEmails } = testEnv(db);
-  const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'single' }), env);
+  const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'pack5' }), env);
   const createBody = await createRes.json();
   const tokenHash = await hashClaimToken(createBody.claim_token);
   const intentRow = await env.DB.prepare('SELECT stripe_checkout_session_id FROM purchase_intents WHERE claim_token_hash=?').bind(tokenHash).first();
@@ -191,13 +191,13 @@ test('同じメールで複数購入していれば、復旧で全購入分の�
   const { env, sentEmails } = testEnv(db);
   const email = 'multi@example.com';
 
-  for (const planCode of ['single', 'pack10']) {
+  for (const planCode of ['pack5', 'pack10']) {
     const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: planCode }), env);
     const createBody = await createRes.json();
     const tokenHash = await hashClaimToken(createBody.claim_token);
     const intentRow = await env.DB.prepare('SELECT stripe_checkout_session_id FROM purchase_intents WHERE claim_token_hash=?').bind(tokenHash).first();
     const sessionId = intentRow.stripe_checkout_session_id;
-    const amountTotal = planCode === 'single' ? 300 : 3000;
+    const amountTotal = planCode === 'pack5' ? 300 : 500;
     await sendSignedWebhook(env, buildCheckoutSessionCompletedEvent({ eventId: `evt_multi_${planCode}`, sessionId, amountTotal, paymentIntentId: `pi_${sessionId}`, customerEmail: email }));
     await worker.fetch(req('POST', '/api/predictions/claim', { claim_token: createBody.claim_token }), env);
   }
@@ -218,7 +218,7 @@ test('他人のメールアドレスでは他人の購入を復旧できない',
   const db = createTestDb();
   const { env, sentEmails } = testEnv(db);
 
-  const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'single' }), env);
+  const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'pack5' }), env);
   const createBody = await createRes.json();
   const tokenHash = await hashClaimToken(createBody.claim_token);
   const intentRow = await env.DB.prepare('SELECT stripe_checkout_session_id FROM purchase_intents WHERE claim_token_hash=?').bind(tokenHash).first();
@@ -233,7 +233,7 @@ test('他人のメールアドレスでは他人の購入を復旧できない',
 test('メール未収集(customer_details無し)の決済でも、既存の決済・予測発行フローには一切影響しない', async () => {
   const db = createTestDb();
   const { env } = testEnv(db);
-  const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'single' }), env);
+  const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'pack5' }), env);
   const createBody = await createRes.json();
   const tokenHash = await hashClaimToken(createBody.claim_token);
   const intentRow = await env.DB.prepare('SELECT stripe_checkout_session_id FROM purchase_intents WHERE claim_token_hash=?').bind(tokenHash).first();
@@ -244,7 +244,7 @@ test('メール未収集(customer_details無し)の決済でも、既存の決�
   const claimRes = await worker.fetch(req('POST', '/api/predictions/claim', { claim_token: createBody.claim_token }), env);
   assert.equal(claimRes.status, 200);
   const claimBody = await claimRes.json();
-  assert.equal(claimBody.predictions.length, 1, 'メール未収集でも予測は通常どおり発行される');
+  assert.equal(claimBody.predictions.length, 5, 'メール未収集でも予測は通常どおり発行される');
 
   const row = await db.prepare(`SELECT customer_email_hash FROM payments WHERE id = 1`).first();
   assert.equal(row.customer_email_hash, null);
@@ -253,7 +253,7 @@ test('メール未収集(customer_details無し)の決済でも、既存の決�
 test('EMAIL_HASH_SECRET未設定でも、既存の決済・予測発行フローには一切影響しない（復旧機能だけ静かに無効）', async () => {
   const db = createTestDb();
   const env = createTestEnv(db); // EMAIL_HASH_SECRET・__testEmailSenderともに未設定
-  const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'single' }), env);
+  const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'pack5' }), env);
   const createBody = await createRes.json();
   const tokenHash = await hashClaimToken(createBody.claim_token);
   const intentRow = await env.DB.prepare('SELECT stripe_checkout_session_id FROM purchase_intents WHERE claim_token_hash=?').bind(tokenHash).first();

@@ -22,10 +22,11 @@
   const recoverStatus = document.getElementById('recoverStatus');
 
   const PLAN_LABELS = {
-    single: '1予測（¥300）',
-    pack10: '10予測（¥3,000）',
-    pack30: '30予測（¥9,000）',
-    pack50: '50予測（¥15,000）',
+    pack5: '5予測（¥300）',
+    pack10: '10予測（¥500）',
+    pack30: '30予測（¥1,000）',
+    pack50: '50予測（¥1,500）',
+    free: '無料AI数字分析（FREE BETA）',
   };
 
   function loadTokens() {

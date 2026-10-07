@@ -37,7 +37,7 @@ test('canonicalPayload: 同じ入力なら常に同じ文字列（決定論的�
     paymentPublicId: 'pay_1',
     entitlementPublicId: 'ent_1',
     predictionIndex: 0,
-    planCode: 'single',
+    planCode: 'free',
     algorithmVersion: 'prototype-v1',
     previousHash: GENESIS_HASH,
   };
@@ -55,7 +55,7 @@ test('canonicalPayload: どれか1フィールドを変えるとhashが変わる
     paymentPublicId: 'pay_1',
     entitlementPublicId: 'ent_1',
     predictionIndex: 0,
-    planCode: 'single',
+    planCode: 'free',
     algorithmVersion: 'prototype-v1',
     previousHash: GENESIS_HASH,
   };
@@ -73,7 +73,7 @@ test('buildPredictionChain: 単一予測が現在のchain tipへ正しく連結�
     drawNumber: 'PERMANENT_TRACKING',
     paymentPublicId: 'pay_x',
     entitlementPublicId: 'ent_x',
-    planCode: 'single',
+    planCode: 'free',
     previousHash0: GENESIS_HASH,
     generatedAt: '2026-09-16T00:00:00.000Z',
   });

@@ -50,7 +50,7 @@ async function sendSignedWebhook(env, eventPayload) {
 
 /** checkout/create → (モックfetchで)Checkout Session作成 → Webhook送信 まで一気通貫で行う */
 async function simulateFullPurchase(env) {
-  const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'single' }), env);
+  const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'pack5' }), env);
   const createBody = await createRes.json();
   const { claim_token, checkout_url } = createBody;
 
@@ -71,10 +71,11 @@ async function simulateFullPurchase(env) {
 test('POST /api/checkout/create: 正しいplan_codeでStripe Checkout Sessionが作られる（Stripeはモック）', async () => {
   const db = createTestDb();
   const env = createTestEnv(db);
-  const res = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'single' }), env);
+  const res = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'pack5' }), env);
   assert.equal(res.status, 200);
   const body = await res.json();
-  assert.equal(body.plan_code, 'single');
+  assert.equal(body.plan_code, 'pack5');
+  assert.equal(body.allowed_predictions, 5);
   assert.equal(body.amount, 300, '金額はサーバー側固定値（クライアントからamountは送っていない）');
   assert.ok(typeof body.claim_token === 'string' && body.claim_token.length > 0);
   assert.ok(body.checkout_url.startsWith('https://checkout.stripe.com/'));
@@ -90,7 +91,7 @@ test('POST /api/checkout/create: 不正なplan_codeは400、クライアント�
   const res1 = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'invalid' }), env);
   assert.equal(res1.status, 400);
 
-  const res2 = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'single', amount: 1 }), env);
+  const res2 = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'pack5', amount: 1 }), env);
   const body2 = await res2.json();
   assert.equal(body2.amount, 300);
 });
@@ -98,7 +99,7 @@ test('POST /api/checkout/create: 不正なplan_codeは400、クライアント�
 test('Stripe側でセッション作成が失敗した場合、内部エラー詳細を返さず502', async () => {
   const db = createTestDb();
   const env = createTestEnv(db, { __testFetch: (await import('./stripeMock.js')).makeFakeStripeFetch({ shouldFail: true }) });
-  const res = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'single' }), env);
+  const res = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'pack5' }), env);
   assert.equal(res.status, 502);
   const body = await res.json();
   assert.ok(!JSON.stringify(body).match(/stripe|api_error|mock failure/i), 'Stripeの生エラーを含まない');
@@ -107,7 +108,7 @@ test('Stripe側でセッション作成が失敗した場合、内部エラー�
 test('決済確認前はentitlementが無く、claimできない', async () => {
   const db = createTestDb();
   const env = createTestEnv(db);
-  const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'single' }), env);
+  const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'pack5' }), env);
   const { claim_token } = await createRes.json();
 
   // Webhookがまだ届いていない状態でclaimしても無効
@@ -115,7 +116,7 @@ test('決済確認前はentitlementが無く、claimできない', async () => {
   assert.equal(claimRes.status, 404, 'entitlement未発行のためinvalid_token相当');
 });
 
-test('決済確認後（Webhook経由）：purchases/statusがready、claimで1予測取得できる', async () => {
+test('決済確認後（Webhook経由）：purchases/statusがready、claimで5予測取得できる', async () => {
   const db = createTestDb();
   const env = createTestEnv(db);
   const { claim_token, sessionId, webhookRes } = await simulateFullPurchase(env);
@@ -134,10 +135,10 @@ test('決済確認後（Webhook経由）：purchases/statusがready、claimで1�
   assert.equal(claimRes.headers.get('referrer-policy'), 'no-referrer');
   const claimBody = await claimRes.json();
   assert.equal(claimBody.outcome, 'created');
-  assert.equal(claimBody.predictions.length, 1);
+  assert.equal(claimBody.predictions.length, 5);
   assertNoSecrets(claimBody);
 
-  // 再送しても同じ1予測
+  // 再送しても同じ5予測
   const claimRes2 = await worker.fetch(req('POST', '/api/predictions/claim', { claim_token }), env);
   const claimBody2 = await claimRes2.json();
   assert.equal(claimBody2.outcome, 'existing');
@@ -182,7 +183,7 @@ test('GET /api/history・/api/history/:id: 公開フィールドのみ、秘密�
 
   const histRes = await worker.fetch(req('GET', '/api/history'), env);
   const histBody = await histRes.json();
-  assert.equal(histBody.predictions.length, 1);
+  assert.equal(histBody.predictions.length, 5);
   assertNoSecrets(histBody);
 
   const one = histBody.predictions[0];

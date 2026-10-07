@@ -64,13 +64,13 @@ async function sendSignedWebhook(env, eventPayload) {
 test('backfillPrediction(新実装)はmatchPredictionToDrawを逐次呼んだ場合と完全に同じ行を残す', async () => {
   const db = createTestDb();
   seedDraws(db, 120);
-  await db.prepare(`INSERT INTO payments(payment_public_id,plan_code,amount,currency,payment_status) VALUES('pay1','single',300,'jpy','paid')`).run();
-  await db.prepare(`INSERT INTO purchase_intents(intent_public_id,plan_code,claim_token_hash,status,payment_id) VALUES('i1','single','th1','fulfilled',1)`).run();
+  await db.prepare(`INSERT INTO payments(payment_public_id,plan_code,amount,currency,payment_status) VALUES('pay1','free',0,'jpy','paid')`).run();
+  await db.prepare(`INSERT INTO purchase_intents(intent_public_id,plan_code,claim_token_hash,status,payment_id) VALUES('i1','pack5','th1','fulfilled',1)`).run();
   await db.prepare(`INSERT INTO purchase_entitlements(entitlement_public_id,payment_id,purchase_intent_id,allowed_predictions,status,claim_token_hash) VALUES('e1',1,1,1,'consumed','th2')`).run();
   const insertPred = (id, seq, combinationKey) =>
     db
       .prepare(
-        `INSERT INTO predictions(prediction_id,display_sequence,draw_number,number_1,number_2,number_3,number_4,number_5,number_6,combination_key,generated_at,payment_id,entitlement_id,prediction_index,plan_code,algorithm_version,previous_hash,record_hash) VALUES(?,?,'PERMANENT_TRACKING',6,13,14,29,33,38,?,'2026-09-20T11:16:00.000Z',1,1,?,'single','v1',?,?)`
+        `INSERT INTO predictions(prediction_id,display_sequence,draw_number,number_1,number_2,number_3,number_4,number_5,number_6,combination_key,generated_at,payment_id,entitlement_id,prediction_index,plan_code,algorithm_version,previous_hash,record_hash) VALUES(?,?,'PERMANENT_TRACKING',6,13,14,29,33,38,?,'2026-09-20T11:16:00.000Z',1,1,?,'free','v1',?,?)`
       )
       .bind(id, seq, combinationKey, seq, seq === 1 ? 'GENESIS' : 'h1', seq === 1 ? 'h1' : 'h2')
       .run();
@@ -94,12 +94,12 @@ test('backfillPrediction(新実装)はmatchPredictionToDrawを逐次呼んだ場
 test('backfillPredictionは同じpredictionに対して複数回呼んでも冪等（二重INSERTされない）', async () => {
   const db = createTestDb();
   seedDraws(db, 30);
-  await db.prepare(`INSERT INTO payments(payment_public_id,plan_code,amount,currency,payment_status) VALUES('pay1','single',300,'jpy','paid')`).run();
-  await db.prepare(`INSERT INTO purchase_intents(intent_public_id,plan_code,claim_token_hash,status,payment_id) VALUES('i1','single','th1','fulfilled',1)`).run();
+  await db.prepare(`INSERT INTO payments(payment_public_id,plan_code,amount,currency,payment_status) VALUES('pay1','free',0,'jpy','paid')`).run();
+  await db.prepare(`INSERT INTO purchase_intents(intent_public_id,plan_code,claim_token_hash,status,payment_id) VALUES('i1','pack5','th1','fulfilled',1)`).run();
   await db.prepare(`INSERT INTO purchase_entitlements(entitlement_public_id,payment_id,purchase_intent_id,allowed_predictions,status,claim_token_hash) VALUES('e1',1,1,1,'consumed','th2')`).run();
   await db
     .prepare(
-      `INSERT INTO predictions(prediction_id,display_sequence,draw_number,number_1,number_2,number_3,number_4,number_5,number_6,combination_key,generated_at,payment_id,entitlement_id,prediction_index,plan_code,algorithm_version,previous_hash,record_hash) VALUES('p1',1,'PERMANENT_TRACKING',6,13,14,29,33,38,'06-13-14-29-33-38','2026-09-20T11:16:00.000Z',1,1,1,'single','v1','GENESIS','h1')`
+      `INSERT INTO predictions(prediction_id,display_sequence,draw_number,number_1,number_2,number_3,number_4,number_5,number_6,combination_key,generated_at,payment_id,entitlement_id,prediction_index,plan_code,algorithm_version,previous_hash,record_hash) VALUES('p1',1,'PERMANENT_TRACKING',6,13,14,29,33,38,'06-13-14-29-33-38','2026-09-20T11:16:00.000Z',1,1,1,'free','v1','GENESIS','h1')`
     )
     .run();
 
@@ -123,7 +123,7 @@ test('本番相当(抽選1800回)×pack50(50予測)のclaimが現実的な時間
   const tokenHash = await hashClaimToken(createBody.claim_token);
   const intentRow = await env.DB.prepare('SELECT stripe_checkout_session_id FROM purchase_intents WHERE claim_token_hash=?').bind(tokenHash).first();
   const sessionId = intentRow.stripe_checkout_session_id;
-  const event = buildCheckoutSessionCompletedEvent({ eventId: 'evt_perf_pack50', sessionId, amountTotal: 15000, paymentIntentId: `pi_${sessionId}` });
+  const event = buildCheckoutSessionCompletedEvent({ eventId: 'evt_perf_pack50', sessionId, amountTotal: 1500, paymentIntentId: `pi_${sessionId}` });
   await sendSignedWebhook(env, event);
 
   const t0 = Date.now();

@@ -62,7 +62,7 @@ test('rate limit: checkout/create連打も一定回数で429になる', async ()
   const env = createTestEnv(db);
   const results = [];
   for (let i = 0; i < 15; i++) {
-    const res = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'single' }), env);
+    const res = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'pack5' }), env);
     results.push(res.status);
   }
   assert.ok(results.includes(429), '10回/分の上限を超えたら429になっている');

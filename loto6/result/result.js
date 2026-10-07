@@ -211,7 +211,7 @@
   }
 
   /**
-   * 全予測共通のフル演出（ボヨーン×6→ズン→保持）。件数(1/10/30/50)に関わらず
+   * 全予測共通のフル演出（ボヨーン×6→ズン→保持）。件数(5/10/30/50)に関わらず
    * 常にこれを使う。REVEAL_DELAYSの間隔で1球ずつ表示し、6球完成後は
    * COMPLETE_HOLD_MSだけ保持してから次の予測へ進む。
    * スキップボタンが押された場合は、現在演出中の口も含めて6球すべてを
@@ -278,6 +278,7 @@
 
   async function main() {
     const qaMode = isQaMode();
+    let shownReplayKey = null; // ループ後の「表示済みフラグ」保存に使う（有料/無料で書式が異なるため上位スコープで持つ）
 
     let predictions;
     if (qaMode) {
@@ -288,8 +289,14 @@
     } else {
       const sessionId = getSessionId();
       const claimToken = getClaimToken();
+      // 【FREE PUBLIC BETA】session_idが無い＝Stripe決済を一切経由しない
+      // 無料生成フロー（claim_tokenは/api/free/generateが発行したもの）。
+      // このページで新たに追加するのはこの判定と、その分岐だけであり、
+      // revealOne（演出）・appendResultCard（履歴カードUI）・
+      // claimPredictions/pollPurchaseStatus自体には一切手を入れない。
+      const isFreeFlow = !sessionId;
 
-      if (!sessionId || !claimToken) {
+      if (!claimToken) {
         showError('購入情報を確認できませんでした。購入ページからやり直してください。');
         return;
       }
@@ -297,23 +304,30 @@
       stageDim.classList.add('is-active');
       startDots();
 
-      let ready;
-      try {
-        ready = await pollPurchaseStatus(sessionId);
-      } catch {
-        ready = null;
-      }
+      if (!isFreeFlow) {
+        // 有料フロー（既存仕様）：必ずWebhook確定(決済status=ready)を
+        // pollしてからclaimへ進む。
+        let ready;
+        try {
+          ready = await pollPurchaseStatus(sessionId);
+        } catch {
+          ready = null;
+        }
 
-      if (ready === false) {
-        stopDots();
-        showError('決済が完了しませんでした。購入ページからやり直してください。');
-        return;
+        if (ready === false) {
+          stopDots();
+          showError('決済が完了しませんでした。購入ページからやり直してください。');
+          return;
+        }
+        if (ready === null) {
+          stopDots();
+          showError('決済確認に時間がかかっています。少し待ってからこのページを再読み込みしてください。');
+          return;
+        }
       }
-      if (ready === null) {
-        stopDots();
-        showError('決済確認に時間がかかっています。少し待ってからこのページを再読み込みしてください。');
-        return;
-      }
+      // 無料フローはStripeを一切経由しないため決済確認(pollPurchaseStatus)
+      // 自体が存在せず、claim_tokenの正当性はclaimEntitlement()自身が
+      // 検証する。ここでは決済確認をスキップして直接claimへ進むだけ。
 
       statusLabel.textContent = 'AI解析中';
       let claimResult;
@@ -331,12 +345,14 @@
       predictions = claimResult.predictions;
       stripClaimFragment();
 
-      // マイ予測（購入者専用の後日再閲覧）用に、access_tokenだけを覚えておく。
-      // D1が正本であり、ここではポインタ（トークン文字列）を保存するのみ。
-      rememberAccessToken(getAccessToken());
+      if (!isFreeFlow) {
+        // マイ予測（購入者専用の後日再閲覧）は有料購入にのみ存在する仕組み。
+        // D1が正本であり、ここではポインタ（トークン文字列）を保存するのみ。
+        rememberAccessToken(getAccessToken());
+      }
 
-      const replayKey = `loto6_result_shown:${sessionId}`;
-      const alreadyShown = sessionStorage.getItem(replayKey) === '1';
+      shownReplayKey = isFreeFlow ? `loto6_result_shown:free:${claimToken}` : `loto6_result_shown:${sessionId}`;
+      const alreadyShown = sessionStorage.getItem(shownReplayKey) === '1';
       if (alreadyShown) {
         // リロード時は既存仕様どおり即座に復元するだけで、演出も自動遷移もしない。
         predictions.forEach((p) => appendResultCard(p, { qaMode: false }));
@@ -355,8 +371,8 @@
       appendResultCard(predictions[i], { qaMode });
     }
     if (skipBtn) skipBtn.classList.remove('is-visible');
-    if (!qaMode) {
-      sessionStorage.setItem(`loto6_result_shown:${getSessionId()}`, '1');
+    if (!qaMode && shownReplayKey) {
+      sessionStorage.setItem(shownReplayKey, '1');
     }
 
     stageDim.classList.remove('is-active');

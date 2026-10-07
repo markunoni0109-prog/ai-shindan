@@ -1,7 +1,7 @@
 /**
  * buy.js
  * ------------------------------------------------------------------
- * 「購入して1予測を生成する」ボタン → Worker(/api/checkout/create) →
+ * 「購入して5予測を生成する」ボタン → Worker(/api/checkout/create) →
  * Stripe Checkoutへリダイレクトするだけの薄い層。
  * 金額・商品はサーバー側固定（ここでは一切扱わない）。
  * ------------------------------------------------------------------
@@ -17,7 +17,7 @@
       const res = await fetch(`${window.ApiConfig.BASE_URL}/api/checkout/create`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ plan_code: 'single' }),
+        body: JSON.stringify({ plan_code: 'pack5' }),
       });
       if (!res.ok) throw new Error('checkout create failed');
       const body = await res.json();

@@ -52,7 +52,7 @@ export async function signStripePayload(rawBody, secret, timestampSeconds = Math
 
 /**
  * checkout.session.completed イベントのペイロードを組み立てる。
- * amountTotal未指定時は既存テスト（plan_code:'single'=300円）と
+ * amountTotal未指定時は既存テスト（plan_code:'pack5'=300円）と
  * 互換性を保つため300をデフォルトにする。
  */
 export function buildCheckoutSessionCompletedEvent({

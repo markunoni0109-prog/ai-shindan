@@ -109,7 +109,7 @@ export async function claimEntitlement(
   }
 
   // 【発行予測数の検証】entitlement.allowed_predictionsはDBのCHECK制約
-  // (1,10,30,50) 以外を受け付けないが、ここでも防御的に二重チェックする。
+  // (1,5,10,30,50) 以外を受け付けないが、ここでも防御的に二重チェックする。
   // plan_code(payment_plan_code)とallowed_predictionsが商品カタログと
   // 食い違っている場合は、生成せずfail-closeする(推測で発行しない)。
   const catalogEntry = PLAN_CATALOG[entitlement.payment_plan_code];
@@ -227,4 +227,45 @@ export async function claimEntitlement(
   }
   // 理論上到達しないが念のため
   throw new ClaimError('internal', 'unreachable state in claimEntitlement');
+}
+
+/**
+ * 【FREE PUBLIC BETA】無料claimが実際に成功した時点でのみ24時間枠を
+ * 消費する（entitlement発行時点では消費しない）。claimEntitlement()
+ * 自体は一切変更せず、handleClaim()からその成功後にのみ個別に
+ * 呼び出す、完全に独立した新規関数。
+ *
+ * free_generation_locks.anon_id は PRIMARY KEY。
+ * `INSERT ... ON CONFLICT(anon_id) DO UPDATE` は、
+ *   - 行が存在しない（＝この anon_id での初めての無料claim成功）場合は
+ *     ただのINSERTとして常に成功する。
+ *   - 行が既に存在する場合はUPDATE扱いとなり、migrations/0007で定義した
+ *     trg_free_lock_24hトリガー（BEFORE UPDATE ... WHEN
+ *     julianday(NEW.last_success_at) - julianday(OLD.last_success_at) < 1.0）
+ *     が発火し、直近の成功から24時間未満であればRAISE(ABORT)でこの
+ *     1文自体が失敗する。
+ * つまり「SELECTで24時間経過を確認してからUPDATEする」という
+ * 非原子的な手順には一切依存せず、DB自身が単一のSQL文として
+ * 原子的に24時間枠を強制する。
+ *
+ * 【呼び出し側の扱い】この関数がthrowしても、claimEntitlement()による
+ * 予測の生成・保存（別のD1 batch()として既に確定済み）を取り消したり
+ * 失敗扱いにしたりしない。ここは「24時間枠の記録」だけを担う独立した
+ * 操作であり、二重予測の防止（そもそも同時に有効な無料entitlementが
+ * 1つまでしか存在できないこと）は migrations/0007 の
+ * idx_one_active_free_entitlement_per_anon（部分UNIQUEインデックス）が
+ * 別途保証する。両者が食い違う（＝この関数がABORTする）ケースは、
+ * entitlement発行時のSELECTベース24hチェックと本関数の間の極めて
+ * 小さな時間差にのみ起こりうる低頻度・低リスクな既知の限界として
+ * 計画書に明記済み。
+ */
+export async function markFreeClaimSuccess(db, anonId, nowIso) {
+  await db
+    .prepare(
+      `INSERT INTO free_generation_locks (anon_id, last_success_at)
+       VALUES (?, ?)
+       ON CONFLICT(anon_id) DO UPDATE SET last_success_at = excluded.last_success_at`
+    )
+    .bind(anonId, nowIso)
+    .run();
 }

@@ -36,7 +36,7 @@ test('verifyStripeSignature: ヘッダーなし・形式不正はinvalid', async
   assert.equal(r2.reason, 'invalid_header');
 });
 
-test('createCheckoutSession: 呼び出し元が渡した金額・商品名でリクエストが組み立てられる（single=300円）', async () => {
+test('createCheckoutSession: 呼び出し元が渡した金額・商品名でリクエストが組み立てられる（pack5=300円）', async () => {
   let capturedBody = null;
   let capturedAuth = null;
   const fakeFetch = async (url, options) => {
@@ -50,9 +50,9 @@ test('createCheckoutSession: 呼び出し元が渡した金額・商品名でリ
   const env = { STRIPE_SECRET_KEY: TEST_STRIPE_SECRET_KEY, __testFetch: fakeFetch };
   const result = await createCheckoutSession(env, {
     intentPublicId: 'intent_xyz',
-    planCode: 'single',
+    planCode: 'pack5',
     amount: 300,
-    productName: 'LOTO6 AI PREDICTION（1予測）',
+    productName: 'LOTO6 AI PREDICTION（5予測）',
     successUrl: 'https://ai-hunter.jp/loto6/result/?session_id={CHECKOUT_SESSION_ID}#claim=abc',
     cancelUrl: 'https://ai-hunter.jp/loto6/',
   });
@@ -67,7 +67,7 @@ test('createCheckoutSession: 呼び出し元が渡した金額・商品名でリ
   assert.ok(!capturedBody.includes(TEST_STRIPE_SECRET_KEY), '秘密鍵がbodyに含まれていない（Authorizationヘッダーのみ）');
 });
 
-test('createCheckoutSession: pack50（15,000円・50予測）でも金額がそのまま渡る', async () => {
+test('createCheckoutSession: pack50（1,500円・50予測）でも金額がそのまま渡る', async () => {
   let capturedBody = null;
   const fakeFetch = async (url, options) => {
     capturedBody = options.body;
@@ -79,13 +79,13 @@ test('createCheckoutSession: pack50（15,000円・50予測）でも金額がそ�
   await createCheckoutSession(env, {
     intentPublicId: 'intent_pack50',
     planCode: 'pack50',
-    amount: 15000,
+    amount: 1500,
     productName: 'LOTO6 AI PREDICTION（50予測）',
     successUrl: 'https://ai-hunter.jp/loto6/result/?session_id={CHECKOUT_SESSION_ID}#claim=abc',
     cancelUrl: 'https://ai-hunter.jp/loto6/',
   });
   const decoded = decodeURIComponent(capturedBody.replace(/\+/g, ' '));
-  assert.ok(decoded.includes('[unit_amount]=15000'));
+  assert.ok(decoded.includes('[unit_amount]=1500'));
   assert.ok(decoded.includes('[quantity]=1'));
   assert.ok(decoded.includes('metadata[plan_code]=pack50'));
 });
@@ -99,7 +99,7 @@ test('createCheckoutSession: Stripe側エラー時は例外を投げ、詳細を
     () =>
       createCheckoutSession(env, {
         intentPublicId: 'x',
-        planCode: 'single',
+        planCode: 'pack5',
         amount: 300,
         productName: 'x',
         successUrl: 'https://a',

@@ -1,11 +1,11 @@
 import { generateClaimToken, hashClaimToken, generateAccessToken, hashAccessToken, generatePublicId } from './lib/tokens.js';
-import { claimEntitlement, ClaimError } from './lib/db.js';
+import { claimEntitlement, ClaimError, markFreeClaimSuccess } from './lib/db.js';
 import { createCheckoutSession, verifyStripeSignature } from './lib/stripe.js';
 import { handleCheckoutSessionCompleted, WebhookIgnored } from './lib/webhook.js';
 import { checkRateLimit, clientIdentifier } from './lib/ratelimit.js';
 import { corsHeaders, handlePreflight } from './lib/cors.js';
 import { processDraw, backfillPrediction, researchStats, captureFeatures } from './lib/tracking.js';
-import { PLAN_CATALOG, isValidPlanCode } from './lib/plans.js';
+import { PLAN_CATALOG, isPurchasablePlan } from './lib/plans.js';
 import { generateRecoveryToken, hashRecoveryToken } from './lib/tokens.js';
 import { hashEmail, sendRecoveryEmail, normalizeEmail } from './lib/email.js';
 
@@ -32,6 +32,19 @@ function frontendBase(env) {
 }
 
 async function handleCheckoutCreate(request, env, cors) {
+  // 【FREE PUBLIC BETA】公開UIの購入導線だけでなく、このAPI自体も
+  // 環境変数フラグで休眠させる。Stripe/Webhook/商品/既存データは
+  // 一切削除せず、フラグを外すだけで即座に有料再開できる状態を温存する。
+  // 未設定時は既存(有料)挙動のまま(=設定し忘れても安全側に倒れる)。
+  if (env.PAID_CHECKOUT_DISABLED === 'true') {
+    return errorResponse(
+      503,
+      'paid_checkout_disabled',
+      '現在FREE PUBLIC BETA期間中のため、有料購入の受付を一時休止しています',
+      cors
+    );
+  }
+
   const rl = await checkRateLimit(
     env.DB,
     { key: `checkout:${clientIdentifier(request)}`, limit: 10, windowSeconds: 60 }
@@ -45,7 +58,9 @@ async function handleCheckoutCreate(request, env, cors) {
     return errorResponse(400, 'invalid_body', 'リクエストボディが不正です', cors);
   }
   const planCode = body?.plan_code;
-  if (!isValidPlanCode(planCode)) {
+  // 'free'（無料枠専用）とレガシー'single'（販売終了）はカタログ上に存在するが
+  // Stripe決済の対象ではない。購入可能(pack5/10/30/50)のみ受け付ける。
+  if (!isPurchasablePlan(planCode)) {
     return errorResponse(400, 'invalid_plan_code', 'plan_codeが不正です', cors);
   }
   const plan = PLAN_CATALOG[planCode];
@@ -176,9 +191,36 @@ async function handleClaim(request, env, cors) {
 
   const tokenHash = await hashClaimToken(token);
 
+  // 【FREE PUBLIC BETA】claimEntitlement()自体は一切変更しない。その直前に
+  // 読み取り専用で「このentitlementがFREE PUBLIC BETA由来か
+  // (anon_idが設定されているか)」だけを確認しておく。claim成功後、
+  // free由来の場合にのみ markFreeClaimSuccess() を呼び、24時間枠を
+  // 「entitlement発行時点」ではなく「claimが実際に成功した時点」で
+  // 消費する。
+  const entRow = await env.DB.prepare(
+    `SELECT anon_id FROM purchase_entitlements WHERE claim_token_hash = ?`
+  )
+    .bind(tokenHash)
+    .first();
+
   try {
     const result = await claimEntitlement(env.DB, tokenHash, { drawNumber: PREDICTION_SCOPE });
     if (result.outcome === 'created') { for (const p of result.predictions) { await captureFeatures(env.DB, p); await backfillPrediction(env.DB, p.prediction_id); } }
+    if (result.outcome === 'created' && entRow && entRow.anon_id) {
+      // 【既知の限界・計画書1.4に明記】このmarkFreeClaimSuccess()は、
+      // 直前のclaimEntitlement()のD1 batch()確定とは別個の操作である。
+      // 万一これが24hトリガーでABORTしても(理論上、/api/free/generate側の
+      // SELECTベース事前チェックとの間の極めて小さな時間差でのみ
+      // 起こりうる、低頻度・低リスクな既知の限界)、既に確定済みの予測
+      // 結果を取り消したり、利用者へのレスポンスを失敗させたりしない。
+      // 二重予測の防止自体は、entitlement発行時点の部分UNIQUEインデックス
+      // (idx_one_active_free_entitlement_per_anon)が別途保証している。
+      try {
+        await markFreeClaimSuccess(env.DB, entRow.anon_id, new Date().toISOString());
+      } catch (lockErr) {
+        console.error('markFreeClaimSuccess failed (non-fatal, known edge case):', lockErr.message);
+      }
+    }
     return json({ outcome: result.outcome, predictions: result.predictions }, 200, cors);
   } catch (err) {
     if (err instanceof ClaimError) {
@@ -188,6 +230,149 @@ async function handleClaim(request, env, cors) {
     }
     return errorResponse(500, 'internal_error', '内部エラーが発生しました', cors);
   }
+}
+
+const FREE_ANON_ID_MIN_LEN = 8;
+const FREE_ANON_ID_MAX_LEN = 128;
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+function isValidAnonId(anonId) {
+  return (
+    typeof anonId === 'string' &&
+    anonId.length >= FREE_ANON_ID_MIN_LEN &&
+    anonId.length <= FREE_ANON_ID_MAX_LEN &&
+    /^[A-Za-z0-9_-]+$/.test(anonId)
+  );
+}
+
+/**
+ * 【FREE PUBLIC BETA】匿名ユーザー(anon_id、ブラウザlocalStorage由来の
+ * crypto.randomUUID())が24時間に1回、無料でclaim_tokenを受け取れる。
+ * ここでは「entitlementの発行」だけを行い、実際の6数字の生成・保存は
+ * 既存の /api/predictions/claim (claimEntitlement()、変更禁止)が担う。
+ *
+ * 【二重発行の防止(mechanism B)】同一anon_idの未消費(active)
+ * entitlementは、migrations/0007のidx_one_active_free_entitlement_per_anon
+ * (部分UNIQUEインデックス)により、DB自身が同時に1つまでしか許さない。
+ * 既に未消費のentitlementが存在する場合(発行後・claim実行前の通信断等)は
+ * 新規に発行せず、同じ行のclaim_token_hashだけをローテーションして
+ * 返す(平文claim_tokenはDBに保存しないため、元のトークンをそのまま
+ * 再送することはできない。handleRecoverRedeemと同じ「ローテーションに
+ * よる復旧」設計を踏襲する)。これにより、payment/entitlementの二重作成
+ * は一切発生しない。
+ *
+ * 【24時間ルールの一次チェック】ここでのSELECTベースの判定は
+ * 利用者へわかりやすいエラーを返すためのベストエフォートであり、
+ * 原子性の最終防衛線ではない。24時間枠が実際に「原子的に」消費される
+ * のは、claim成功後にhandleClaim()から呼ばれるmarkFreeClaimSuccess()
+ * (DBのBEFORE UPDATEトリガーによるRAISE ABORT)によってのみである。
+ */
+async function handleFreeGenerate(request, env, cors) {
+  // BOT・連打対策(補助的な第二防衛線。第一防衛線はCloudflareダッシュボードの
+  // Rate Limiting Rules、README「人間が設定する項目」参照)。IP単位とanon_id
+  // 単位の両方で制限する(checkout/create・claimと同じ考え方)。
+  const rlIp = await checkRateLimit(
+    env.DB,
+    { key: `free-generate-ip:${clientIdentifier(request)}`, limit: 10, windowSeconds: 60 }
+  );
+  if (!rlIp.allowed) return errorResponse(429, 'rate_limited', 'しばらくしてから再度お試しください', cors);
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return errorResponse(400, 'invalid_body', 'リクエストボディが不正です', cors);
+  }
+  const anonId = body?.anon_id;
+  if (!isValidAnonId(anonId)) {
+    return errorResponse(400, 'invalid_anon_id', 'anon_idが不正です', cors);
+  }
+
+  const rlAnon = await checkRateLimit(
+    env.DB,
+    { key: `free-generate-anon:${anonId}`, limit: 10, windowSeconds: 60 }
+  );
+  if (!rlAnon.allowed) return errorResponse(429, 'rate_limited', 'しばらくしてから再度お試しください', cors);
+
+  const nowIso = new Date().toISOString();
+
+  const lock = await env.DB.prepare(`SELECT last_success_at FROM free_generation_locks WHERE anon_id = ?`)
+    .bind(anonId)
+    .first();
+  if (lock) {
+    const elapsedMs = Date.parse(nowIso) - Date.parse(lock.last_success_at);
+    if (elapsedMs < ONE_DAY_MS) {
+      const nextAvailableAt = new Date(Date.parse(lock.last_success_at) + ONE_DAY_MS).toISOString();
+      return json(
+        { error: { code: 'free_limit_not_elapsed', message: '無料枠は24時間に1回までです', next_available_at: nextAvailableAt } },
+        429,
+        cors
+      );
+    }
+  }
+
+  const plainToken = generateClaimToken();
+  const tokenHash = await hashClaimToken(plainToken);
+
+  const existing = await env.DB.prepare(
+    `SELECT id, allowed_predictions FROM purchase_entitlements WHERE anon_id = ? AND status = 'active'`
+  )
+    .bind(anonId)
+    .first();
+
+  if (existing) {
+    await env.DB.prepare(`UPDATE purchase_entitlements SET claim_token_hash = ? WHERE id = ? AND status = 'active'`)
+      .bind(tokenHash, existing.id)
+      .run();
+    return json(
+      { outcome: 'recovered', claim_token: plainToken, plan_code: 'free', allowed_predictions: existing.allowed_predictions },
+      200,
+      cors
+    );
+  }
+
+  const paymentPublicId = generatePublicId('payment');
+  const entitlementPublicId = generatePublicId('entitlement');
+
+  const paymentInsert = await env.DB.prepare(
+    `INSERT INTO payments (payment_public_id, plan_code, amount, currency, payment_status, paid_at) VALUES (?, 'free', 0, 'jpy', 'paid', ?)`
+  )
+    .bind(paymentPublicId, nowIso)
+    .run();
+  const paymentId = paymentInsert.meta.last_row_id;
+
+  try {
+    await env.DB.prepare(
+      `INSERT INTO purchase_entitlements (entitlement_public_id, payment_id, allowed_predictions, status, claim_token_hash, anon_id) VALUES (?, ?, 1, 'active', ?, ?)`
+    )
+      .bind(entitlementPublicId, paymentId, tokenHash, anonId)
+      .run();
+  } catch (err) {
+    // 【mechanism Bの衝突】同時に届いた別リクエストが、同じanon_idで先に
+    // active entitlementを作成した(idx_one_active_free_entitlement_per_anon)。
+    // 上で作成したpaymentsの行は削除しない(既存データを削除しない方針を
+    // 優先する。amount=0の空振り行として残るだけで実害はない)。
+    // 勝者のentitlementを読み直し、claim_token_hashだけをローテーションして
+    // 返す(＝復旧と全く同じ扱い。payment/entitlementの二重作成は発生しない)。
+    const winner = await env.DB.prepare(
+      `SELECT id, allowed_predictions FROM purchase_entitlements WHERE anon_id = ? AND status = 'active'`
+    )
+      .bind(anonId)
+      .first();
+    if (!winner) {
+      return errorResponse(500, 'internal_error', '内部エラーが発生しました', cors);
+    }
+    await env.DB.prepare(`UPDATE purchase_entitlements SET claim_token_hash = ? WHERE id = ? AND status = 'active'`)
+      .bind(tokenHash, winner.id)
+      .run();
+    return json(
+      { outcome: 'recovered', claim_token: plainToken, plan_code: 'free', allowed_predictions: winner.allowed_predictions },
+      200,
+      cors
+    );
+  }
+
+  return json({ outcome: 'created', claim_token: plainToken, plan_code: 'free', allowed_predictions: 1 }, 200, cors);
 }
 
 /**
@@ -516,6 +701,9 @@ export default {
       }
       if (request.method === 'POST' && pathname === '/api/checkout/create') {
         return await handleCheckoutCreate(request, env, cors);
+      }
+      if (request.method === 'POST' && pathname === '/api/free/generate') {
+        return await handleFreeGenerate(request, env, cors);
       }
       if (request.method === 'GET' && pathname === '/api/purchases/status') {
         return await handlePurchaseStatus(request, env, cors);

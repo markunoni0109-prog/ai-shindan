@@ -18,7 +18,7 @@ function req(method, path, body) {
 }
 
 async function createIntentAndGetSessionId(env) {
-  const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'single' }), env);
+  const createRes = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'pack5' }), env);
   const { claim_token } = await createRes.json();
   const tokenHash = await hashClaimToken(claim_token);
   const row = await env.DB.prepare(

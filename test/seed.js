@@ -1,7 +1,8 @@
+import { PLAN_CATALOG } from '../src/lib/plans.js';
 import { hashClaimToken, generateClaimToken, generatePublicId } from '../src/lib/tokens.js';
 
 /** 有効なentitlement（=購入済み・未消費）を1件作り、平文claim_tokenを返す */
-export async function seedActiveEntitlement(db, { allowed = 1, planCode = 'single' } = {}) {
+export async function seedActiveEntitlement(db, { allowed = 1, planCode = 'free' } = {}) {
   const plainToken = generateClaimToken();
   const tokenHash = await hashClaimToken(plainToken);
   const paymentPublicId = generatePublicId('pay');
@@ -10,9 +11,9 @@ export async function seedActiveEntitlement(db, { allowed = 1, planCode = 'singl
   const payRes = await db
     .prepare(
       `INSERT INTO payments (payment_public_id, plan_code, amount, currency, payment_status, paid_at, stripe_event_id)
-       VALUES (?, ?, 300, 'jpy', 'paid', datetime('now'), ?)`
+       VALUES (?, ?, ?, 'jpy', 'paid', datetime('now'), ?)`
     )
-    .bind(paymentPublicId, planCode, `evt_${crypto.randomUUID()}`)
+    .bind(paymentPublicId, planCode, PLAN_CATALOG[planCode].amount, `evt_${crypto.randomUUID()}`)
     .run();
   const paymentId = payRes.meta.last_row_id;
 
@@ -64,7 +65,7 @@ export async function seedForeignPrediction(
       own.paymentId,
       own.entitlementId,
       0,
-      'single',
+      'free',
       'prototype-v1',
       previousHash,
       recordHash
