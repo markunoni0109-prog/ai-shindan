@@ -1,15 +1,27 @@
 # AI HUNTER LOTO6 — STEP 2B/2C 実装物 README
 
-商品は1種類のみ：LOTO6 AI PREDICTION 1予測＝300円。
+商品：LOTO6 AI PREDICTION（正式料金・2026-10-07改定）
+
+| plan_code | 予測数 | 価格 |
+|---|---|---|
+| `pack5` | 5予測 | ¥300 |
+| `pack10` | 10予測 | ¥500 |
+| `pack30` | 30予測 | ¥1,000 |
+| `pack50` | 50予測 | ¥1,500 |
+
+商品思想：少額でAI予測を遊び、その予測をPermanent Trackingで継続研究する。入口体験は「300円で5つのAI予測を生成し、その数字を永久追跡する」。
+1決済につき必ず購入件数ぶんのprediction_idを生成し、全件をPermanent Tracking対象として保存する（部分生成は無く、全件成功か全体失敗）。
+定義元はサーバー側 `src/lib/plans.js` の1箇所のみ（クライアント送信値は信用しない）。
 
 ## 1. セットアップ
 Node.js 22.5以上必須（`node:sqlite`使用）。
 ```bash
 npm ci
 npx wrangler d1 migrations apply ai_hunter_loto6 --local   # ローカルD1にスキーマ適用
-npm test                                                    # 自動テスト（51件）
+npm test                                                    # 自動テスト
 ```
 本番デプロイには別途 `wrangler secret put STRIPE_SECRET_KEY` 等が必要（§12参照）。
+`wrangler.toml` の `database_id` は `REPLACE_WITH_REMOTE_D1_ID`（プレースホルダ）にしてある。実値（`wrangler d1 list`で確認）はデプロイ時にローカルでのみ設定し、GitHubへはコミットしない。Secrets（STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET 等）も同様に `wrangler secret put` で投入する。
 
 ## 2. Stripe実装ファイル
 - `src/lib/stripe.js`：Checkout Session作成（REST APIを直接fetch。SDK未使用）、Webhook署名検証（HMAC-SHA256を手動実装、SDK非依存）
@@ -25,7 +37,7 @@ Stripe公式SDKは使わず、Cloudflare Workers環境での動作実績が確�
 | POST | /api/checkout/create | purchase_intent作成＋実際のStripe Checkout Session作成。claim_tokenを1度だけ返す |
 | POST | /api/stripe/webhook | Stripe Webhook受信。署名検証必須 |
 | GET | /api/purchases/status?session_id=... | pending/ready/failedのみ返す（秘密情報なし） |
-| POST | /api/predictions/claim | STEP 2A実装を再利用。claim_token(body)→1予測返却。冪等 |
+| POST | /api/predictions/claim | STEP 2A実装を再利用。claim_token(body)→購入件数ぶんの予測を返却。冪等 |
 | GET | /api/history, /api/history/:id, /api/stats | STEP 2Aから変更なし |
 
 CORS：`ALLOWED_ORIGINS`（wrangler.toml [vars]）に含まれるOriginのみ許可。OPTIONSプリフライトに対応。
@@ -41,8 +53,8 @@ CORS：`ALLOWED_ORIGINS`（wrangler.toml [vars]）に含まれるOriginのみ許
 Phase 1の既存ファイル（`loto6/index.html`, `loto6/css/style.css`, `loto6/js/*.js`, `loto6/history/*`）は**1バイトも変更していない**（本メッセージ内でmd5sumによる変更前後比較を提示）。
 
 新規追加（`frontend-additions/loto6/` 以下、実際は `ai-hunter.jp/loto6/` 配下に配置想定）：
-- `buy/index.html` + `buy.js`：「購入して1予測を生成する」ボタン。`POST /api/checkout/create`→Stripe Checkoutへリダイレクト
-- `result/index.html` + `result.js`：success遷移後のページ。`GET /api/purchases/status`をpollしてreadyを確認→`POST /api/predictions/claim`→**Phase 1と同一タイミング**（1〜5球目0.4秒間隔、5→6球目のみ1.0秒）の6球演出を1予測ぶん順番に再生
+- `buy/index.html` + `buy.js`：「購入して5予測を生成する」ボタン（plan_code=pack5）。`POST /api/checkout/create`→Stripe Checkoutへリダイレクト
+- `result/index.html` + `result.js`：success遷移後のページ。`GET /api/purchases/status`をpollしてreadyを確認→`POST /api/predictions/claim`→**Phase 1と同一タイミング**（1〜5球目0.4秒間隔、5→6球目のみ1.0秒）の6球演出を購入件数ぶん順番に再生
 - `js/api-config.js`：Worker APIのURLを指す新規設定ファイル（人間が実URLに置き換える）
 
 claim_tokenは`success_url`のURLフラグメント（`#claim=...`）で受け渡し、サーバーログ・Referer等に残らない設計。サーバー保存成功前（claim成功前）に数字を演出表示しない設計を維持。
@@ -60,7 +72,7 @@ claim_tokenは`success_url`のURLフラグメント（`#claim=...`）で受け�
 | # | 要求項目 | 対応テスト | 結果 |
 |---|---|---|---|
 | 1 | Checkout Session正常作成 | api.test.js | ✅ |
-| 2 | 金額300円がサーバー固定 | stripe_lib.test.js | ✅ |
+| 2 | 金額がサーバー固定（pack5=300円） | stripe_lib.test.js | ✅ |
 | 3 | クライアント金額改ざん無効 | api.test.js | ✅ |
 | 4 | claim_token DB平文保存なし | claim.test.js(STEP2A)＋設計（claim_token_hashのみ保存） | ✅ |
 | 5 | Webhook署名不正拒否 | stripe_webhook.test.js | ✅ |
@@ -71,8 +83,8 @@ claim_tokenは`success_url`のURLフラグメント（`#claim=...`）で受け�
 | 10 | entitlement重複なし | 同上 | ✅ |
 | 11 | success先着→pending | api.test.js「purchases/status: 存在しないsession_idはpending」 | ✅ |
 | 12 | Webhook後→ready | api.test.js | ✅ |
-| 13 | ready後claim→1予測 | api.test.js | ✅ |
-| 14 | claim再送→同じ1予測 | api.test.js／claim.test.js | ✅ |
+| 13 | ready後claim→購入件数ぶんの予測 | api.test.js | ✅ |
+| 14 | claim再送→同じ予測 | api.test.js／claim.test.js | ✅ |
 | 15 | Stripe IDが公開履歴へ出ない | 全テストのassertNoSecrets | ✅ |
 | 16 | claim_token/hashが公開履歴へ出ない | 同上 | ✅ |
 | 17 | CORS拒否 | cors_ratelimit.test.js | ✅ |
@@ -83,7 +95,7 @@ claim_tokenは`success_url`のURLフラグメント（`#claim=...`）で受け�
 
 **Webhook重複テスト**：同一`event.id`の再送、同一`stripe_checkout_session_id`に対する異なる`event.id`（Stripeの重複配信）、および2リクエストの真の同時到達（`Promise.all`）の3パターンすべてでpayment・entitlementが1件のみになることを確認。
 
-**claim→1予測生成結果**：webhook経由でentitlement発行→claim→1予測取得→再送で同じ1予測、を一気通貫でテスト済み（STEP 2Aのhash chain・原子性ロジックをそのまま再利用しているため、combination_key重複防止・previous_hash連結等の保証はSTEP 2A同様に有効）。
+**claim→予測生成結果**：webhook経由でentitlement発行→claim→購入件数ぶんの予測取得→再送で同じ予測、を一気通貫でテスト済み（STEP 2Aのhash chain・原子性ロジックをそのまま再利用しているため、combination_key重複防止・previous_hash連結等の保証はSTEP 2A同様に有効）。
 
 ## 11. Secrets名一覧（値は含めない）
 | Secret名 | 用途 | 設定方法 |
@@ -97,7 +109,9 @@ claim_tokenは`success_url`のURLフラグメント（`#claim=...`）で受け�
 1. `wrangler d1 create ai_hunter_loto6` を実行し、`wrangler.toml`の`database_id`を実IDに置き換える
 2. `wrangler secret put STRIPE_SECRET_KEY` / `wrangler secret put STRIPE_WEBHOOK_SECRET`
 3. `wrangler.toml [vars]`の`FRONTEND_BASE_URL`・`ALLOWED_ORIGINS`を実ドメインに更新
-4. Worker本番デプロイ（`wrangler deploy`）とカスタムドメイン割り当て
+4. Worker本番デプロイとカスタムドメイン割り当て。本番反映は `CF_D1_ID=<本番D1のID> bash scripts/deploy.sh`（読み取り専用監査`scripts/prod-audit.sh`→migration適用→適用後の監査→`wrangler deploy`→`scripts/verify-prod.sh`で反映確認）。
+   - `wrangler.toml` の `name` は本番Workerの名前（`ai-shindan`＝フロント`loto6/js/api-config.js`のBASE_URLのサブドメイン）と必ず一致させる（`test/deploy_config.test.js`が機械的に守る）。
+   - 反映確認: `bash scripts/verify-prod.sh` が `400 invalid_anon_id` を返せばFREE routeはデプロイ済み。`404 not_found` なら本番Workerは旧版。
 5. （推奨）Cloudflare Rate Limiting Rules をダッシュボードで設定し、アプリ層のレート制限（本実装）と二重の防御にする
 6. `frontend-additions/loto6/js/api-config.js`の`BASE_URL`を、実際にデプロイしたWorkerのURL/ドメインに書き換えてから`ai-hunter.jp/loto6/`へ配置
 
@@ -145,9 +159,24 @@ claim_tokenは`success_url`のURLフラグメント（`#claim=...`）で受け�
 - 実ブラウザQA / Stripe Test Mode実接続QA
 - AI HUNTER総合トップの最終GO
 
-## 現行正式商品仕様（2026-09-20）
-- 商品：LOTO6 AI PREDICTION **1予測 = 300円**のみ。
-- plan_code: `single` / allowed_predictions: `1`。
+## 現行正式商品仕様（2026-10-07改定）
+- 商品：LOTO6 AI PREDICTION **5予測=300円 / 10予測=500円 / 30予測=1,000円 / 50予測=1,500円**。
+- plan_code: `pack5`(5) / `pack10`(10) / `pack30`(30) / `pack50`(50)。allowed_predictionsは括弧内の件数。
+- DB: `migrations/0008_pricing_pack5.sql` が plan_code / allowed_predictions のCHECK制約に `pack5` / 5 を追加（既存行はid・hash含め不変）。
+- `free`（FREE PUBLIC BETA：1予測/24時間）はStripe対象外で、料金改定の影響を受けない。
+- レガシー`single`（旧1予測）は販売終了。過去に発行済みの行を検証するためカタログに読み取り専用（`purchasable:false`）で残してあり、購入・UIには出ない。本番D1で `SELECT COUNT(*) FROM payments WHERE plan_code='single';` が0件なら、`plans.js`から削除してよい。
+- 旧料金で作成済みでまだ決済が完了していないCheckout Sessionは、金額不一致(amount_mismatch)でfail-closeになりentitlementは発行されない。切替前に未完了セッションが無いこと（Stripeダッシュボード）を確認すること。
 - 予測は特定回向けの使い捨てではなく、`draw_number`互換フィールドには `PERMANENT_TRACKING` を保存し、prediction_idを主体に永久追跡する。
 - Stripe Checkoutには `Idempotency-Key: loto6-checkout-{intent_public_id}` を実装済み。
 - SEO役割：`/predictions/`=公開予測記録、`/tracking/`=Permanent Tracking説明、`/data/`=研究データ、`/ai/`=AI生成方法、`/faq/`=FAQ。
+
+## 表示モード（現行コードの制御）
+- `loto6/index.html` / `loto6/js/app.js` は **FREE PUBLIC BETA専用に静的固定**されている（有料のプラン選択UIとStripe導線はコメントアウトで温存）。フロントに「有料/無料」を切り替える実行時スイッチは無い。
+- `PAID_CHECKOUT_DISABLED=true` は **サーバー側（`/api/checkout/create`を503にする）だけ**のフラグで、フロントの表示には影響しない。`/api/free/generate` はこのフラグと無関係に動く。
+- したがって現状は「FREE併設」ではなく「有料休止中はFREEのみ表示」。有料（5/10/30/50予測）を併設表示するにはフロント改修が必要（仕様判断はHQ）。
+
+## migration 0007/0008 について（2026-10-07 改訂）
+- 旧版(RENAME→DROP方式)は本番D1で `DROP TABLE payments_old_0007;` が `FOREIGN KEY constraint failed` になった（D1は外部キー常時有効で `PRAGMA foreign_keys=OFF` が効かず、子テーブルの既存行が親を参照したままDROPされるため）。
+- 現行版は「全8テーブルを退避→子から親の順にDROP→親から子の順に再作成→退避から復元→全列一致ガード→退避を破棄」。どの文も外部キーを違反せず、PRAGMAにも依存しない。復元が1行でも欠ければガードで失敗する。
+- `test/migration_prod_replay.test.js` が、本番相当データを0001〜0006状態に入れて 0007→0008 を atomic / autocommit / local の3方式で再現適用し、全行一致・FK整合・hash chain・FREE24時間制御・pack5/10/30/50・Stripe/claim回帰を確認する。
+- 本番D1は適用前後に `bash scripts/prod-audit.sh`（読み取り専用）で比較する。
