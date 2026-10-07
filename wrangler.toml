@@ -1,11 +1,17 @@
-name = "ai-hunter-loto6-api"
+# 【重要】この name は本番Workerの名前と一致させること。
+# 本番フロント(loto6/js/api-config.js)は https://ai-shindan.<account>.workers.dev を呼ぶ＝
+# 本番Workerの名前は "ai-shindan"。nameが違うと `wrangler deploy` / Workers Builds は
+# 別名の新Workerを作る（または失敗する）だけで、本番Workerは更新されない。
+name = "ai-shindan"
 main = "src/index.js"
 compatibility_date = "2026-09-01"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "ai_hunter_loto6"
-database_id = "2b45deec-2e47-4da1-9724-8a909e409029"
+# 本番D1のIDはGitHubへ入れない。デプロイ時に実値へ置き換える
+# （`wrangler d1 list` で確認 → ローカルでのみ書き換え。コミット禁止）。
+database_id = "REPLACE_WITH_REMOTE_D1_ID"
 
 [vars]
 # 秘密ではない設定値。Secretsは `wrangler secret put` で別途設定する
