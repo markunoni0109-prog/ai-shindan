@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>AI HUNTER | LOTO6 NEXUS</title>
+<meta name="description" content="AI HUNTER LOTO6 NEXUS。AIが6つの数字を分析・生成し、結果を事前保存。現在FREE PUBLIC BETA実施中、24時間に1回無料でご利用いただけます（研究・娯楽目的）。" />
+<script>
+/* iOS Safariは下部ツールバーの表示/非表示でビューポート高さが動的に変わり、
+   100dvhだけでは反映タイミングにズレが出ることがある。window.visualViewport
+   から実際に見えている高さをその都度取得し、CSS変数--app-vhへ反映して
+   .screenのmin-heightに使う（CTAの位置だけを守るための最小限の対策）。
+   visualViewport非対応ブラウザではこの変数は未設定のままとなり、
+   CSS側のフォールバック（100dvh→100vh）がそのまま使われる。 */
+(function () {
+  function setAppVh() {
+    var h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+    document.documentElement.style.setProperty('--app-vh', h + 'px');
+  }
+  setAppVh();
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', setAppVh);
+    window.visualViewport.addEventListener('scroll', setAppVh);
+  }
+  window.addEventListener('orientationchange', setAppVh);
+  window.addEventListener('pageshow', setAppVh);
+})();
+</script>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="home-body">
+<div class="stage-dim" id="stageDim"></div>
+<main class="screen home-screen">
+  <header class="nexus-header">
+    <div class="brand"><span class="brand__mark">◎</span><div><strong>AI HUNTER</strong><small>データで遊ぶ。未来を楽しむ。</small></div></div>
+    <a class="top-history" href="history/index.html">↶ 過去の予測</a>
+  </header>
+
+  <section class="hero">
+    <div class="hero__orbit" aria-hidden="true"></div>
+    <div class="wordmark nexus-wordmark">
+      <span class="wordmark__eyebrow">AI HUNTER</span>
+      <h1 class="wordmark__title">LOTO<span>6</span></h1>
+      <p class="nexus-sub">NEXUS · AI PREDICTION</p>
+      <p class="nexus-copy">数字が導く、もうひとつのワクワクを。</p>
+    </div>
+
+    <div class="meta nexus-meta">
+      <p class="meta__draw" id="drawNumberLabel">PERMANENT TRACKING</p>
+      <div class="price"><span class="price__label" id="priceLabel">FREE PUBLIC BETA</span><span class="price__value" id="priceValue">無料</span></div>
+    </div>
+    <p class="meta__note" id="freeTierNote">24時間に1回、無料でAI数字分析を生成できます。</p>
+
+    <!-- 【FREE PUBLIC BETA】有料プラン選択UI(plan-picker)は削除せずコメントアウトのみで温存する。
+         有料再開時は下のコメントを外し、js/app.js側のStripe決済コード（同じくコメントアウトで温存済み）も
+         元に戻すだけで有料販売を再開できる（Stripe/Webhook/D1購入系は無変更。有料の正式料金は5予測¥300・10予測¥500・30予測¥1,000・50予測¥1,500）。
+    <div class="plan-picker" id="planPicker" role="radiogroup" aria-label="購入する予測数を選択">
+      <button type="button" class="plan-chip is-selected" data-plan="pack5" data-amount="300" data-count="5" role="radio" aria-checked="true">5予測<em>¥300</em></button>
+      <button type="button" class="plan-chip" data-plan="pack10" data-amount="500" data-count="10" role="radio" aria-checked="false">10予測<em>¥500</em></button>
+      <button type="button" class="plan-chip" data-plan="pack30" data-amount="1000" data-count="30" role="radio" aria-checked="false">30予測<em>¥1,000</em></button>
+      <button type="button" class="plan-chip" data-plan="pack50" data-amount="1500" data-count="50" role="radio" aria-checked="false">50予測<em>¥1,500</em></button>
+    </div>
+    -->
+
+    <section class="stage nexus-stage" id="stage">
+      <button class="generate-btn nexus-generate-btn" id="generateBtn" type="button" aria-label="無料でAI数字分析を生成">
+        <span class="generate-btn__icon" aria-hidden="true">◎</span>
+        <span class="generate-btn__copy"><small>AIが導く、もうひとつの可能性</small><strong id="ctaTitle">無料でAI数字分析を生成</strong><em>FREE <b id="ctaAmount">24時間に1回</b></em></span>
+        <span class="generate-btn__arrow" aria-hidden="true">›</span>
+      </button>
+      <p class="analysing" id="analysingLabel">AI解析中<span class="analysing__dots" id="analysingDots"></span></p>
+      <p class="reveal-title" id="revealTitle">AIが予測した <strong>6</strong>つの数字</p>
+      <div class="balls nexus-balls" id="ballRow" aria-live="polite">
+        <div class="ball" data-slot="0"></div><div class="ball" data-slot="1"></div><div class="ball" data-slot="2"></div>
+        <div class="ball" data-slot="3"></div><div class="ball" data-slot="4"></div><div class="ball" data-slot="5"></div>
+      </div>
+      <div class="impact-word" id="impactWord" aria-hidden="true">ボヨン!</div>
+      <div class="error-msg" id="errorMsg">予測を生成できませんでした。時間をおいてもう一度お試しください。</div>
+      <div class="result" id="result">
+        <div class="result__row"><span id="resultDraw">PERMANENT TRACKING</span><span id="resultId">予測ID #000000</span></div>
+        <div class="result__row"><span id="resultTime">生成日時 —</span><span></span></div>
+        <div class="result__locked">✓ この予測は保存されました</div>
+      </div>
+    </section>
+  </section>
+
+  <nav class="action-grid" aria-label="予測メニュー">
+    <a href="predictions/index.html">▣<span>公開予測履歴</span></a>
+    <a href="tracking/index.html">◎<span>永久追跡を見る</span></a>
+    <a href="data/index.html">▥<span>研究データを見る</span></a>
+  </nav>
+  <p class="meta__note footer-note">※本サービスはロト6の当選を保証するものではありません。AIによる研究・娯楽目的の予測サービスです。</p>
+  <footer class="nexus-footer"><span>AI HUNTER　|　LOTO6 NEXUS</span><em>No Loto, No Life.</em></footer>
+</main>
+<script src="js/api-config.js"></script><script src="js/app.js"></script>
+<script>
+/* 【CTA位置 無料QAモード】
+   ?qa=1 を付けて開いたときだけ、CTAボタンの実測値（visualViewportの高さ、
+   --app-vh、safe-area-inset-bottom、ボタンの画面内収まり具合）を小さな
+   読み取り専用パネルで表示する。実決済・実生成には一切触れない
+   （generateBtnのクリックイベントも増やさない、値を読むだけ）。
+   ?qa=1 が無い通常アクセスでは、このスクリプトは何もしない
+   （＝一般ユーザーがQAを起動することはない）。 */
+(function () {
+  if (new URLSearchParams(location.search).get('qa') !== '1') return;
+
+  var btn = document.getElementById('generateBtn');
+  var panel = document.createElement('div');
+  panel.id = 'qaCtaPanel';
+  panel.style.cssText = [
+    'position:fixed', 'left:8px', 'right:8px', 'top:8px', 'z-index:99999',
+    'background:rgba(0,0,0,.85)', 'color:#7dffb0', 'font:11px/1.5 monospace',
+    'padding:8px 10px', 'border-radius:8px', 'border:1px solid #2a6',
+    'white-space:pre-wrap', 'pointer-events:none',
+  ].join(';');
+  document.body.appendChild(panel);
+  if (btn) btn.style.outline = '2px dashed #ffd94a';
+
+  function update() {
+    var vv = window.visualViewport;
+    var vh = (vv && vv.height) || window.innerHeight;
+    var appVh = getComputedStyle(document.documentElement).getPropertyValue('--app-vh').trim();
+    var safeBottom = getComputedStyle(document.body).paddingBottom;
+    var lines = ['[QAモード：CTA位置確認 / 実決済なし]'];
+    lines.push('window.innerHeight=' + window.innerHeight + 'px');
+    lines.push('visualViewport.height=' + vh + 'px');
+    lines.push('--app-vh=' + (appVh || '(未設定)'));
+    lines.push('body computed padding-bottom=' + safeBottom);
+    if (btn) {
+      var r = btn.getBoundingClientRect();
+      var fullyVisible = r.top >= 0 && r.bottom <= vh;
+      lines.push('CTA top=' + Math.round(r.top) + ' bottom=' + Math.round(r.bottom));
+      lines.push('CTAが画面内に完全表示=' + (fullyVisible ? 'OK' : 'NG(隠れている可能性)'));
+    } else {
+      lines.push('CTA要素が見つかりません');
+    }
+    panel.textContent = lines.join('\n');
+  }
+
+  update();
+  window.addEventListener('resize', update);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', update);
+    window.visualViewport.addEventListener('scroll', update);
+  }
+  window.addEventListener('orientationchange', update);
+  setInterval(update, 500);
+})();
+</script>
+</body>
+</html>
