@@ -1,36 +1,28 @@
 -- ============================================================
 -- STEP 3: まとめ買い（10/30/50予測）＋購入者専用「マイ予測」対応
--- D1 SAFE版: FKを保持したまま依存テーブルを一括退避し、
--- 新スキーマへコピー後、子→親の順で旧テーブルを削除する。
--- Cloudflare D1のmigration実行中はPRAGMA foreign_keys=OFFに依存しない。
--- 既存ID・予測record_hash・参照関係はそのまま保持する。
+--
+-- SQLiteはCHECK制約を後からALTERできないため、対象4テーブル
+-- （payments / purchase_intents / purchase_entitlements / predictions）
+-- を「新テーブル作成→データコピー（idを保持）→旧テーブル破棄」の
+-- 手順で再構築する。既存データ（実際の決済・予測履歴）は一切失われない
+-- ことを、この手順（idを明示的に指定してコピー）で担保する。
+--
+-- 変更点はCHECK制約の許容値拡張と、マイ予測用の access_token_hash
+-- 列の追加のみ。列構成・UNIQUE制約・トリガー・インデックスは
+-- 既存のものをすべてそのまま引き継ぐ（immutabilityトリガーも再作成する）。
+--
+-- 【本番適用時の注意】このファイルはCloudflare D1へ
+--   wrangler d1 migrations apply <DB> --remote
+-- で適用すること。適用後、必ず remote 環境で
+--   - predictions への UPDATE/DELETE がABORTされること
+--   - 既存の決済・予測件数が変わっていないこと（SELECT COUNT(*)）
+-- を実機で再確認すること（migrations/0002のコメント参照）。
 -- ============================================================
 
--- まずFKでつながる全対象を退避。SQLiteのRENAMEにより旧テーブル同士のFKは
--- 自動的に *_old_0005 へ追随するため、旧グラフを壊さず残せる。
-ALTER TABLE prediction_results RENAME TO prediction_results_old_0005;
-ALTER TABLE prediction_matches RENAME TO prediction_matches_old_0005;
-ALTER TABLE prediction_tracking_summary RENAME TO prediction_tracking_summary_old_0005;
-ALTER TABLE prediction_generation_features RENAME TO prediction_generation_features_old_0005;
-ALTER TABLE predictions RENAME TO predictions_old_0005;
-ALTER TABLE purchase_entitlements RENAME TO purchase_entitlements_old_0005;
-ALTER TABLE purchase_intents RENAME TO purchase_intents_old_0005;
-ALTER TABLE payments RENAME TO payments_old_0005;
-
--- RENAME後もindex/trigger名は旧名のまま残るため、新スキーマ側で同名を
--- 再作成できるよう旧オブジェクトだけ先に外す。旧データ本体は触らない。
-DROP INDEX IF EXISTS idx_purchase_intents_session_id;
-DROP INDEX IF EXISTS idx_predictions_entitlement;
-DROP INDEX IF EXISTS idx_predictions_created_at;
-DROP INDEX IF EXISTS idx_predictions_payment;
-DROP INDEX IF EXISTS idx_prediction_matches_prediction;
-DROP INDEX IF EXISTS idx_prediction_matches_draw;
-DROP TRIGGER IF EXISTS trg_predictions_no_update;
-DROP TRIGGER IF EXISTS trg_predictions_no_delete;
-DROP TRIGGER IF EXISTS trg_prediction_matches_no_update;
-DROP TRIGGER IF EXISTS trg_prediction_matches_no_delete;
+PRAGMA foreign_keys=OFF;
 
 -- ---------- payments ----------
+ALTER TABLE payments RENAME TO payments_old_0005;
 
 CREATE TABLE payments (
   id                          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -59,8 +51,10 @@ SELECT
    plan_code, amount, currency, payment_status, paid_at, created_at, stripe_event_id
 FROM payments_old_0005;
 
+DROP TABLE payments_old_0005;
 
 -- ---------- purchase_intents ----------
+ALTER TABLE purchase_intents RENAME TO purchase_intents_old_0005;
 
 CREATE TABLE purchase_intents (
   id                    INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -86,10 +80,12 @@ SELECT
    created_at, fulfilled_at, stripe_checkout_session_id
 FROM purchase_intents_old_0005;
 
+DROP TABLE purchase_intents_old_0005;
 
 CREATE UNIQUE INDEX idx_purchase_intents_session_id ON purchase_intents(stripe_checkout_session_id);
 
 -- ---------- purchase_entitlements ----------
+ALTER TABLE purchase_entitlements RENAME TO purchase_entitlements_old_0005;
 
 CREATE TABLE purchase_entitlements (
   id                     INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -112,8 +108,10 @@ SELECT
    consumed_predictions, status, claim_token_hash, created_at, consumed_at
 FROM purchase_entitlements_old_0005;
 
+DROP TABLE purchase_entitlements_old_0005;
 
 -- ---------- predictions ----------
+ALTER TABLE predictions RENAME TO predictions_old_0005;
 
 CREATE TABLE predictions (
   id                  INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -154,6 +152,7 @@ SELECT
    prediction_index, plan_code, algorithm_version, previous_hash, record_hash, created_at
 FROM predictions_old_0005;
 
+DROP TABLE predictions_old_0005;
 
 CREATE INDEX idx_predictions_entitlement ON predictions(entitlement_id);
 CREATE INDEX idx_predictions_created_at ON predictions(created_at);
@@ -165,6 +164,18 @@ CREATE INDEX idx_predictions_payment ON predictions(payment_id);
 CREATE TRIGGER trg_predictions_no_update BEFORE UPDATE ON predictions BEGIN SELECT RAISE(ABORT, 'predictions are immutable: UPDATE is forbidden'); END;
 CREATE TRIGGER trg_predictions_no_delete BEFORE DELETE ON predictions BEGIN SELECT RAISE(ABORT, 'predictions are immutable: DELETE is forbidden'); END;
 
+-- ---------- predictions を参照している4テーブルのFKを "predictions" に貼り直す ----------
+-- 【重要】SQLiteは `ALTER TABLE predictions RENAME TO predictions_old_0005` を実行した際、
+-- 他テーブルのFK宣言 `REFERENCES predictions(...)` を自動的に
+-- `REFERENCES "predictions_old_0005"(...)` へ書き換えてしまう（SQLite公式の既知動作）。
+-- その後predictions_old_0005をDROPしたため、prediction_results /
+-- prediction_matches / prediction_tracking_summary / prediction_generation_features
+-- の4テーブルは実在しないテーブルを参照する壊れたFK定義のままになっている。
+-- ここで4テーブルとも作り直し、FK参照先を実在する"predictions"に戻す。
+-- 列構成・CHECK・UNIQUE・インデックス・トリガーは既存のものと完全に同一にする
+-- （データはid/主キーを保持してそのままコピーする）。
+
+ALTER TABLE prediction_results RENAME TO prediction_results_old_0005;
 CREATE TABLE prediction_results (
   id                  INTEGER PRIMARY KEY AUTOINCREMENT,
   prediction_id       TEXT NOT NULL UNIQUE REFERENCES predictions(prediction_id),
@@ -183,7 +194,9 @@ CREATE TABLE prediction_results (
   created_at          TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 INSERT INTO prediction_results SELECT * FROM prediction_results_old_0005;
+DROP TABLE prediction_results_old_0005;
 
+ALTER TABLE prediction_matches RENAME TO prediction_matches_old_0005;
 CREATE TABLE prediction_matches (
   id                INTEGER PRIMARY KEY AUTOINCREMENT,
   prediction_id     TEXT NOT NULL REFERENCES predictions(prediction_id),
@@ -198,11 +211,13 @@ CREATE TABLE prediction_matches (
   UNIQUE(prediction_id,draw_id)
 );
 INSERT INTO prediction_matches SELECT * FROM prediction_matches_old_0005;
+DROP TABLE prediction_matches_old_0005;
 CREATE INDEX idx_prediction_matches_prediction ON prediction_matches(prediction_id,tracking_type);
 CREATE INDEX idx_prediction_matches_draw ON prediction_matches(draw_id);
 CREATE TRIGGER trg_prediction_matches_no_update BEFORE UPDATE ON prediction_matches BEGIN SELECT RAISE(ABORT,'prediction_matches are immutable'); END;
 CREATE TRIGGER trg_prediction_matches_no_delete BEFORE DELETE ON prediction_matches BEGIN SELECT RAISE(ABORT,'prediction_matches are immutable'); END;
 
+ALTER TABLE prediction_tracking_summary RENAME TO prediction_tracking_summary_old_0005;
 CREATE TABLE prediction_tracking_summary (
   prediction_id         TEXT PRIMARY KEY REFERENCES predictions(prediction_id),
   checked_draw_count    INTEGER NOT NULL DEFAULT 0,
@@ -216,22 +231,15 @@ CREATE TABLE prediction_tracking_summary (
   updated_at            TEXT NOT NULL
 );
 INSERT INTO prediction_tracking_summary SELECT * FROM prediction_tracking_summary_old_0005;
+DROP TABLE prediction_tracking_summary_old_0005;
 
+ALTER TABLE prediction_generation_features RENAME TO prediction_generation_features_old_0005;
 CREATE TABLE prediction_generation_features (
   prediction_id  TEXT PRIMARY KEY REFERENCES predictions(prediction_id),
   features_json  TEXT NOT NULL,
   captured_at    TEXT NOT NULL
 );
 INSERT INTO prediction_generation_features SELECT * FROM prediction_generation_features_old_0005;
-
-
--- 旧スキーマは必ず子→親の順で削除する。これによりforeign_keys=ONのD1でも
--- FOREIGN KEY constraint failedを起こさない。
-DROP TABLE prediction_results_old_0005;
-DROP TABLE prediction_matches_old_0005;
-DROP TABLE prediction_tracking_summary_old_0005;
 DROP TABLE prediction_generation_features_old_0005;
-DROP TABLE predictions_old_0005;
-DROP TABLE purchase_entitlements_old_0005;
-DROP TABLE purchase_intents_old_0005;
-DROP TABLE payments_old_0005;
+
+PRAGMA foreign_keys=ON;
