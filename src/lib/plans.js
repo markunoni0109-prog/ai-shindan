@@ -1,12 +1,15 @@
 /**
  * plans.js
  * ------------------------------------------------------------------
- * 商品カタログ（正式仕様：5予測300円 / 10予測500円 / 30予測1,000円 / 50予測1,500円）。
+ * 商品カタログ（現行の販売仕様：5予測300円（pack5）のみ）。
  * 商品思想：少額でAI予測を遊び、その予測をPermanent Trackingで継続研究する。
  * 金額・発行予測数はサーバー側のこの1箇所だけで定義し、クライアントからの
  * 指定値は一切信用しない（checkout/create・webhook双方でここを参照する）。
  *
- * 【購入可能プラン】pack5 / pack10 / pack30 / pack50（purchasable: true）
+ * 【購入可能プラン】pack5 のみ（purchasable: true）。
+ *   pack10 / pack30 / pack50 は販売しない（purchasable:false）。ただし過去にそれらの
+ *   プランで発行済みのentitlement・DB行（CHECK制約）との整合性検証のため、
+ *   カタログには読み取り専用として残す（checkout/createは受け付けない）。
  *   1決済につき、必ず allowed_predictions 件を「全件成功か全体失敗」で生成する
  *   （claimEntitlement()が1トランザクションで原子的に保存する。部分生成なし）。
  *
@@ -23,9 +26,9 @@
  */
 export const PLAN_CATALOG = Object.freeze({
   pack5: Object.freeze({ amount: 300, allowed_predictions: 5, label: '5予測', purchasable: true }),
-  pack10: Object.freeze({ amount: 500, allowed_predictions: 10, label: '10予測', purchasable: true }),
-  pack30: Object.freeze({ amount: 1000, allowed_predictions: 30, label: '30予測', purchasable: true }),
-  pack50: Object.freeze({ amount: 1500, allowed_predictions: 50, label: '50予測', purchasable: true }),
+  pack10: Object.freeze({ amount: 500, allowed_predictions: 10, label: '10予測', purchasable: false, bulk: true }),
+  pack30: Object.freeze({ amount: 1000, allowed_predictions: 30, label: '30予測', purchasable: false, bulk: true }),
+  pack50: Object.freeze({ amount: 1500, allowed_predictions: 50, label: '50予測', purchasable: false, bulk: true }),
   // FREE PUBLIC BETA（新プランの追加のみ。claimEntitlement()が
   // PLAN_CATALOG[payment_plan_code]で整合性検証するため必要）。
   free: Object.freeze({ amount: 0, allowed_predictions: 1, label: '無料AI数字分析（24時間に1回）', purchasable: false }),
@@ -38,8 +41,12 @@ export function isValidPlanCode(planCode) {
 }
 
 /** Stripe Checkoutで販売してよいプランか（free / レガシーsingle は false）。 */
-export function isPurchasablePlan(planCode) {
-  return isValidPlanCode(planCode) && PLAN_CATALOG[planCode].purchasable === true;
+export function isPurchasablePlan(planCode, { allowBulk = false } = {}) {
+  if (!isValidPlanCode(planCode)) return false;
+  const plan = PLAN_CATALOG[planCode];
+  // 既定は pack5 のみ。pack10/30/50 は環境変数 BULK_PLANS_ENABLED='true' のときだけ
+  // （本番では設定しない＝販売しない。再開する場合のみ明示的に有効化する）。
+  return plan.purchasable === true || (allowBulk === true && plan.bulk === true);
 }
 
 /** FREE PUBLIC BETA用のプラン定義への読みやすいエイリアス（PLAN_CATALOG.freeそのもの）。 */

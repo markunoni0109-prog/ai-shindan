@@ -60,7 +60,7 @@ async function handleCheckoutCreate(request, env, cors) {
   const planCode = body?.plan_code;
   // 'free'（無料枠専用）とレガシー'single'（販売終了）はカタログ上に存在するが
   // Stripe決済の対象ではない。購入可能(pack5/10/30/50)のみ受け付ける。
-  if (!isPurchasablePlan(planCode)) {
+  if (!isPurchasablePlan(planCode, { allowBulk: env.BULK_PLANS_ENABLED === 'true' })) {
     return errorResponse(400, 'invalid_plan_code', 'plan_codeが不正です', cors);
   }
   const plan = PLAN_CATALOG[planCode];

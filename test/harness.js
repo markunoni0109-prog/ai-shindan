@@ -31,6 +31,7 @@ export function createTestEnv(db, overrides = {}) {
     STRIPE_SECRET_KEY: TEST_STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: TEST_STRIPE_WEBHOOK_SECRET,
     FRONTEND_BASE_URL: 'https://ai-hunter.jp',
+    BULK_PLANS_ENABLED: 'true', // pack10/30/50のentitlement系テスト用（本番では未設定＝pack5のみ販売）
     ALLOWED_ORIGINS: 'https://ai-hunter.jp',
     __testFetch: makeFakeStripeFetch(),
     ...overrides,

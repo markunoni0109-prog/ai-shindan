@@ -88,10 +88,29 @@ test('QA1-4: カタログは正式仕様どおり（5/300・10/500・30/1000・5
   for (const [code, spec] of Object.entries(SPEC)) {
     assert.equal(PLAN_CATALOG[code].amount, spec.amount, `${code}の金額`);
     assert.equal(PLAN_CATALOG[code].allowed_predictions, spec.count, `${code}の件数`);
-    assert.equal(isPurchasablePlan(code), true);
   }
-  const purchasable = Object.keys(PLAN_CATALOG).filter(isPurchasablePlan).sort();
-  assert.deepEqual(purchasable, Object.keys(SPEC).sort());
+  // 販売仕様：既定では pack5（300円・5件）だけが購入可能。pack10/30/50は販売しない。
+  const purchasable = Object.keys(PLAN_CATALOG).filter((c) => isPurchasablePlan(c)).sort();
+  assert.deepEqual(purchasable, ['pack5']);
+  assert.equal(isPurchasablePlan('pack5'), true);
+  for (const c of ['pack10', 'pack30', 'pack50']) {
+    assert.equal(isPurchasablePlan(c), false, `${c}は既定で購入不可`);
+    assert.equal(isPurchasablePlan(c, { allowBulk: true }), true, `${c}はBULK有効時のみ`);
+  }
+});
+
+test('販売仕様: 本番相当env（BULK未設定）では pack5だけがStripeへ進み、pack10/30/50は invalid_plan_code', async () => {
+  const db = createTestDb(); const { env, sent } = envWithCapture(db);
+  delete env.BULK_PLANS_ENABLED;
+  for (const code of ['pack10', 'pack30', 'pack50']) {
+    const r = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: code }), env);
+    assert.equal(r.status, 400, code);
+    assert.equal((await r.json()).error.code, 'invalid_plan_code');
+  }
+  assert.equal(sent.length, 0, 'Stripeへは1件も送られない');
+  const ok = await worker.fetch(req('POST', '/api/checkout/create', { plan_code: 'pack5' }), env);
+  assert.equal(ok.status, 200);
+  assert.equal(sent.length, 1);
 });
 
 test('販売終了・無料枠・未知のplan_codeはcheckout/createで400（Stripeへ送られない）', async () => {

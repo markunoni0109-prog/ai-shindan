@@ -61,7 +61,8 @@ for (const [planCode, plan] of Object.entries(PLAN_CATALOG)) {
   // 'free'(FREE PUBLIC BETA)とレガシー'single'(販売終了)はStripe決済の対象外
   // (checkout/createはpurchasable:false を拒否する)。
   // このループは「Stripeで購入できるプラン」の検証が目的のため対象外とする。
-  if (!plan.purchasable) continue;
+  // pack10/30/50は販売しない(purchasable:false)が、BULK有効時の購入権発行ロジックの回帰検証は維持する。
+  if (!plan.purchasable && !plan.bulk) continue;
 
   test(`${planCode}: 価格(¥${plan.amount})でCheckout Sessionが作られ、金額はサーバー固定`, async () => {
     const db = createTestDb();
