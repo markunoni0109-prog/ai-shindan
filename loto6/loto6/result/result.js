@@ -39,6 +39,7 @@
  */
 (function () {
   const API_BASE = window.ApiConfig.BASE_URL;
+  window.__loto6ResultBooted = true; // index.html側の読み込み失敗ガード用
 
   const stageDim = document.getElementById('stageDim');
   const statusLabel = document.getElementById('statusLabel');
@@ -302,6 +303,7 @@
       }
 
       stageDim.classList.add('is-active');
+      statusLabel.textContent = isFreeFlow ? 'AI解析中' : '決済を確認しています';
       startDots();
 
       if (!isFreeFlow) {
