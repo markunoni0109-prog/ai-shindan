@@ -938,16 +938,18 @@ button {
       iPhone(視認高さ約664px)のファーストビュー外(top≒660)に隠れていた。
    対応: 画像は拡大せず「地球の光だけ」を球行の背後に1:1で見せ、焼き込み文字は暗幕グラデで消す。
         CTAを球行より上（order:-1）へ。球・結果カードの要素自体／アニメーション／JSは無変更。 */
-@media (max-width: 760px) {
-  .home-body .hero {
-    min-height: 0;
+/* 背景画像の焼き込み文字との重なり解消：全幅共通（PC・iPhone） */
+.home-body .hero {
     background:
       linear-gradient(180deg, rgba(2,5,11,0) 0, rgba(2,5,11,0) 470px, #02050b 505px),
       linear-gradient(180deg, #02050b 0, #02050b 345px, rgba(2,5,11,0) 395px),
       url('../assets/nexus-space-bg.webp') center 115px / 1536px 481px no-repeat,
       #02050b;
   }
-  .home-body .hero__orbit { top: 30%; opacity: .75; }
+.home-body #freeTierNote { text-align: center; }
+
+@media (max-width: 760px) {
+    .home-body .hero__orbit { top: 30%; opacity: .75; }
 
   /* CTAを最上段（球行・結果カードより上）へ。球行は元のまま下に残す */
   .home-body .nexus-stage {
@@ -979,4 +981,12 @@ button {
 @media (max-width: 340px) {
   .home-body .nexus-stage .nexus-generate-btn .generate-btn__copy strong { font-size: 14px; }
   .home-body .meta__note, .home-body #freeTierNote { font-size: 11.5px; }
+}
+
+/* PC：CTAを説明直下に上げ、球・結果の予約空白で大きな余白が出ないようにする（トップのみ） */
+@media (min-width: 761px) {
+  .home-body .hero { min-height: 560px; }
+  .home-body .nexus-stage { min-height: 0; justify-content: flex-start; padding-bottom: 28px; }
+  .home-body .nexus-stage .nexus-generate-btn { order: -1; margin-top: 4px; }
+  .home-body .nexus-stage .result:not(.is-visible) { height: 0; min-height: 0; padding: 0; margin: 0; border: 0; overflow: hidden; }
 }
