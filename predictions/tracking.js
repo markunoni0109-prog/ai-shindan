@@ -1,0 +1,16 @@
+const API_BASE_URL = (window.ApiConfig && window.ApiConfig.BASE_URL) || '';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const balls=ns=>ns.map(n=>`<span class="ball">${String(n).padStart(2,'0')}</span>`).join('');
+async function load(){
+  if(!API_BASE_URL || API_BASE_URL.includes('REPLACE_WITH_')) throw Error('api-not-configured');
+  const [hr,sr]=await Promise.all([fetch(`${API_BASE_URL}/api/tracking?limit=100`),fetch(`${API_BASE_URL}/api/research/stats`)]);
+  if(!hr.ok||!sr.ok)throw Error('load');
+  const h=await hr.json(),s=await sr.json();
+  document.querySelector('#stats').innerHTML=`<strong>全保存予測 ${s.total_predictions}</strong> ／ 総照合 ${s.total_comparisons}<br>生成後：3個 ${s.forward.match_3}・4個 ${s.forward.match_4}・5個 ${s.forward.match_5}・5個+B ${s.forward.match_5_bonus}・6個 ${s.forward.match_6}`;
+  document.querySelector('#list').innerHTML=h.predictions.map(p=>{
+    const f=p.forward;
+    const best=f.checked_draw_count===0?'永久追跡開始':`${f.best_main_match_count}個一致${f.best_bonus_match?'＋B':''}${f.best_equivalent_rank?`・${f.best_equivalent_rank}等相当`:''}`;
+    return `<article class="card"><strong>予測 ${esc(p.display_id)}</strong><div class="balls">${balls(p.numbers)}</div><div class="grid"><span>生成：${esc(p.generated_at)}</span><span>追跡済み：${f.checked_draw_count}回</span><span>生成後最高：${esc(best)}</span><span>${f.checked_draw_count===0?'永久追跡開始':'永久追跡中'}</span></div><p class="note">過去全抽せん照合：${p.historical_backtest?.best_main_match_count==null?'未照合':`最高 ${p.historical_backtest.best_main_match_count}個一致`}<br>※予測生成以前の過去データとの照合です。<br><br>prediction_id: ${esc(p.prediction_id)}<br>algorithm: ${esc(p.algorithm_version)}<br>record_hash: ${esc(p.record_hash)}</p></article>`;
+  }).join('')||'<p>予測はまだありません。</p>';
+}
+load().catch(()=>document.querySelector('#list').textContent='公開履歴APIは実環境接続後に表示されます。');

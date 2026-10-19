@@ -1,0 +1,65 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>マイ予測｜購入した予測をいつでも確認｜LOTO6 NEXUS</title><meta name="description" content="購入したLOTO6 AI予測を、購入日時・6数字・prediction_id・Permanent Tracking結果とともにいつでも再確認できます。"><link rel="canonical" href="https://ai-hunter.jp/loto6/my/"><style>
+body{font-family:system-ui,sans-serif;background:#080b12;color:#eef2ff;margin:0}
+.wrap{max-width:900px;margin:auto;padding:24px}
+.sub{color:#aeb7ca}
+.note{font-size:13px;color:#9da7ba;line-height:1.7}
+.add-box{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0;border:1px solid #283248;border-radius:16px;padding:16px;background:#101522}
+.add-box input{flex:1;min-width:220px;background:#0b0f18;border:1px solid #2a3550;border-radius:10px;color:#eef2ff;padding:10px 12px;font-size:13px}
+.add-box button{background:linear-gradient(90deg,#087dff,#6432ff);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer}
+.add-box button:disabled{opacity:.5;cursor:default}
+.purchase{border:1px solid #283248;border-radius:16px;padding:18px;margin:14px 0;background:#101522}
+.purchase__head{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:baseline;border-bottom:1px solid #232c40;padding-bottom:10px;margin-bottom:12px}
+.purchase__head strong{font-size:15px}
+.purchase__head span{color:#9db3cf;font-size:12px}
+.pred-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed #202940}
+.pred-row:last-child{border-bottom:none}
+.balls{display:flex;gap:6px;flex-wrap:wrap}
+.ball{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#f4f6fb;color:#111;font-weight:800;font-size:12px}
+.pid{font-size:10px;color:#77839c;word-break:break-all;max-width:180px}
+.track{font-size:11px;color:#8fd3ff;white-space:nowrap}
+.error{color:#ff8080;font-size:13px;margin:10px 0}
+.remove-btn{background:none;border:1px solid #3a4562;color:#9db3cf;border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer}
+.recover-box{border:1px solid #283248;border-radius:16px;padding:16px;margin:16px 0;background:#0d111c}
+.recover-box h2{font-size:14px;margin:0 0 8px}
+.recover-box form{display:flex;gap:8px;flex-wrap:wrap}
+.recover-box input{flex:1;min-width:220px;background:#0b0f18;border:1px solid #2a3550;border-radius:10px;color:#eef2ff;padding:10px 12px;font-size:13px}
+.recover-box button{background:none;border:1px solid #4a5578;color:#dbe4ff;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer}
+.recover-box button:disabled{opacity:.5;cursor:default}
+.recover-status{font-size:12px;color:#8fd3ff;margin-top:8px;min-height:1.4em}
+@media(max-width:560px){.wrap{padding:14px}.pred-row{flex-wrap:wrap}.pid{max-width:none}}
+</style></head><body>
+<main class="wrap">
+  <nav class="nexus-nav" aria-label="LOTO6 NEXUS"><a href="/loto6/">予測生成</a> · <a href="/loto6/predictions/">公開予測履歴</a> · <a href="/loto6/tracking/">永久追跡</a> · <a href="/loto6/my/">マイ予測</a></nav>
+  <h1>マイ予測</h1>
+  <p class="sub">購入した予測を、いつでも見返せます。</p>
+
+  <div class="add-box">
+    <input type="text" id="tokenInput" placeholder="別の端末で購入した場合は、購入時に表示されたアクセスキーを貼り付けてください" autocomplete="off" spellcheck="false" />
+    <button id="addBtn" type="button">追加して表示</button>
+  </div>
+  <p class="note">
+    このページは、購入時にこの端末へ自動的に記録された「アクセスキー」で本人確認を行います。
+    URLを知っているだけでは他人の購入内容は閲覧できません。表示内容は常にサーバー（D1）から
+    その都度取得しており、この端末のブラウザに予測データ自体は保存されていません。
+    別の端末やブラウザから見る場合は、購入完了ページに表示されたアクセスキーをここに貼り付けてください。
+  </p>
+
+  <div class="recover-box">
+    <h2>アクセスキーが分からなくなった場合</h2>
+    <p class="note">
+      機種変更やブラウザのデータ消去でアクセスキーが分からなくなった場合、購入時に入力した
+      メールアドレスへ、購入履歴を復元するための確認リンクをお送りします
+      （該当する購入がない場合は届きません。リンクは30分間・1回のみ有効です）。
+    </p>
+    <form id="recoverForm">
+      <input type="email" id="recoverEmail" placeholder="購入時に入力したメールアドレス" autocomplete="email" required />
+      <button id="recoverBtn" type="submit">確認リンクを送る</button>
+    </form>
+    <p class="recover-status" id="recoverStatus"></p>
+  </div>
+
+  <section id="list"></section>
+</main>
+<script src="../js/api-config.js"></script>
+<script src="./my.js"></script>
+</body></html>
