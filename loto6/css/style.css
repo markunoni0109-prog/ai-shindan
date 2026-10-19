@@ -965,7 +965,7 @@ button {
   .home-body .impact-word { top: calc(145px + 112px); }
 
   /* CTA文言の折返し・重なり防止（1行に収める） */
-  .home-body .nexus-stage .nexus-generate-btn .generate-btn__copy strong { font-size: clamp(15px, 4.7vw, 19px); white-space: nowrap; line-height: 1.2; }
+  .home-body .nexus-stage .nexus-generate-btn .generate-btn__copy strong { font-size: clamp(14px, 4.2vw, 17px); white-space: nowrap; line-height: 1.2; }
   .home-body .meta__note,.home-body #freeTierNote { text-align: center; }
   /* 説明文のコントラスト */
   .home-body .meta__note,.home-body #freeTierNote { color: #d3e0f2; font-size: 13px; text-shadow: 0 1px 8px #000, 0 0 3px #000; }
