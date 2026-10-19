@@ -2,16 +2,16 @@
 -- STEP 6: 料金体系の正式変更（5予測300円 / 10予測500円 / 30予測1,000円 / 50予測1,500円）
 --
 -- 変更内容：
---   新プラン 'pack5'（5予測）を追加するため、plan_code / allowed_predictions の
---   CHECK制約に 'pack5' / 5 を追加する。SQLiteはCHECK制約をALTERできないため、
---   0005・0007と同じ「RENAME→再作成→データコピー（id保持・全列明示）→DROP→
---   インデックス/トリガー再作成→FK依存の子テーブル再作成」の手順を踏襲する。
+--   新プラン pack5（5予測）を追加するため、plan_code / allowed_predictions の
+--   CHECK制約に pack5 / 5 を追加する。SQLiteはCHECK制約をALTERできないためテーブル再構築が必要。
+--   【2026-10-07 修正】0007と同じ理由（本番D1でRENAME→DROP方式がFOREIGN KEY constraint failed）により、
+--   「退避→子から親の順にDROP→親から子の順に再作成→全列一致ガード」方式へ全面改訂した。
 --   （金額そのものはDBには持たない。amountはpayments行ごとの実績値で、
 --    カタログ金額はsrc/lib/plans.jsが唯一の定義元。）
 --
 -- 【データ保全】既存の payments / predictions / hash chain(previous_hash,record_hash) /
 --   prediction_id / 追跡テーブルの全行は id・値ともに無変更でコピーされる。
---   'single' はCHECKに残す（過去の発行済み行を保持するため。販売は不可）。
+--   single はCHECKに残す（過去の発行済み行を保持するため。販売は不可）。
 --   predictions のUPDATE/DELETE禁止トリガー、prediction_matches のimmutabilityトリガーは再作成される。
 --   0007で作った anon_id 列・部分UNIQUEインデックスも維持される。
 --   free_generation_locks / free_generation_log は無変更。
@@ -21,11 +21,39 @@
 --   predictions へのUPDATE/DELETEがABORTされることを実機で再確認すること。
 -- ============================================================
 
-PRAGMA foreign_keys=OFF;
 
--- ---------- payments ----------
-ALTER TABLE payments RENAME TO payments_old_0008;
+-- ===== 手順 1/4: 全8テーブルの内容を退避（制約なしのコピー。既存データはこの時点で複製される） =====
+CREATE TABLE _bk0008_payments AS SELECT * FROM payments;
+CREATE TABLE _bk0008_purchase_intents AS SELECT * FROM purchase_intents;
+CREATE TABLE _bk0008_purchase_entitlements AS SELECT * FROM purchase_entitlements;
+CREATE TABLE _bk0008_predictions AS SELECT * FROM predictions;
+CREATE TABLE _bk0008_prediction_results AS SELECT * FROM prediction_results;
+CREATE TABLE _bk0008_prediction_matches AS SELECT * FROM prediction_matches;
+CREATE TABLE _bk0008_prediction_tracking_summary AS SELECT * FROM prediction_tracking_summary;
+CREATE TABLE _bk0008_prediction_generation_features AS SELECT * FROM prediction_generation_features;
 
+-- ===== 手順 2/4: 子→親の順にDROP（参照する行が既に無い順序なので、外部キー制約は一度も違反しない） =====
+-- 【0007でFOREIGN KEY constraint failedになった原因への対処】旧版は親(payments)を先にRENAME→DROPしたため、
+-- 子テーブルの既存行が親を参照したままDROP(暗黙のDELETE)が実行され、D1(外部キー常時有効・PRAGMA foreign_keys=OFFは無効)で失敗した。
+DROP TABLE prediction_results;
+DROP TABLE prediction_matches;
+DROP TABLE prediction_tracking_summary;
+DROP TABLE prediction_generation_features;
+DROP TABLE predictions;
+DROP TABLE purchase_entitlements;
+DROP TABLE purchase_intents;
+DROP TABLE payments;
+-- 再作成するindexと同名のindexが、過去の途中失敗で残った旧テーブル側に存在していても衝突しないよう、先に取り除く（indexのみ。テーブル・データには触れない）。
+DROP INDEX IF EXISTS idx_payments_customer_email_hash;
+DROP INDEX IF EXISTS idx_purchase_intents_session_id;
+DROP INDEX IF EXISTS idx_one_active_free_entitlement_per_anon;
+DROP INDEX IF EXISTS idx_predictions_entitlement;
+DROP INDEX IF EXISTS idx_predictions_created_at;
+DROP INDEX IF EXISTS idx_predictions_payment;
+DROP INDEX IF EXISTS idx_prediction_matches_prediction;
+DROP INDEX IF EXISTS idx_prediction_matches_draw;
+
+-- ===== 手順 3/4: 親→子の順に新スキーマで再作成し、退避したデータをid・値そのままで戻す =====
 CREATE TABLE payments (
   id                          INTEGER PRIMARY KEY AUTOINCREMENT,
   payment_public_id           TEXT NOT NULL UNIQUE,
@@ -42,28 +70,9 @@ CREATE TABLE payments (
   access_token_hash           TEXT UNIQUE,
   customer_email_hash         TEXT
 );
-
-INSERT INTO payments
-  (id, payment_public_id, stripe_checkout_session_id, stripe_payment_intent_id,
-   plan_code, amount, currency, payment_status, paid_at, created_at, stripe_event_id,
-   access_token_hash, customer_email_hash)
-SELECT
-   id, payment_public_id, stripe_checkout_session_id, stripe_payment_intent_id,
-   plan_code, amount, currency, payment_status, paid_at, created_at, stripe_event_id,
-   access_token_hash, customer_email_hash
-FROM payments_old_0008;
-
-DROP TABLE payments_old_0008;
-
+INSERT INTO payments (id, payment_public_id, stripe_checkout_session_id, stripe_payment_intent_id, plan_code, amount, currency, payment_status, paid_at, created_at, stripe_event_id, access_token_hash, customer_email_hash)
+SELECT id, payment_public_id, stripe_checkout_session_id, stripe_payment_intent_id, plan_code, amount, currency, payment_status, paid_at, created_at, stripe_event_id, access_token_hash, customer_email_hash FROM _bk0008_payments;
 CREATE INDEX idx_payments_customer_email_hash ON payments(customer_email_hash);
-
--- ---------- purchase_intents ----------
--- payments のRENAMEにより、foreign_keys=ON下ではSQLiteが自動的に
--- purchase_intents.payment_id の参照文字列を "payments_old_0008" へ
--- 書き換えてしまう（0005のコメントと同じ既知動作）。0005と同様、
--- purchase_intentsも再作成して参照を"payments"へ戻す。列構成・制約は
--- 0005が作った現行スキーマと完全に同一（変更なし）。
-ALTER TABLE purchase_intents RENAME TO purchase_intents_old_0008;
 
 CREATE TABLE purchase_intents (
   id                    INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -78,23 +87,9 @@ CREATE TABLE purchase_intents (
   stripe_checkout_session_id  TEXT,
   access_token_hash     TEXT UNIQUE
 );
-
-INSERT INTO purchase_intents
-  (id, intent_public_id, plan_code, claim_token_hash, status, payment_id,
-   created_at, fulfilled_at, stripe_checkout_session_id, access_token_hash)
-SELECT
-   id, intent_public_id, plan_code, claim_token_hash, status, payment_id,
-   created_at, fulfilled_at, stripe_checkout_session_id, access_token_hash
-FROM purchase_intents_old_0008;
-
-DROP TABLE purchase_intents_old_0008;
-
+INSERT INTO purchase_intents (id, intent_public_id, plan_code, claim_token_hash, status, payment_id, created_at, fulfilled_at, stripe_checkout_session_id, access_token_hash)
+SELECT id, intent_public_id, plan_code, claim_token_hash, status, payment_id, created_at, fulfilled_at, stripe_checkout_session_id, access_token_hash FROM _bk0008_purchase_intents;
 CREATE UNIQUE INDEX idx_purchase_intents_session_id ON purchase_intents(stripe_checkout_session_id);
-
--- ---------- purchase_entitlements ----------
--- anon_id列を追加する（無料entitlementにのみ設定。有料はNULLのまま）。
--- 「同一anon_idのactive行は同時に1つまで」を部分UNIQUEインデックスで強制する。
-ALTER TABLE purchase_entitlements RENAME TO purchase_entitlements_old_0008;
 
 CREATE TABLE purchase_entitlements (
   id                     INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -111,26 +106,11 @@ CREATE TABLE purchase_entitlements (
   -- 有料entitlementはNULLのまま。
   anon_id                TEXT
 );
-
-INSERT INTO purchase_entitlements
-  (id, entitlement_public_id, payment_id, purchase_intent_id, allowed_predictions,
-   consumed_predictions, status, claim_token_hash, created_at, consumed_at, anon_id)
-SELECT
-   id, entitlement_public_id, payment_id, purchase_intent_id, allowed_predictions,
-   consumed_predictions, status, claim_token_hash, created_at, consumed_at, anon_id
-FROM purchase_entitlements_old_0008;
-
-DROP TABLE purchase_entitlements_old_0008;
-
--- 「同一anon_idにつき、未消費(active)のentitlementは同時に1つまで」を
--- DB自身に保証させる部分UNIQUEインデックス（計画書1.2）。
--- 有料entitlement（anon_id IS NULL）は対象外。
+INSERT INTO purchase_entitlements (id, entitlement_public_id, payment_id, purchase_intent_id, allowed_predictions, consumed_predictions, status, claim_token_hash, created_at, consumed_at, anon_id)
+SELECT id, entitlement_public_id, payment_id, purchase_intent_id, allowed_predictions, consumed_predictions, status, claim_token_hash, created_at, consumed_at, anon_id FROM _bk0008_purchase_entitlements;
 CREATE UNIQUE INDEX idx_one_active_free_entitlement_per_anon
   ON purchase_entitlements(anon_id)
   WHERE status = 'active' AND anon_id IS NOT NULL;
-
--- ---------- predictions ----------
-ALTER TABLE predictions RENAME TO predictions_old_0008;
 
 CREATE TABLE predictions (
   id                  INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -158,35 +138,15 @@ CREATE TABLE predictions (
   CHECK (number_1 < number_2 AND number_2 < number_3 AND number_3 < number_4
          AND number_4 < number_5 AND number_5 < number_6)
 );
-
-INSERT INTO predictions
-  (id, prediction_id, display_sequence, draw_number,
-   number_1, number_2, number_3, number_4, number_5, number_6,
-   combination_key, generated_at, payment_id, entitlement_id,
-   prediction_index, plan_code, algorithm_version, previous_hash, record_hash, created_at)
-SELECT
-   id, prediction_id, display_sequence, draw_number,
-   number_1, number_2, number_3, number_4, number_5, number_6,
-   combination_key, generated_at, payment_id, entitlement_id,
-   prediction_index, plan_code, algorithm_version, previous_hash, record_hash, created_at
-FROM predictions_old_0008;
-
-DROP TABLE predictions_old_0008;
-
+INSERT INTO predictions (id, prediction_id, display_sequence, draw_number, number_1, number_2, number_3, number_4, number_5, number_6, combination_key, generated_at, payment_id, entitlement_id, prediction_index, plan_code, algorithm_version, previous_hash, record_hash, created_at)
+SELECT id, prediction_id, display_sequence, draw_number, number_1, number_2, number_3, number_4, number_5, number_6, combination_key, generated_at, payment_id, entitlement_id, prediction_index, plan_code, algorithm_version, previous_hash, record_hash, created_at FROM _bk0008_predictions;
 CREATE INDEX idx_predictions_entitlement ON predictions(entitlement_id);
 CREATE INDEX idx_predictions_created_at ON predictions(created_at);
 CREATE INDEX idx_predictions_payment ON predictions(payment_id);
-
--- immutabilityトリガーはテーブル再作成で失われるため必ず再作成する
--- （既存仕様：predictionsへのUPDATE/DELETEは常に禁止）。
+-- immutabilityトリガー（既存仕様：predictionsへのUPDATE/DELETEは常に禁止）を再作成。
 CREATE TRIGGER trg_predictions_no_update BEFORE UPDATE ON predictions BEGIN SELECT RAISE(ABORT, 'predictions are immutable: UPDATE is forbidden'); END;
 CREATE TRIGGER trg_predictions_no_delete BEFORE DELETE ON predictions BEGIN SELECT RAISE(ABORT, 'predictions are immutable: DELETE is forbidden'); END;
 
--- ---------- predictions を参照している4テーブルのFKを "predictions" に貼り直す ----------
--- 【重要】0005と同じSQLite既知動作（RENAME時にFK宣言が書き換わる）への対処。
--- 列構成・CHECK・UNIQUE・インデックス・トリガーは既存のものと完全に同一にする。
-
-ALTER TABLE prediction_results RENAME TO prediction_results_old_0008;
 CREATE TABLE prediction_results (
   id                  INTEGER PRIMARY KEY AUTOINCREMENT,
   prediction_id       TEXT NOT NULL UNIQUE REFERENCES predictions(prediction_id),
@@ -204,10 +164,9 @@ CREATE TABLE prediction_results (
   verified_at         TEXT NOT NULL,
   created_at          TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
-INSERT INTO prediction_results SELECT * FROM prediction_results_old_0008;
-DROP TABLE prediction_results_old_0008;
+INSERT INTO prediction_results (id, prediction_id, winning_number_1, winning_number_2, winning_number_3, winning_number_4, winning_number_5, winning_number_6, bonus_number, matched_numbers, match_count, prize_rank, result_source, verified_at, created_at)
+SELECT id, prediction_id, winning_number_1, winning_number_2, winning_number_3, winning_number_4, winning_number_5, winning_number_6, bonus_number, matched_numbers, match_count, prize_rank, result_source, verified_at, created_at FROM _bk0008_prediction_results;
 
-ALTER TABLE prediction_matches RENAME TO prediction_matches_old_0008;
 CREATE TABLE prediction_matches (
   id                INTEGER PRIMARY KEY AUTOINCREMENT,
   prediction_id     TEXT NOT NULL REFERENCES predictions(prediction_id),
@@ -221,14 +180,13 @@ CREATE TABLE prediction_matches (
   checked_at        TEXT NOT NULL,
   UNIQUE(prediction_id,draw_id)
 );
-INSERT INTO prediction_matches SELECT * FROM prediction_matches_old_0008;
-DROP TABLE prediction_matches_old_0008;
+INSERT INTO prediction_matches (id, prediction_id, draw_id, tracking_type, main_match_count, bonus_match, equivalent_rank, elapsed_days, elapsed_draws, checked_at)
+SELECT id, prediction_id, draw_id, tracking_type, main_match_count, bonus_match, equivalent_rank, elapsed_days, elapsed_draws, checked_at FROM _bk0008_prediction_matches;
 CREATE INDEX idx_prediction_matches_prediction ON prediction_matches(prediction_id,tracking_type);
 CREATE INDEX idx_prediction_matches_draw ON prediction_matches(draw_id);
 CREATE TRIGGER trg_prediction_matches_no_update BEFORE UPDATE ON prediction_matches BEGIN SELECT RAISE(ABORT,'prediction_matches are immutable'); END;
 CREATE TRIGGER trg_prediction_matches_no_delete BEFORE DELETE ON prediction_matches BEGIN SELECT RAISE(ABORT,'prediction_matches are immutable'); END;
 
-ALTER TABLE prediction_tracking_summary RENAME TO prediction_tracking_summary_old_0008;
 CREATE TABLE prediction_tracking_summary (
   prediction_id         TEXT PRIMARY KEY REFERENCES predictions(prediction_id),
   checked_draw_count    INTEGER NOT NULL DEFAULT 0,
@@ -241,16 +199,59 @@ CREATE TABLE prediction_tracking_summary (
   first_3plus_draw_id   TEXT REFERENCES lottery_draws(draw_id),
   updated_at            TEXT NOT NULL
 );
-INSERT INTO prediction_tracking_summary SELECT * FROM prediction_tracking_summary_old_0008;
-DROP TABLE prediction_tracking_summary_old_0008;
+INSERT INTO prediction_tracking_summary (prediction_id, checked_draw_count, best_main_match_count, best_bonus_match, best_equivalent_rank, best_draw_id, days_to_best, draws_to_best, first_3plus_draw_id, updated_at)
+SELECT prediction_id, checked_draw_count, best_main_match_count, best_bonus_match, best_equivalent_rank, best_draw_id, days_to_best, draws_to_best, first_3plus_draw_id, updated_at FROM _bk0008_prediction_tracking_summary;
 
-ALTER TABLE prediction_generation_features RENAME TO prediction_generation_features_old_0008;
 CREATE TABLE prediction_generation_features (
   prediction_id  TEXT PRIMARY KEY REFERENCES predictions(prediction_id),
   features_json  TEXT NOT NULL,
   captured_at    TEXT NOT NULL
 );
-INSERT INTO prediction_generation_features SELECT * FROM prediction_generation_features_old_0008;
-DROP TABLE prediction_generation_features_old_0008;
+INSERT INTO prediction_generation_features (prediction_id, features_json, captured_at)
+SELECT prediction_id, features_json, captured_at FROM _bk0008_prediction_generation_features;
 
-PRAGMA foreign_keys=ON;
+-- ===== 手順 4/4: 整合ガード（行数・全列の完全一致）。1つでも不一致ならCHECK違反で失敗し、退避テーブルは残る =====
+CREATE TABLE _mig0008_guard (ok INTEGER NOT NULL CHECK (ok = 1));
+INSERT INTO _mig0008_guard (ok)
+SELECT CASE WHEN (SELECT COUNT(*) FROM _bk0008_payments) = (SELECT COUNT(*) FROM payments)
+  AND NOT EXISTS (SELECT id, payment_public_id, stripe_checkout_session_id, stripe_payment_intent_id, plan_code, amount, currency, payment_status, paid_at, created_at, stripe_event_id, access_token_hash, customer_email_hash FROM _bk0008_payments EXCEPT SELECT id, payment_public_id, stripe_checkout_session_id, stripe_payment_intent_id, plan_code, amount, currency, payment_status, paid_at, created_at, stripe_event_id, access_token_hash, customer_email_hash FROM payments)
+  AND NOT EXISTS (SELECT id, payment_public_id, stripe_checkout_session_id, stripe_payment_intent_id, plan_code, amount, currency, payment_status, paid_at, created_at, stripe_event_id, access_token_hash, customer_email_hash FROM payments EXCEPT SELECT id, payment_public_id, stripe_checkout_session_id, stripe_payment_intent_id, plan_code, amount, currency, payment_status, paid_at, created_at, stripe_event_id, access_token_hash, customer_email_hash FROM _bk0008_payments) THEN 1 ELSE 0 END;
+INSERT INTO _mig0008_guard (ok)
+SELECT CASE WHEN (SELECT COUNT(*) FROM _bk0008_purchase_intents) = (SELECT COUNT(*) FROM purchase_intents)
+  AND NOT EXISTS (SELECT id, intent_public_id, plan_code, claim_token_hash, status, payment_id, created_at, fulfilled_at, stripe_checkout_session_id, access_token_hash FROM _bk0008_purchase_intents EXCEPT SELECT id, intent_public_id, plan_code, claim_token_hash, status, payment_id, created_at, fulfilled_at, stripe_checkout_session_id, access_token_hash FROM purchase_intents)
+  AND NOT EXISTS (SELECT id, intent_public_id, plan_code, claim_token_hash, status, payment_id, created_at, fulfilled_at, stripe_checkout_session_id, access_token_hash FROM purchase_intents EXCEPT SELECT id, intent_public_id, plan_code, claim_token_hash, status, payment_id, created_at, fulfilled_at, stripe_checkout_session_id, access_token_hash FROM _bk0008_purchase_intents) THEN 1 ELSE 0 END;
+INSERT INTO _mig0008_guard (ok)
+SELECT CASE WHEN (SELECT COUNT(*) FROM _bk0008_purchase_entitlements) = (SELECT COUNT(*) FROM purchase_entitlements)
+  AND NOT EXISTS (SELECT id, entitlement_public_id, payment_id, purchase_intent_id, allowed_predictions, consumed_predictions, status, claim_token_hash, created_at, consumed_at FROM _bk0008_purchase_entitlements EXCEPT SELECT id, entitlement_public_id, payment_id, purchase_intent_id, allowed_predictions, consumed_predictions, status, claim_token_hash, created_at, consumed_at FROM purchase_entitlements)
+  AND NOT EXISTS (SELECT id, entitlement_public_id, payment_id, purchase_intent_id, allowed_predictions, consumed_predictions, status, claim_token_hash, created_at, consumed_at FROM purchase_entitlements EXCEPT SELECT id, entitlement_public_id, payment_id, purchase_intent_id, allowed_predictions, consumed_predictions, status, claim_token_hash, created_at, consumed_at FROM _bk0008_purchase_entitlements) THEN 1 ELSE 0 END;
+INSERT INTO _mig0008_guard (ok)
+SELECT CASE WHEN (SELECT COUNT(*) FROM _bk0008_predictions) = (SELECT COUNT(*) FROM predictions)
+  AND NOT EXISTS (SELECT id, prediction_id, display_sequence, draw_number, number_1, number_2, number_3, number_4, number_5, number_6, combination_key, generated_at, payment_id, entitlement_id, prediction_index, plan_code, algorithm_version, previous_hash, record_hash, created_at FROM _bk0008_predictions EXCEPT SELECT id, prediction_id, display_sequence, draw_number, number_1, number_2, number_3, number_4, number_5, number_6, combination_key, generated_at, payment_id, entitlement_id, prediction_index, plan_code, algorithm_version, previous_hash, record_hash, created_at FROM predictions)
+  AND NOT EXISTS (SELECT id, prediction_id, display_sequence, draw_number, number_1, number_2, number_3, number_4, number_5, number_6, combination_key, generated_at, payment_id, entitlement_id, prediction_index, plan_code, algorithm_version, previous_hash, record_hash, created_at FROM predictions EXCEPT SELECT id, prediction_id, display_sequence, draw_number, number_1, number_2, number_3, number_4, number_5, number_6, combination_key, generated_at, payment_id, entitlement_id, prediction_index, plan_code, algorithm_version, previous_hash, record_hash, created_at FROM _bk0008_predictions) THEN 1 ELSE 0 END;
+INSERT INTO _mig0008_guard (ok)
+SELECT CASE WHEN (SELECT COUNT(*) FROM _bk0008_prediction_results) = (SELECT COUNT(*) FROM prediction_results)
+  AND NOT EXISTS (SELECT id, prediction_id, winning_number_1, winning_number_2, winning_number_3, winning_number_4, winning_number_5, winning_number_6, bonus_number, matched_numbers, match_count, prize_rank, result_source, verified_at, created_at FROM _bk0008_prediction_results EXCEPT SELECT id, prediction_id, winning_number_1, winning_number_2, winning_number_3, winning_number_4, winning_number_5, winning_number_6, bonus_number, matched_numbers, match_count, prize_rank, result_source, verified_at, created_at FROM prediction_results)
+  AND NOT EXISTS (SELECT id, prediction_id, winning_number_1, winning_number_2, winning_number_3, winning_number_4, winning_number_5, winning_number_6, bonus_number, matched_numbers, match_count, prize_rank, result_source, verified_at, created_at FROM prediction_results EXCEPT SELECT id, prediction_id, winning_number_1, winning_number_2, winning_number_3, winning_number_4, winning_number_5, winning_number_6, bonus_number, matched_numbers, match_count, prize_rank, result_source, verified_at, created_at FROM _bk0008_prediction_results) THEN 1 ELSE 0 END;
+INSERT INTO _mig0008_guard (ok)
+SELECT CASE WHEN (SELECT COUNT(*) FROM _bk0008_prediction_matches) = (SELECT COUNT(*) FROM prediction_matches)
+  AND NOT EXISTS (SELECT id, prediction_id, draw_id, tracking_type, main_match_count, bonus_match, equivalent_rank, elapsed_days, elapsed_draws, checked_at FROM _bk0008_prediction_matches EXCEPT SELECT id, prediction_id, draw_id, tracking_type, main_match_count, bonus_match, equivalent_rank, elapsed_days, elapsed_draws, checked_at FROM prediction_matches)
+  AND NOT EXISTS (SELECT id, prediction_id, draw_id, tracking_type, main_match_count, bonus_match, equivalent_rank, elapsed_days, elapsed_draws, checked_at FROM prediction_matches EXCEPT SELECT id, prediction_id, draw_id, tracking_type, main_match_count, bonus_match, equivalent_rank, elapsed_days, elapsed_draws, checked_at FROM _bk0008_prediction_matches) THEN 1 ELSE 0 END;
+INSERT INTO _mig0008_guard (ok)
+SELECT CASE WHEN (SELECT COUNT(*) FROM _bk0008_prediction_tracking_summary) = (SELECT COUNT(*) FROM prediction_tracking_summary)
+  AND NOT EXISTS (SELECT prediction_id, checked_draw_count, best_main_match_count, best_bonus_match, best_equivalent_rank, best_draw_id, days_to_best, draws_to_best, first_3plus_draw_id, updated_at FROM _bk0008_prediction_tracking_summary EXCEPT SELECT prediction_id, checked_draw_count, best_main_match_count, best_bonus_match, best_equivalent_rank, best_draw_id, days_to_best, draws_to_best, first_3plus_draw_id, updated_at FROM prediction_tracking_summary)
+  AND NOT EXISTS (SELECT prediction_id, checked_draw_count, best_main_match_count, best_bonus_match, best_equivalent_rank, best_draw_id, days_to_best, draws_to_best, first_3plus_draw_id, updated_at FROM prediction_tracking_summary EXCEPT SELECT prediction_id, checked_draw_count, best_main_match_count, best_bonus_match, best_equivalent_rank, best_draw_id, days_to_best, draws_to_best, first_3plus_draw_id, updated_at FROM _bk0008_prediction_tracking_summary) THEN 1 ELSE 0 END;
+INSERT INTO _mig0008_guard (ok)
+SELECT CASE WHEN (SELECT COUNT(*) FROM _bk0008_prediction_generation_features) = (SELECT COUNT(*) FROM prediction_generation_features)
+  AND NOT EXISTS (SELECT prediction_id, features_json, captured_at FROM _bk0008_prediction_generation_features EXCEPT SELECT prediction_id, features_json, captured_at FROM prediction_generation_features)
+  AND NOT EXISTS (SELECT prediction_id, features_json, captured_at FROM prediction_generation_features EXCEPT SELECT prediction_id, features_json, captured_at FROM _bk0008_prediction_generation_features) THEN 1 ELSE 0 END;
+DROP TABLE _mig0008_guard;
+DROP TABLE _bk0008_payments;
+DROP TABLE _bk0008_purchase_intents;
+DROP TABLE _bk0008_purchase_entitlements;
+DROP TABLE _bk0008_predictions;
+DROP TABLE _bk0008_prediction_results;
+DROP TABLE _bk0008_prediction_matches;
+DROP TABLE _bk0008_prediction_tracking_summary;
+DROP TABLE _bk0008_prediction_generation_features;
+
+
