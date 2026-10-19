@@ -926,3 +926,57 @@ button {
     font-size: 9px;
   }
 }
+
+
+/* ===== LOTO6 NEXUS iPhone first-view fix（max-width:760pxのみ／PC無影響） =====
+   原因（実描画で確認）:
+   1) nexus-space-bg.webp は文字（LOTO6／AI PREDICTION／コピー／ボヨン!／球）が焼き込まれた
+      1536×481の横長画像。.heroの `center top/cover` が縦長のスマホ.heroに合わせて約1.4倍に拡大・
+      中央切り抜きするため、焼き込み文字「OTO」「PREDICTI」「もうひとつのワ」が巨大化し、
+      前面のHTML文字と重なっていた。
+   2) CTAは .stage 内で order:5 のため、直前の球行(112px)と結果カード予約(138px)の下に配置され、
+      iPhone(視認高さ約664px)のファーストビュー外(top≒660)に隠れていた。
+   対応: 画像は拡大せず「地球の光だけ」を球行の背後に1:1で見せ、焼き込み文字は暗幕グラデで消す。
+        CTAを球行より上（order:-1）へ。球・結果カードの要素自体／アニメーション／JSは無変更。 */
+@media (max-width: 760px) {
+  .home-body .hero {
+    min-height: 0;
+    background:
+      linear-gradient(180deg, rgba(2,5,11,0) 0, rgba(2,5,11,0) 470px, #02050b 505px),
+      linear-gradient(180deg, #02050b 0, #02050b 345px, rgba(2,5,11,0) 395px),
+      url('../assets/nexus-space-bg.webp') center 115px / 1536px 481px no-repeat,
+      #02050b;
+  }
+  .home-body .hero__orbit { top: 30%; opacity: .75; }
+
+  /* CTAを最上段（球行・結果カードより上）へ。球行は元のまま下に残す */
+  .home-body .nexus-stage {
+    min-height: 0;
+    justify-content: flex-start;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  }
+  .home-body .nexus-stage .nexus-generate-btn { order: -1; margin-top: 2px; }
+  .home-body .nexus-stage:has(.ball.is-shown) { min-height: 0; padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px)); }
+  /* 結果表示前は予約高さを0に（表示されたら即元の高さ） */
+  .home-body .nexus-stage .result:not(.is-visible) {
+    height: 0; min-height: 0; padding: 0; margin: 0; border: 0; overflow: hidden;
+  }
+  /* 「ボヨン!」は球行基準の位置を維持（CTAが球行の上に入った分だけ下へ） */
+  .home-body .impact-word { top: calc(145px + 112px); }
+
+  /* CTA文言の折返し・重なり防止（1行に収める） */
+  .home-body .nexus-stage .nexus-generate-btn .generate-btn__copy strong { font-size: clamp(15px, 4.7vw, 19px); white-space: nowrap; line-height: 1.2; }
+  .home-body .meta__note,.home-body #freeTierNote { text-align: center; }
+  /* 説明文のコントラスト */
+  .home-body .meta__note,.home-body #freeTierNote { color: #d3e0f2; font-size: 13px; text-shadow: 0 1px 8px #000, 0 0 3px #000; }
+  .home-body .nexus-meta { gap: 14px; flex-wrap: wrap; row-gap: 4px; }
+  .home-body .nexus-meta .meta__draw { color: #c4d8f0; text-shadow: 0 1px 6px #000; }
+  .home-body .nexus-meta .price__label { color: #d3e0f2; text-shadow: 0 1px 6px #000; }
+  .home-body .nexus-copy { color: #eef5ff; font-size: 12.5px; text-shadow: 0 1px 8px #000, 0 0 3px #000; }
+  .home-body .nexus-sub { color: #b9dcff; text-shadow: 0 0 10px rgba(0,0,0,.9); }
+  .home-body .footer-note { color: #c4d0e4; }
+}
+@media (max-width: 340px) {
+  .home-body .nexus-stage .nexus-generate-btn .generate-btn__copy strong { font-size: 14px; }
+  .home-body .meta__note, .home-body #freeTierNote { font-size: 11.5px; }
+}

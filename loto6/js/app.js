@@ -59,7 +59,7 @@
     if (isQaMode()) {
       // 【安全設計】QAモード中はCTAを押しても実際のAPIには一切進まない。
       // 実際の生成・保存なしで確認できる無料QA（結果演出プレビュー）へ誘導する。
-      location.href = `result/index.html?qa=1&count=1`;
+      location.href = `/loto6/result/index.html?qa=1&count=1`;
       return;
     }
 
@@ -98,7 +98,7 @@
       // 「マイ予測」(access_token)は無い（有料購入者専用の機能のため）。
       sessionStorage.setItem('loto6_claim_token', body.claim_token);
       sessionStorage.removeItem('loto6_access_token');
-      location.assign('result/index.html');
+      location.assign('/loto6/result/index.html');
     } catch (err) {
       console.error('Free generate start failed', err);
       if (err && err.message === 'free_limit_not_elapsed') {
