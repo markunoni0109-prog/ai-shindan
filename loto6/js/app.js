@@ -14,7 +14,7 @@
  * 形で温存する。有料再開時は、この無料生成ブロックをコメントアウトし、
  * 下の「有料Stripe決済（休止中・削除せず温存）」ブロックを戻すだけでよい。
  * サーバー側もPAID_CHECKOUT_DISABLEDフラグを外すだけで即座に有効化できる
- * （Stripe/Webhook/D1購入系のコード自体は無変更。正式料金は5予測¥300・10予測¥500・30予測¥1,000・50予測¥1,500）。
+ * （Stripe/Webhook/D1購入系のコード自体は無変更。現行の販売プランは5予測¥300（pack5）のみ。）
  *
  * 【匿名ユーザー識別(anon_id)】
  * ブラウザのlocalStorageにcrypto.randomUUID()を1つだけ保存し、
@@ -126,51 +126,14 @@
    * 【有料Stripe決済（稼働）】プラン選択→/api/checkout/create→Stripe Checkout。
    * 無料生成(startFreeGenerate)は削除せず温存（FREE BETA再開時用）。
    * ============================================================ */
-  const planPicker = document.getElementById('planPicker');
-  const priceLabel = document.getElementById('priceLabel');
-  const priceValue = document.getElementById('priceValue');
-  const ctaTitle = document.getElementById('ctaTitle');
-  const ctaAmount = document.getElementById('ctaAmount');
-  
-  function selectedPlan() {
-    const active = planPicker && planPicker.querySelector('.plan-chip.is-selected');
-    return {
-      planCode: (active && active.dataset.plan) || 'pack5',
-      amount: Number((active && active.dataset.amount) || 300),
-      count: Number((active && active.dataset.count) || 5),
-    };
-  }
-  
-  function updatePriceDisplay() {
-    const { amount, count } = selectedPlan();
-    const amountText = '¥' + amount.toLocaleString('ja-JP');
-    if (priceLabel) priceLabel.textContent = `${count} PREDICTIONS`;
-    if (priceValue) priceValue.textContent = amountText;
-    if (ctaAmount) ctaAmount.textContent = amountText;
-    if (ctaTitle) ctaTitle.textContent = `AI予測を${count}件まとめて生成`;
-    if (generateBtn) generateBtn.setAttribute('aria-label', `${amountText}でAI予測を${count}件生成`);
-  }
-  
-  if (planPicker) {
-    planPicker.addEventListener('click', (ev) => {
-      const btn = ev.target.closest('.plan-chip');
-      if (!btn || busy) return;
-      planPicker.querySelectorAll('.plan-chip').forEach((el) => {
-        el.classList.remove('is-selected');
-        el.setAttribute('aria-checked', 'false');
-      });
-      btn.classList.add('is-selected');
-      btn.setAttribute('aria-checked', 'true');
-      updatePriceDisplay();
-    });
-  }
-  updatePriceDisplay();
-  
+  // 販売プランは5予測・300円（pack5）のみ。金額・件数はサーバー側(plans.js)が正本。
+  const PLAN_CODE = 'pack5';
+  const PLAN_COUNT = 5;
+
   async function startCheckout() {
     if (busy) return;
     if (isQaMode()) {
-      const { count } = selectedPlan();
-      location.href = `/loto6/result/index.html?qa=1&count=${count}`;
+      location.href = `/loto6/result/index.html?qa=1&count=${PLAN_COUNT}`;
       return;
     }
     busy = true;
@@ -181,11 +144,10 @@
       if (!apiBase || apiBase.includes('REPLACE_WITH_WORKER_URL')) {
         throw new Error('api_not_configured');
       }
-      const { planCode } = selectedPlan();
-      const res = await fetch(`${apiBase}/api/checkout/create`, {
+            const res = await fetch(`${apiBase}/api/checkout/create`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ plan_code: planCode }),
+        body: JSON.stringify({ plan_code: PLAN_CODE }),
       });
       let body = null;
       try { body = await res.json(); } catch (_) {}
