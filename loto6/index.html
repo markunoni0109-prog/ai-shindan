@@ -1,146 +1,28 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>AI HUNTER | LOTO6 NEXUS</title>
-<meta name="description" content="AI HUNTER LOTO6 NEXUS。AIが6つの数字を分析・生成し、結果を事前保存。5予測300円から（研究・娯楽目的、当選を保証するものではありません）。" />
-<script>
-/* iOS Safariは下部ツールバーの表示/非表示でビューポート高さが動的に変わり、
-   100dvhだけでは反映タイミングにズレが出ることがある。window.visualViewport
-   から実際に見えている高さをその都度取得し、CSS変数--app-vhへ反映して
-   .screenのmin-heightに使う（CTAの位置だけを守るための最小限の対策）。
-   visualViewport非対応ブラウザではこの変数は未設定のままとなり、
-   CSS側のフォールバック（100dvh→100vh）がそのまま使われる。 */
-(function () {
-  function setAppVh() {
-    var h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
-    document.documentElement.style.setProperty('--app-vh', h + 'px');
-  }
-  setAppVh();
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', setAppVh);
-    window.visualViewport.addEventListener('scroll', setAppVh);
-  }
-  window.addEventListener('orientationchange', setAppVh);
-  window.addEventListener('pageshow', setAppVh);
-})();
-</script>
-<link rel="stylesheet" href="/loto6/css/style.css?v=20261019d" />
-</head>
-<body class="home-body">
-<div class="stage-dim" id="stageDim"></div>
-<main class="screen home-screen">
-  <header class="nexus-header">
-    <div class="brand"><span class="brand__mark">◎</span><div><strong>AI HUNTER</strong><small>データで遊ぶ。未来を楽しむ。</small></div></div>
-    <a class="top-history" href="/loto6/history/index.html">↶ 過去の予測</a>
-  </header>
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>利用規約｜LOTO6 NEXUS</title><style>
+:root{--bg:#02050b;--fg:#e6edf7;--mut:#9fb0c8;--line:#1c2a40;--acc:#7fd1ff;--warn:#ffcc66}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.85 -apple-system,"Hiragino Sans","Noto Sans JP",sans-serif}
+main{max-width:760px;margin:0 auto;padding:28px 16px 64px}
+a{color:var(--acc)}h1{font-size:24px;margin:8px 0 4px}h2{font-size:18px;margin:32px 0 8px;padding-top:12px;border-top:1px solid var(--line)}
+.meta{color:var(--mut);font-size:13px}.draft{border:1px solid var(--line);color:var(--mut);padding:10px 12px;border-radius:8px;font-size:13px;margin:16px 0}
+table{border-collapse:collapse;width:100%;font-size:15px}th,td{border:1px solid var(--line);padding:10px;text-align:left;vertical-align:top}th{width:32%;background:#0a1220}
+.tbd{color:var(--warn)}nav.top{font-size:13px;margin-bottom:8px}ul{padding-left:1.3em}
+</style></head><body><main>
+<nav class="top"><a href="/loto6/index.html">LOTO6 NEXUS</a> ／ <a href="/loto6/legal/index.html">規約・ポリシー</a></nav>
+<h1>利用規約</h1><p class="meta">運営：AI HUNTER ／ サービス：LOTO6 NEXUS ／ 制定日：2026年10月22日</p>
+<div class="draft">本サービスは試験運用中です。内容は、正式運用の開始時に改めて見直します。</div>
 
-  <section class="hero">
-    <div class="hero__orbit" aria-hidden="true"></div>
-    <div class="wordmark nexus-wordmark">
-      <span class="wordmark__eyebrow">AI HUNTER</span>
-      <h1 class="wordmark__title">LOTO<span>6</span></h1>
-      <p class="nexus-sub">NEXUS · AI PREDICTION</p>
-      <p class="nexus-copy">数字が導く、もうひとつのワクワクを。</p>
-    </div>
-
-    <div class="meta nexus-meta">
-      <p class="meta__draw" id="drawNumberLabel">PERMANENT TRACKING</p>
-      <div class="price"><span class="price__label" id="priceLabel">5 PREDICTIONS</span><span class="price__value" id="priceValue">¥300</span></div>
-    </div>
-    <p class="meta__note" id="freeTierNote">決済後、AIが6つの数字をまとめて生成・保存します。</p>
-    <section class="stage nexus-stage" id="stage">
-      <button class="generate-btn nexus-generate-btn" id="generateBtn" type="button" aria-label="¥300でAI予測を5件生成">
-        <span class="generate-btn__icon" aria-hidden="true">◎</span>
-        <span class="generate-btn__copy"><small>AIが導く、もうひとつの可能性</small><strong id="ctaTitle">AI予測を5件まとめて生成</strong><em>PRICE <b id="ctaAmount">¥300</b></em></span>
-        <span class="generate-btn__arrow" aria-hidden="true">›</span>
-      </button>
-      <p class="analysing" id="analysingLabel">AI解析中<span class="analysing__dots" id="analysingDots"></span></p>
-      <p class="reveal-title" id="revealTitle">AIが予測した <strong>6</strong>つの数字</p>
-      <div class="balls nexus-balls" id="ballRow" aria-live="polite">
-        <div class="ball" data-slot="0"></div><div class="ball" data-slot="1"></div><div class="ball" data-slot="2"></div>
-        <div class="ball" data-slot="3"></div><div class="ball" data-slot="4"></div><div class="ball" data-slot="5"></div>
-      </div>
-      <div class="impact-word" id="impactWord" aria-hidden="true">ボヨン!</div>
-      <div class="error-msg" id="errorMsg">予測を生成できませんでした。時間をおいてもう一度お試しください。</div>
-      <div class="result" id="result">
-        <div class="result__row"><span id="resultDraw">PERMANENT TRACKING</span><span id="resultId">予測ID #000000</span></div>
-        <div class="result__row"><span id="resultTime">生成日時 —</span><span></span></div>
-        <div class="result__locked">✓ この予測は保存されました</div>
-      </div>
-    </section>
-  </section>
-
-  <nav class="action-grid" aria-label="予測メニュー">
-    <a href="/loto6/predictions/index.html">▣<span>公開予測履歴</span></a>
-    <a href="/loto6/tracking/index.html">◎<span>永久追跡を見る</span></a>
-    <a href="/loto6/data/index.html">▥<span>研究データを見る</span></a>
-  </nav>
-  <p class="meta__note footer-note">※本サービスはロト6の当選を保証するものではありません。AIによる研究・娯楽目的の予測サービスです。</p>
-  <nav class="legal-links" aria-label="規約・ポリシー" style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;margin:14px 0 4px;font-size:12px;line-height:1.8">
-    <a href="/loto6/terms/index.html" style="color:#7f9cc4">利用規約</a>
-    <a href="/loto6/privacy/index.html" style="color:#7f9cc4">プライバシー</a>
-    <a href="/loto6/disclaimer/index.html" style="color:#7f9cc4">免責事項</a>
-    <a href="/loto6/tokushoho/index.html" style="color:#7f9cc4">特定商取引法に基づく表記</a>
-    <a href="/loto6/refund/index.html" style="color:#7f9cc4">返金ポリシー</a>
-  </nav>
-  <footer class="nexus-footer"><span>AI HUNTER　|　LOTO6 NEXUS</span><em>No Loto, No Life.</em></footer>
-</main>
-<script src="/loto6/js/api-config.js?v=20261019d"></script><script src="/loto6/js/app.js?v=20261019d"></script>
-<script>
-/* 【CTA位置 無料QAモード】
-   ?qa=1 を付けて開いたときだけ、CTAボタンの実測値（visualViewportの高さ、
-   --app-vh、safe-area-inset-bottom、ボタンの画面内収まり具合）を小さな
-   読み取り専用パネルで表示する。実決済・実生成には一切触れない
-   （generateBtnのクリックイベントも増やさない、値を読むだけ）。
-   ?qa=1 が無い通常アクセスでは、このスクリプトは何もしない
-   （＝一般ユーザーがQAを起動することはない）。 */
-(function () {
-  if (new URLSearchParams(location.search).get('qa') !== '1') return;
-
-  var btn = document.getElementById('generateBtn');
-  var panel = document.createElement('div');
-  panel.id = 'qaCtaPanel';
-  panel.style.cssText = [
-    'position:fixed', 'left:8px', 'right:8px', 'top:8px', 'z-index:99999',
-    'background:rgba(0,0,0,.85)', 'color:#7dffb0', 'font:11px/1.5 monospace',
-    'padding:8px 10px', 'border-radius:8px', 'border:1px solid #2a6',
-    'white-space:pre-wrap', 'pointer-events:none',
-  ].join(';');
-  document.body.appendChild(panel);
-  if (btn) btn.style.outline = '2px dashed #ffd94a';
-
-  function update() {
-    var vv = window.visualViewport;
-    var vh = (vv && vv.height) || window.innerHeight;
-    var appVh = getComputedStyle(document.documentElement).getPropertyValue('--app-vh').trim();
-    var safeBottom = getComputedStyle(document.body).paddingBottom;
-    var lines = ['[QAモード：CTA位置確認 / 実決済なし]'];
-    lines.push('window.innerHeight=' + window.innerHeight + 'px');
-    lines.push('visualViewport.height=' + vh + 'px');
-    lines.push('--app-vh=' + (appVh || '(未設定)'));
-    lines.push('body computed padding-bottom=' + safeBottom);
-    if (btn) {
-      var r = btn.getBoundingClientRect();
-      var fullyVisible = r.top >= 0 && r.bottom <= vh;
-      lines.push('CTA top=' + Math.round(r.top) + ' bottom=' + Math.round(r.bottom));
-      lines.push('CTAが画面内に完全表示=' + (fullyVisible ? 'OK' : 'NG(隠れている可能性)'));
-    } else {
-      lines.push('CTA要素が見つかりません');
-    }
-    panel.textContent = lines.join('\n');
-  }
-
-  update();
-  window.addEventListener('resize', update);
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', update);
-    window.visualViewport.addEventListener('scroll', update);
-  }
-  window.addEventListener('orientationchange', update);
-  setInterval(update, 500);
-})();
-</script>
-</body>
-</html>
+<h2>第1条（適用）</h2><p>本規約は、AI HUNTER（以下「当運営」）が提供する「LOTO6 NEXUS」（以下「本サービス」）の利用条件を定めるものです。本サービスを利用した時点で、本規約に同意したものとみなします。</p>
+<h2>第2条（サービス内容）</h2><p>本サービスは、ロト6の数字をAIが統計的に生成し、その記録を保存・公開して、のちの抽せん結果と照合する情報サービスです。当せんを保証・約束するものではありません。</p>
+<h2>第3条（利用資格）</h2><p>ロト6の購入は法令上20歳以上に限られるため、本サービスは20歳以上の方を対象とします。</p>
+<h2>第4条（料金と支払い）</h2><ul><li>販売するのは「5予測パック」のみで、料金は300円です。</li><li>支払いは、Stripe社の決済画面でのクレジットカード決済のみです。</li><li>当運営はカード番号を取得・保存しません。</li></ul>
+<h2>第5条（予測の生成と提供）</h2><p>決済が確認できた後、AIが5件の予測（各6個の数字）を生成して保存し、結果ページに表示します。決済完了後に表示されない場合は、第9条の問い合わせ先へご連絡ください。</p>
+<h2>第6条（予測記録の公開）</h2><p>生成した予測は、改ざんを防ぐ形（ハッシュ連鎖）で保存され、購入者を特定できない形で、履歴・追跡ページに公開されます。保存した予測は、外れた場合も削除しません。</p>
+<h2>第7条（禁止事項）</h2><ul><li>法令または公序良俗に反する行為</li><li>不正アクセス、過度な負荷をかける行為、決済の不正利用</li><li>本サービスの予測を、当せんを保証するものとして第三者に販売・宣伝する行為</li><li>その他、当運営が不適切と判断する行為</li></ul>
+<h2>第8条（免責・責任の制限）</h2><p>予測は当せんを保証しません。本サービスの利用による損失（くじの購入代金を含む）について、当運営は責任を負いません。詳細は<a href="/loto6/disclaimer/index.html">免責事項</a>をご覧ください。当運営の故意または重過失による場合を除き、損害賠償の範囲は、当該購入代金（300円）を上限とします。</p>
+<h2>第9条（返金）</h2><p>返金については<a href="/loto6/refund/index.html">返金ポリシー</a>に従います。</p>
+<h2>第10条（サービスの変更・停止）</h2><p>当運営は、事前の通知なく、本サービスの内容変更・一時停止・終了をすることがあります。</p>
+<h2>第11条（規約の変更）</h2><p>本規約は、必要に応じて変更します。変更後は、このページに掲載した時点から効力を持ちます。</p>
+<h2>第12条（準拠法・管轄）</h2><p>日本法を準拠法とします。紛争が生じた場合は、運営者の所在地を管轄する裁判所を第一審の専属的合意管轄とします。</p>
+<h2>第13条（お問い合わせ）</h2><p>local.maps.jp@gmail.com</p>
+<p class="meta" style="margin-top:40px">お問い合わせ：local.maps.jp@gmail.com</p></main></body></html>
