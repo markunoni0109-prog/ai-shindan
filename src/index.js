@@ -5,6 +5,7 @@ import { handleCheckoutSessionCompleted, WebhookIgnored } from './lib/webhook.js
 import { checkRateLimit, clientIdentifier } from './lib/ratelimit.js';
 import { corsHeaders, handlePreflight } from './lib/cors.js';
 import { processDraw, backfillPrediction, researchStats, captureFeatures } from './lib/tracking.js';
+import { publicSummary, purchaserDetail } from './lib/summary.js';
 import { PLAN_CATALOG, isPurchasablePlan } from './lib/plans.js';
 import { generateRecoveryToken, hashRecoveryToken } from './lib/tokens.js';
 import { hashEmail, sendRecoveryEmail, normalizeEmail } from './lib/email.js';
@@ -463,6 +464,49 @@ async function handleMyPredictions(request, env, cors) {
   );
 }
 
+/**
+ * 【段1追加】購入者本人だけが見られる、個別予測の追跡詳細。
+ * access_token（購入の鍵）で本人確認し、その購入に属する予測だけを返す。
+ * 他人の予測・存在しない予測・不正なtokenは、すべて同じ404（区別しない）。
+ */
+async function handleMyPredictionDetail(request, env, cors) {
+  const rl = await checkRateLimit(
+    env.DB,
+    { key: `my-predictions-detail:${clientIdentifier(request)}`, limit: 30, windowSeconds: 60 }
+  );
+  if (!rl.allowed) return errorResponse(429, 'rate_limited', 'しばらくしてから再度お試しください', cors);
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return errorResponse(400, 'invalid_body', 'リクエストボディが不正です', cors);
+  }
+  const token = body?.access_token;
+  const predictionId = body?.prediction_id;
+  if (!token || typeof token !== 'string') {
+    return errorResponse(400, 'missing_token', 'access_tokenが必要です', cors);
+  }
+  if (!predictionId || typeof predictionId !== 'string' || predictionId.length > 64) {
+    return errorResponse(400, 'missing_prediction_id', 'prediction_idが必要です', cors);
+  }
+
+  const tokenHash = await hashAccessToken(token);
+  const payment = await env.DB.prepare(`SELECT id FROM payments WHERE access_token_hash = ?`)
+    .bind(tokenHash)
+    .first();
+  if (!payment) return errorResponse(404, 'not_found', '該当する購入情報が見つかりません', cors);
+
+  const detail = await purchaserDetail(env.DB, payment.id, predictionId);
+  if (!detail) return errorResponse(404, 'not_found', '該当する購入情報が見つかりません', cors);
+  return json(detail, 200, cors);
+}
+
+/** 【段1追加】認証不要の全体追跡成績（集計のみ）。個別の予測数字は含まない。 */
+async function handlePublicSummary(env, cors) {
+  return json(await publicSummary(env.DB), 200, cors);
+}
+
 const RECOVERY_TOKEN_TTL_MS = 30 * 60 * 1000; // 30分・単回使用
 
 /**
@@ -713,6 +757,12 @@ export default {
       }
       if (request.method === 'POST' && pathname === '/api/my-predictions') {
         return await handleMyPredictions(request, env, cors);
+      }
+      if (request.method === 'POST' && pathname === '/api/my-predictions/detail') {
+        return await handleMyPredictionDetail(request, env, cors);
+      }
+      if (request.method === 'GET' && pathname === '/api/public/summary') {
+        return await handlePublicSummary(env, cors);
       }
       if (request.method === 'POST' && pathname === '/api/my-predictions/recover') {
         return await handleRecoverRequest(request, env, cors);
