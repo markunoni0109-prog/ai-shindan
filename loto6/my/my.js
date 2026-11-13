@@ -68,6 +68,85 @@
     return '照合待ち';
   }
 
+  function esc(v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function distRows(dist, expected) {
+    // 5個はボーナス一致を含めて1行にまとめる（基準値の「5個」と対応させるため）
+    return [0, 1, 2, 3, 4, 5, 6]
+      .map((k) => {
+        const actual = k === 5 ? (dist['5'] || 0) + (dist['5+B'] || 0) : dist[String(k)] || 0;
+        const exp = expected ? expected[String(k)] : null;
+        const label = k === 5 ? '5個（ボーナス一致を含む）' : `${k}個`;
+        return `<tr><td>${label}</td><td>${actual}</td><td>${exp == null ? '-' : esc(exp)}</td></tr>`;
+      })
+      .join('');
+  }
+
+  function matchList(list) {
+    if (!list.length) return '<p class="note">該当する回はありません。</p>';
+    return (
+      '<table class="dt"><thead><tr><th>回</th><th>抽せん日</th><th>一致</th><th>等級相当</th></tr></thead><tbody>' +
+      list
+        .map(
+          (m) =>
+            `<tr><td>第${esc(m.draw_number)}回</td><td>${esc(m.draw_date)}</td><td>${esc(m.main_match_count)}個${m.bonus_match ? '＋B' : ''}</td><td>${m.equivalent_rank ? esc(m.equivalent_rank) + '等' : '-'}</td></tr>`
+        )
+        .join('') +
+      '</tbody></table>'
+    );
+  }
+
+  function renderDetail(d) {
+    const f = d.forward_tracking;
+    const h = d.historical_backtest;
+    return `
+      <h4>生成後の追跡（${esc(f.checked_draw_count)}回照合・外れも全件）</h4>
+      ${f.checked_draw_count ? matchList(f.matches) : '<p class="note">まだ抽せん結果との照合はありません。次の抽せん後に自動で更新されます。</p>'}
+      <h4>過去全抽せんとの照合（研究・参考）</h4>
+      <p class="note">${esc(h.note)}</p>
+      <table class="dt"><thead><tr><th>一致数</th><th>実績</th><th>期待回数</th></tr></thead><tbody>${distRows(h.match_distribution, h.expected_for_random)}</tbody></table>
+      <p class="note">表の実績は回数、期待回数は純ランダムな数字なら偶然で起こる回数の理論値です。照合した抽せん：${esc(h.checked_draw_count)}回。純ランダムな数字でも、過去の抽せんとの一致は多く起こります（例：4個以上の一致が1回以上ある確率は約97%）。一致の多さは実力の証拠ではなく、将来の当せん確率を上げるものでもありません。</p>
+      <p class="note">一覧は${esc(h.listed_min_match)}個以上一致した回のみです（0〜${esc(h.listed_min_match - 1)}個の回も、上の分布にはすべて含まれています）。</p>
+      ${matchList(h.matches)}
+    `;
+  }
+
+  async function toggleDetail(token, predictionId, btn, box) {
+    if (!box.hidden) {
+      box.hidden = true;
+      btn.textContent = '追跡の詳細';
+      return;
+    }
+    if (box.dataset.loaded === '1') {
+      box.hidden = false;
+      btn.textContent = '閉じる';
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = '読み込み中…';
+    try {
+      const apiBase = window.ApiConfig && window.ApiConfig.BASE_URL;
+      const res = await fetch(`${apiBase}/api/my-predictions/detail`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ access_token: token, prediction_id: predictionId }),
+      });
+      if (!res.ok) throw new Error(`http_${res.status}`);
+      box.innerHTML = renderDetail(await res.json());
+      box.dataset.loaded = '1';
+      box.hidden = false;
+      btn.textContent = '閉じる';
+    } catch (_) {
+      box.innerHTML = '<p class="error">詳細を取得できませんでした。時間をおいて再度お試しください。</p>';
+      box.hidden = false;
+      btn.textContent = '閉じる';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
   function renderPurchase(token, data) {
     const el = document.createElement('section');
     el.className = 'purchase';
@@ -91,7 +170,12 @@
         <div class="balls">${p.numbers.map((n) => `<span class="ball">${String(n).padStart(2, '0')}</span>`).join('')}</div>
         <div class="pid">${p.prediction_id}</div>
         <div class="track">${trackingLabel(p.tracking)}</div>
+        <button class="detail-btn" type="button">追跡の詳細</button>
+        <div class="detail" hidden></div>
       `;
+      const btn = row.querySelector('.detail-btn');
+      const box = row.querySelector('.detail');
+      btn.addEventListener('click', () => toggleDetail(token, p.prediction_id, btn, box));
       predsEl.appendChild(row);
     });
     el.querySelector('[data-remove]').addEventListener('click', () => {
