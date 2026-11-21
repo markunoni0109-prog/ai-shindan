@@ -13,3 +13,9 @@ database_id = "2b45deec-2e47-4da1-9724-8a909e409029"
 # （STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET。README参照）。
 FRONTEND_BASE_URL = "https://ai-hunter.jp"
 ALLOWED_ORIGINS = "https://ai-hunter.jp"
+# 研究用の自動予測。"true" にした時だけcronが動く（既定は停止）
+RESEARCH_ENABLED = "false"
+
+[triggers]
+# 10分おき。RESEARCH_ENABLED が "true" でない間は、何もせず終了する
+crons = ["*/10 * * * *"]
