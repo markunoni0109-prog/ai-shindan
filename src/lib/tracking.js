@@ -61,6 +61,23 @@ export async function backfillPrediction(db,predictionId){
  await rebuildSummary(db,predictionId,now);
  return {processed:draws.length};
 }
+/**
+ * 追いつき判定: 当せん番号を後から手で入れた場合など、まだ判定されていない
+ * (予測 x 抽せん回) がある予測を、既存の backfillPrediction でそのまま判定する。
+ * 追加(INSERT OR IGNORE)だけを行い、既存の判定行は一切変更しない。
+ * 1回の呼び出しで処理する予測数は limit 件までにして、D1のクエリ数上限(50)に収める。
+ */
+export async function catchUpPredictions(db, limit = 5) {
+  const rows = (await db.prepare(
+    `SELECT p.prediction_id AS id FROM predictions p
+     WHERE EXISTS (SELECT 1 FROM lottery_draws d
+                   WHERE NOT EXISTS (SELECT 1 FROM prediction_matches pm
+                                     WHERE pm.prediction_id = p.prediction_id AND pm.draw_id = d.draw_id))
+     ORDER BY p.display_sequence LIMIT ?`
+  ).bind(limit).all()).results || [];
+  for (const r of rows) await backfillPrediction(db, r.id);
+  return { processed: rows.length };
+}
 export async function researchStats(db){
  const total=(await db.prepare(`SELECT COUNT(*) c FROM predictions`).first()).c; const matches=(await db.prepare(`SELECT COUNT(*) c FROM prediction_matches`).first()).c; const f=await db.prepare(`SELECT SUM(main_match_count=3 AND bonus_match=0) m3,SUM(main_match_count=4) m4,SUM(main_match_count=5 AND bonus_match=0) m5,SUM(main_match_count=5 AND bonus_match=1) m5b,SUM(main_match_count=6) m6 FROM prediction_matches WHERE tracking_type='forward_tracking'`).first(); const a=await db.prepare(`SELECT AVG(days_to_best) avg_days,AVG(draws_to_best) avg_draws FROM prediction_tracking_summary WHERE best_draw_id IS NOT NULL`).first();
  return {total_predictions:total,total_comparisons:matches,forward:{match_3:Number(f.m3||0),match_4:Number(f.m4||0),match_5:Number(f.m5||0),match_5_bonus:Number(f.m5b||0),match_6:Number(f.m6||0),avg_days_to_best:a.avg_days??null,avg_draws_to_best:a.avg_draws??null}};

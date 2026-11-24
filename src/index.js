@@ -4,7 +4,7 @@ import { createCheckoutSession, verifyStripeSignature } from './lib/stripe.js';
 import { handleCheckoutSessionCompleted, WebhookIgnored } from './lib/webhook.js';
 import { checkRateLimit, clientIdentifier } from './lib/ratelimit.js';
 import { corsHeaders, handlePreflight } from './lib/cors.js';
-import { processDraw, backfillPrediction, captureFeatures } from './lib/tracking.js';
+import { processDraw, backfillPrediction, captureFeatures, catchUpPredictions } from './lib/tracking.js';
 import { publicSummary, purchaserDetail } from './lib/summary.js';
 import { runResearchTick, researchPublic, researchBatchPublic } from './lib/research.js';
 import { PLAN_CATALOG, isPurchasablePlan } from './lib/plans.js';
@@ -721,6 +721,8 @@ export default {
    * 購入処理・決済には触れない。失敗しても、研究用だけが止まる。
    */
   async scheduled(event, env, ctx) {
+    // 購入済み予測の追いつき判定（追加のみ・既存行は変更しない）。研究記録とは独立。
+    ctx.waitUntil(catchUpPredictions(env.DB).catch(() => {}));
     if (env.RESEARCH_ENABLED !== 'true') return;
     ctx.waitUntil(
       runResearchTick(env.DB, new Date((event && event.scheduledTime) || Date.now())).catch(() => {})
