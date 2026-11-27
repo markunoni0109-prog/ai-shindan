@@ -7,6 +7,8 @@
  */
 
 export const ALGORITHM_VERSION = 'prototype-v1';
+// 追加: 「被りにくいモード」用のアルゴリズム名（既存の prototype-v1 は変更しない）
+export const ALGORITHM_VERSION_LOWOVERLAP = 'lowoverlap-v1';
 export const SCHEMA_VERSION = 'loto6-prediction-v1';
 
 // FINAL値（v1.1 FINAL / Open承認済み、2026-09-15）。以後変更禁止。
@@ -25,6 +27,38 @@ export function generateNumbers(rng = Math.random) {
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
   return pool.slice(0, NUMBER_COUNT).sort((a, b) => a - b);
+}
+
+/**
+ * 「ありがちな選び方」か判定する（当たる確率とは無関係。当選時の山分けを避けるための除外ルール）。
+ * numbers は昇順の6個。
+ */
+export function isCommonPattern(numbers) {
+  const c = numbers;
+  if (c[c.length - 1] <= 31) return true; // 全部が誕生日圏
+  if (c.filter((x) => x <= 31).length >= 5) return true; // ほぼ誕生日圏
+  if (c.filter((x) => x <= 12).length >= 3) return true; // 月の数字が多い
+  for (let i = 0; i + 2 < c.length; i++) {
+    if (c[i + 2] - c[i] === 2) return true; // 3連番
+  }
+  const d = new Set();
+  for (let i = 0; i + 1 < c.length; i++) d.add(c[i + 1] - c[i]);
+  if (d.size === 1) return true; // 等間隔
+  if (c.filter((x) => x % 10 === c[0] % 10).length >= 4) return true; // 縦並び
+  return false;
+}
+
+/**
+ * 被りにくいモード: 通常の生成を繰り返し、ありがちな選び方を除外する。
+ * rngを使うので、テストでは固定乱数で再現できる。上限回数で必ず終了する。
+ */
+export function generateNumbersLowOverlap(rng = Math.random, maxTries = 1000) {
+  let last = generateNumbers(rng);
+  for (let t = 0; t < maxTries; t++) {
+    if (!isCommonPattern(last)) return last;
+    last = generateNumbers(rng);
+  }
+  return last;
 }
 
 function pad2(n) {
@@ -79,6 +113,7 @@ export async function sha256Hex(text) {
 /**
  * 1件分のprediction record（DB保存直前の全フィールド）を組み立てる。
  * previous_hashを外から受け取り、record_hashを内部で計算して返す。
+ * mode: 'standard'（既定。従来どおり prototype-v1）| 'lowoverlap'（lowoverlap-v1）
  */
 export async function buildPredictionRecord({
   drawNumber,
@@ -89,8 +124,11 @@ export async function buildPredictionRecord({
   previousHash,
   generatedAt,
   rng,
+  mode = 'standard',
 }) {
-  const numbers = generateNumbers(rng);
+  const lowOverlap = mode === 'lowoverlap';
+  const algorithmVersion = lowOverlap ? ALGORITHM_VERSION_LOWOVERLAP : ALGORITHM_VERSION;
+  const numbers = lowOverlap ? generateNumbersLowOverlap(rng) : generateNumbers(rng);
   const predictionId = crypto.randomUUID();
   const payload = canonicalPayload({
     predictionId,
@@ -101,7 +139,7 @@ export async function buildPredictionRecord({
     entitlementPublicId,
     predictionIndex,
     planCode,
-    algorithmVersion: ALGORITHM_VERSION,
+    algorithmVersion,
     previousHash,
   });
   const recordHash = await sha256Hex(payload);
@@ -113,7 +151,7 @@ export async function buildPredictionRecord({
     generatedAt,
     predictionIndex,
     planCode,
-    algorithmVersion: ALGORITHM_VERSION,
+    algorithmVersion,
     previousHash,
     recordHash,
   };
@@ -132,6 +170,7 @@ export async function buildPredictionChain({
   previousHash0,
   generatedAt,
   rng,
+  mode = 'standard',
 }) {
   const records = [];
   let prevHash = previousHash0;
@@ -145,6 +184,7 @@ export async function buildPredictionChain({
       previousHash: prevHash,
       generatedAt,
       rng,
+      mode,
     });
     records.push(rec);
     prevHash = rec.recordHash;

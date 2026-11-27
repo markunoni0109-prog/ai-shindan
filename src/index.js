@@ -206,7 +206,8 @@ async function handleClaim(request, env, cors) {
     .first();
 
   try {
-    const result = await claimEntitlement(env.DB, tokenHash, { drawNumber: PREDICTION_SCOPE });
+    const mode = body?.mode === 'lowoverlap' ? 'lowoverlap' : 'standard'; // 被りにくいモード（既定は従来どおり）
+    const result = await claimEntitlement(env.DB, tokenHash, { drawNumber: PREDICTION_SCOPE, mode });
     if (result.outcome === 'created') { for (const p of result.predictions) { await captureFeatures(env.DB, p); await backfillPrediction(env.DB, p.prediction_id); } }
     if (result.outcome === 'created' && entRow && entRow.anon_id) {
       // 【既知の限界・計画書1.4に明記】このmarkFreeClaimSuccess()は、

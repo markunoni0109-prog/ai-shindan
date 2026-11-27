@@ -185,12 +185,15 @@
   }
 
   async function claimPredictions(claimToken) {
+    const claimBody = { claim_token: claimToken };
+    try { if (sessionStorage.getItem('loto6_mode') === 'lowoverlap') claimBody.mode = 'lowoverlap'; } catch (_) {}
     const res = await fetch(`${API_BASE}/api/predictions/claim`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ claim_token: claimToken }),
+      body: JSON.stringify(claimBody),
     });
     if (!res.ok) throw new Error('claim failed');
+    try { sessionStorage.removeItem('loto6_mode'); } catch (_) {}
     return res.json();
   }
 

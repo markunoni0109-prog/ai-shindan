@@ -94,7 +94,7 @@ function classifyConflict(message) {
 export async function claimEntitlement(
   db,
   tokenHash,
-  { drawNumber, rng, _afterTipRead = async () => {} } = {}
+  { drawNumber, rng, mode = 'standard', _afterTipRead = async () => {} } = {}
 ) {
   // _afterTipRead はテストが競合ウィンドウを決定的に再現するためだけに使う
   // フック（本番では常にno-op）。read replicaやSessions APIとは無関係。
@@ -138,6 +138,7 @@ export async function claimEntitlement(
       previousHash0,
       generatedAt,
       rng,
+      mode,
     });
 
     // 発行件数がentitlementの権利数と必ず一致することを保存前に確認する。

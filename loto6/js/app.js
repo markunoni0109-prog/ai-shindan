@@ -158,6 +158,12 @@
       if (!body.checkout_url || !body.claim_token) throw new Error('invalid_checkout_response');
       sessionStorage.setItem('loto6_claim_token', body.claim_token);
       if (body.access_token) sessionStorage.setItem('loto6_access_token', body.access_token);
+      // 被りにくいモードの選択（既定は従来どおり）。resultページのclaim時にサーバーへ送る。
+      try {
+        const lo = document.getElementById('lowOverlapOpt');
+        if (lo && lo.checked) sessionStorage.setItem('loto6_mode', 'lowoverlap');
+        else sessionStorage.removeItem('loto6_mode');
+      } catch (_) {}
       location.assign(body.checkout_url);
     } catch (err) {
       console.error('Checkout start failed', err);
